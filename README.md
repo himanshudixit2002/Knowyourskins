@@ -1,4 +1,4 @@
-# Skintellect 🧬✨
+# Knowyourskins 🧬✨
 
 ![Project Banner](static/assets/bg5.webp)
 
@@ -22,8 +22,8 @@ A intelligent skincare analysis and recommendation system combining computer vis
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/Skintellect.git
-cd Skintellect
+git clone https://github.com/yourusername/Knowyourskins.git
+cd Knowyourskins
 
 # Create virtual environment
 python -m venv venv
@@ -73,4 +73,4 @@ gunicorn -w 4 app:app
 6. Configure domain `himanshudixit.info` in Nginx
 7. Enable automatic restart with systemd service
 
-Access live at: [https://himanshudixit.info](https://himanshudixit.info)
+Access live at: [https://knowyourskins.info](https://knowyourskins.com)

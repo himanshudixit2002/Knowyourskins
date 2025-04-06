@@ -2,236 +2,1053 @@
 
 {% block content %}
 <style>
-  /* Modern Gradient Background */
+  /* Import Google Fonts */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  /* Base Styles */
   body {
-      background: linear-gradient(135deg, #e0f3f5 0%, #f8f5ff 50%, #fff3fb 100%);
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #1a1f2c, #2d3748);
+    min-height: 100vh;
+    overflow-x: hidden;
   }
+
+  /* Animated Background */
+  .animated-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+  }
+
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    animation: float 15s infinite ease-in-out;
+  }
+  .particle:nth-child(1) { width: 100px; height: 100px; top: 10%; left: 10%; animation-delay: 0s; }
+  .particle:nth-child(2) { width: 80px; height: 80px; top: 20%; left: 80%; animation-delay: 2s; }
+  .particle:nth-child(3) { width: 120px; height: 120px; top: 60%; left: 70%; animation-delay: 4s; }
+  .particle:nth-child(4) { width: 60px; height: 60px; top: 80%; left: 20%; animation-delay: 6s; }
+  .particle:nth-child(5) { width: 90px; height: 90px; top: 40%; left: 30%; animation-delay: 8s; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) translateX(0); }
+    25% { transform: translateY(-20px) translateX(10px); }
+    50% { transform: translateY(0) translateX(20px); }
+    75% { transform: translateY(20px) translateX(10px); }
+  }
+
+  /* Decorative Elements */
+  .decorative-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255, 159, 90, 0.1), rgba(255, 122, 0, 0.05));
+    z-index: 0;
+  }
+  .circle-1 {
+    width: 300px;
+    height: 300px;
+    top: -150px;
+    left: -150px;
+  }
+  .circle-2 {
+    width: 400px;
+    height: 400px;
+    bottom: -200px;
+    right: -200px;
+  }
+
+  /* Animated Gradient Background */
+  .gradient-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, 
+      rgba(255, 159, 90, 0.05) 0%, 
+      rgba(255, 122, 0, 0.05) 25%, 
+      rgba(255, 159, 90, 0.05) 50%, 
+      rgba(255, 122, 0, 0.05) 75%, 
+      rgba(255, 159, 90, 0.05) 100%);
+    background-size: 400% 400%;
+    animation: gradientAnimation 15s ease infinite;
+    z-index: -1;
+  }
+
+  @keyframes gradientAnimation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Main Container */
   .container-main {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-  }
-  h1, h2, h3 {
-      font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
   }
 
-  /* Modern Upload Box with Glassmorphism */
+  /* Content Container */
+  .content-container {
+    width: 100%;
+    max-width: 900px;
+    background: rgba(30, 35, 45, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .content-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at top right, 
+                rgba(255, 159, 90, 0.1), 
+                transparent 60%);
+    pointer-events: none;
+  }
+
+  /* Header */
+  .content-header {
+    padding: 2.5rem 2rem 2rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .content-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center, 
+                rgba(255, 159, 90, 0.2), 
+                transparent 70%);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .content-header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #FF9F5A, #FF7A00);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 0.5rem;
+    position: relative;
+    display: inline-block;
+  }
+
+  .content-header h1::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #FF9F5A, transparent);
+    border-radius: 3px;
+  }
+
+  .content-header i {
+    margin-right: 0.5rem;
+    position: relative;
+    top: -2px;
+  }
+
+  .content-header p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.1rem;
+    margin: 0.75rem 0 0;
+  }
+
+  /* Upload Section */
+  .upload-section {
+    padding: 2rem;
+  }
+
+  /* Upload Box */
   .upload-box {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
-      border: 2px dashed rgba(92, 112, 214, 0.3);
-      border-radius: 20px;
-      padding: 2rem;
-      text-align: center;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      cursor: pointer;
-      margin: 2rem 0;
-      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px dashed rgba(255, 159, 90, 0.3);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
   }
+
+  .upload-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, 
+                rgba(255, 255, 255, 0.05), 
+                transparent 70%);
+    pointer-events: none;
+  }
+
   .upload-box:hover {
-      background: rgba(245, 247, 255, 0.9);
-      border-color: #5c70d6;
-      transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #FF9F5A;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   }
+
   .upload-box input[type="file"] {
-      display: none;
+    display: none;
   }
+
+  .upload-box h3 {
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .upload-box p {
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0.5rem 0;
+  }
+
+  .upload-icon-container {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 159, 90, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  .upload-box:hover .upload-icon-container {
+    transform: scale(1.1);
+    background: rgba(255, 159, 90, 0.2);
+  }
+
+  .upload-icon {
+    font-size: 2.5rem;
+    color: #FF9F5A;
+    transition: all 0.3s ease;
+  }
+
+  .upload-box:hover .upload-icon {
+    transform: translateY(-5px);
+  }
+
+  .upload-icon-container::after {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 159, 90, 0.2);
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+
+  .upload-box:hover .upload-icon-container::after {
+    opacity: 1;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+  }
+
   .file-size-note {
-      font-size: 0.9rem;
-      color: #007BFF;
-      margin-top: 10px;
+    font-size: 0.9rem;
+    color: #FF9F5A;
+    margin-top: 0.75rem;
+    display: inline-block;
+    padding: 0.4rem 1rem;
+    background: rgba(255, 159, 90, 0.1);
+    border-radius: 20px;
   }
 
-  /* Modern Gradient Button */
-  .btn-blue {
-      background: linear-gradient(135deg, #5c70d6 0%, #4b55b8 100%);
-      border: none;
-      border-radius: 12px;
-      padding: 16px 40px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #fff;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 4px 6px rgba(92, 112, 214, 0.2);
-  }
-  .btn-blue:hover {
-      background: linear-gradient(135deg, #4b55b8 0%, #3f4a9e 100%);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 12px rgba(92, 112, 214, 0.3);
+  .feedback {
+    color: #10b981;
+    margin-top: 1rem;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 8px;
+    display: inline-block;
   }
 
-  /* Modern Loader Animation */
+  /* Button */
+  .btn-container {
+    text-align: center;
+    position: relative;
+  }
+
+  .btn-analyze {
+    background: linear-gradient(135deg, #FF9F5A, #FF7A00);
+    border: none;
+    border-radius: 12px;
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 15px rgba(255, 159, 90, 0.3);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .btn-analyze::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+    z-index: -1;
+    transition: all 0.3s ease;
+  }
+
+  .btn-analyze:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255, 159, 90, 0.4);
+  }
+
+  .btn-analyze:hover::before {
+    opacity: 0.5;
+  }
+
+  .btn-analyze:active {
+    transform: translateY(1px);
+  }
+
+  .btn-icon {
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+  }
+
+  .btn-analyze:hover .btn-icon {
+    transform: rotate(15deg);
+  }
+
+  /* Loader */
   .loader {
-      display: none;
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      position: relative;
-      margin: 20px auto;
+    display: none;
+    width: 60px;
+    height: 60px;
+    margin: 1.5rem auto;
+    position: relative;
   }
-  .loader::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      border: 5px solid;
-      border-color: #5c70d6 #0000;
-      animation: pulse 1.5s ease-in-out infinite;
-      mix-blend-mode: multiply;
+
+  .loader:before,
+  .loader:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: #FF9F5A;
   }
-  .loader::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      border: 5px solid;
-      border-color: #0000 #5c70d6;
-      animation: pulse 1.5s -0.75s ease-in-out infinite;
-      mix-blend-mode: multiply;
+
+  .loader:before {
+    z-index: 10;
+    animation: spin 1s infinite;
   }
-  @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 0.8; }
-      50% { transform: scale(1.2); opacity: 0.4; }
+
+  .loader:after {
+    border: 3px solid rgba(255, 159, 90, 0.3);
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 
   /* Results Section */
   .results-section {
-      margin-top: 30px;
-      display: none;
-  }
-  .card-custom {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      margin-bottom: 20px;
-      padding: 20px;
-  }
-  /* Tab Navigation */
-  .results-nav {
-      display: flex;
-      gap: 1rem;
-      margin-bottom: 2rem;
-      justify-content: center;
-  }
-  .tab-btn {
-      background: rgba(255, 255, 255, 0.9);
-      border: none;
-      border-radius: 8px;
-      padding: 12px 24px;
-      font-weight: 600;
-      color: #5c70d6;
-      cursor: pointer;
-      transition: all 0.3s ease;
-  }
-  .tab-btn.active {
-      background: #5c70d6;
-      color: white;
-  }
-  .tab-content {
-      display: none;
-  }
-  .tab-content.active {
-      display: block;
-  }
-  .condition-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1rem;
-  }
-  .product-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1.5rem;
-  }
-  .card-title {
-      color: #2a2d3b;
-      font-weight: 700;
-      margin-bottom: 1rem;
+    display: none;
+    padding: 0 0 2rem 0;
+    animation: fadeIn 0.5s ease forwards;
   }
 
-  /* Annotated Image Styling */
-  .annotated-img {
-      max-width: 100%;
-      border: 3px solid #007BFF;
-      border-radius: 12px;
-      margin-top: 20px;
-      transition: opacity 0.5s;
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
-  
-  /* Recommendation Styling */
+
+  /* Results Navigation */
+  .results-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .results-nav::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 159, 90, 0.3), 
+                transparent);
+  }
+
+  .tab-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tab-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.1), 
+                transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .tab-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+  }
+
+  .tab-btn:hover::before {
+    opacity: 1;
+  }
+
+  .tab-btn.active {
+    background: linear-gradient(135deg, #FF9F5A, #FF7A00);
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 4px 15px rgba(255, 159, 90, 0.3);
+  }
+
+  .tab-btn i {
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+  }
+
+  .tab-btn:hover i {
+    transform: translateY(-2px);
+  }
+
+  /* Tab Content */
+  .tab-content {
+    display: none;
+    animation: fadeIn 0.5s ease forwards;
+    padding: 0 2rem;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  /* Card Custom */
+  .card-custom {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    transform-style: preserve-3d;
+    perspective: 1000px;
+  }
+
+  .card-custom::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at top right, 
+                rgba(255, 159, 90, 0.1), 
+                transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  .card-custom:hover {
+    transform: translateY(-5px) rotateX(2deg) rotateY(2deg);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+  }
+
+  .card-custom:hover::before {
+    opacity: 1;
+  }
+
+  .card-title {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    position: relative;
+  }
+
+  .card-title::after {
+    content: '';
+    position: absolute;
+    bottom: -0.5rem;
+    left: 0;
+    width: 50px;
+    height: 2px;
+    background: linear-gradient(90deg, #FF9F5A, transparent);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  .card-custom:hover .card-title::after {
+    width: 100px;
+  }
+
+  .card-title i {
+    color: #FF9F5A;
+    font-size: 1.25rem;
+    background: rgba(255, 159, 90, 0.1);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+  }
+
+  .card-custom:hover .card-title i {
+    transform: scale(1.1);
+    background: rgba(255, 159, 90, 0.2);
+  }
+
+  /* Condition Grid */
+  .condition-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .list-group-item {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 1rem;
+    color: white;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.3s ease;
+    border-left: 3px solid #FF9F5A;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .list-group-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, 
+                rgba(255, 159, 90, 0.1), 
+                transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .list-group-item:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  }
+
+  .list-group-item:hover::before {
+    opacity: 1;
+  }
+
+  /* Product Grid */
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
+
+  /* Recommendation Card */
   .recommendation-card {
-      margin-bottom: 15px;
-      padding: 10px;
-      border: 1px solid #eaeaea;
-      border-radius: 8px;
-      background-color: #f9f9f9;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 1.25rem;
+    color: white;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .recommendation-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at top right, 
+                rgba(255, 159, 90, 0.05), 
+                transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .recommendation-card:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-3px) rotateX(2deg);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  }
+
+  .recommendation-card:hover::before {
+    opacity: 1;
+  }
+
+  .recommendation-card h3 {
+    color: #FF9F5A;
+    font-size: 1.2rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 0.5rem;
+    position: relative;
+  }
+
+  .recommendation-card h3::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 30%;
+    height: 2px;
+    background: linear-gradient(90deg, #FF9F5A, transparent);
+    transition: width 0.3s ease;
+  }
+
+  .recommendation-card:hover h3::after {
+    width: 50%;
+  }
+
+  .recommendation-card p {
+    margin: 0.75rem 0;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+  }
+
+  .recommendation-card:hover p {
+    transform: translateX(3px);
+  }
+
+  .recommendation-card strong {
+    color: rgba(255, 255, 255, 0.9);
+    position: relative;
+    display: inline-block;
+  }
+
+  .recommendation-card strong::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: #FF9F5A;
+    transition: width 0.3s ease;
+  }
+
+  .recommendation-card:hover strong::after {
+    width: 100%;
+  }
+
+  /* Tip Content */
+  .tip-content {
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.6;
+    font-size: 1rem;
+    white-space: pre-line;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+
+  .card-custom:hover .tip-content {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  /* Image Comparison */
+  .image-comparison {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+  }
+
+  .annotated-img {
+    max-width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+  }
+
+  .annotated-img:hover {
+    transform: scale(1.02);
+    border-color: rgba(255, 159, 90, 0.3);
+  }
+
+  /* Image Overlay */
+  .image-wrapper {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    max-width: 100%;
+  }
+
+  .image-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+    color: white;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    text-align: center;
+  }
+
+  .image-wrapper:hover .image-overlay {
+    opacity: 1;
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .container-main {
+      padding: 1rem;
+    }
+
+    .content-header h1 {
+      font-size: 2rem;
+    }
+
+    .results-nav {
+      padding: 1rem;
+      gap: 0.5rem;
+    }
+
+    .tab-btn {
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+    }
+
+    .tab-content {
+      padding: 0 1.5rem;
+    }
+
+    .card-title {
+      font-size: 1.3rem;
+    }
+
+    .condition-grid {
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    .product-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .btn-analyze {
+      padding: 0.8rem 2rem;
+      font-size: 1rem;
+      width: 100%;
+    }
+
+    .upload-icon-container {
+      width: 60px;
+      height: 60px;
+    }
+
+    .upload-icon {
+      font-size: 2rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .content-header h1 {
+      font-size: 1.8rem;
+    }
+
+    .content-header p {
+      font-size: 0.9rem;
+    }
+
+    .results-nav {
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .tab-btn {
+      padding: 0.5rem 0.8rem;
+      font-size: 0.8rem;
+      flex: 0 0 calc(50% - 0.5rem);
+      justify-content: center;
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+    }
+
+    .condition-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .recommendation-card h3 {
+      font-size: 1.1rem;
+    }
+
+    .recommendation-card p {
+      font-size: 0.9rem;
+    }
+
+    .tip-content {
+      font-size: 0.9rem;
+    }
+
+    .upload-icon-container {
+      width: 50px;
+      height: 50px;
+    }
+
+    .upload-icon {
+      font-size: 1.5rem;
+    }
+  }
+
+  /* Fade-in Animation */
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out forwards;
+  }
+
+  @media (min-width: 768px) {
+    .image-comparison {
+      flex-direction: row;
+      justify-content: center;
+    }
+
+    .annotated-img {
+      max-width: 48%;
+    }
+  }
+
+  /* Pulse Animation for Active Elements */
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(255, 159, 90, 0.4);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(255, 159, 90, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(255, 159, 90, 0);
+    }
+  }
+
+  .pulse {
+    animation: pulse 2s infinite;
   }
 </style>
 
+<div class="animated-background">
+  <div class="decorative-circle circle-1"></div>
+  <div class="decorative-circle circle-2"></div>
+  <div class="gradient-bg"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+</div>
+
 <div class="container-main">
-  <div class="w-full" style="max-width: 800px;">
-    <h1 class="text-center mb-6 text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-teal-400">
-      <i class="fas fa-syringe mr-3"></i>Face Analysis
-    </h1>
-    
+  <div class="content-container">
+    <div class="content-header">
+      <h1><i class="fas fa-syringe"></i>Face Analysis</h1>
+      <p>Upload your photo for AI-powered skin analysis</p>
+    </div>
+
     <!-- Upload Form -->
-    <form id="uploadForm" method="post" enctype="multipart/form-data">
-      <div class="upload-box" id="uploadBox">
-        <input id="fileInput" type="file" name="image" accept="image/*" required>
-        <h3 class="text-2xl font-semibold">Drag & Drop or Click to Upload</h3>
-        <p>Supported formats: JPG, PNG</p>
-        <p class="file-size-note">Max size: 2MB</p>
-        <p id="fileFeedback" class="feedback" style="display: none;"></p>
-      </div>
-      <div class="text-center">
-        <button class="btn-blue" type="submit">Analyze Skin</button>
-        <div class="loader" id="loadingSpinner"></div>
-      </div>
-    </form>
+    <div class="upload-section">
+      <form id="uploadForm" method="post" enctype="multipart/form-data">
+        <div class="upload-box" id="uploadBox">
+          <input id="fileInput" type="file" name="image" accept="image/*" required>
+          <div class="upload-icon-container">
+            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+          </div>
+          <h3>Drag & Drop or Click to Upload</h3>
+          <p>Supported formats: JPG, PNG</p>
+          <p class="file-size-note">Max size: 2MB</p>
+          <p id="fileFeedback" class="feedback" style="display: none;"></p>
+        </div>
+        <div class="btn-container">
+          <button class="btn-analyze" type="submit">
+            <i class="fas fa-microscope btn-icon"></i> Analyze Skin
+          </button>
+          <div class="loader" id="loadingSpinner"></div>
+        </div>
+      </form>
+    </div>
 
     <!-- Results Section -->
     <div id="resultsSection" class="results-section">
       <nav class="results-nav">
-        <button class="tab-btn active" data-tab="conditions">🧪 Conditions</button>
-        <button class="tab-btn" data-tab="tips">💡 Skincare Tips</button>
-        <button class="tab-btn" data-tab="products">🛍️ Products</button>
-        <button class="tab-btn" data-tab="analysis">🔍 Analysis</button>
+        <button class="tab-btn active" data-tab="conditions">
+          <i class="fas fa-flask"></i> Conditions
+        </button>
+        <button class="tab-btn" data-tab="tips">
+          <i class="fas fa-lightbulb"></i> Skincare Tips
+        </button>
+        <button class="tab-btn" data-tab="products">
+          <i class="fas fa-shopping-bag"></i> Products
+        </button>
+        <button class="tab-btn" data-tab="analysis">
+          <i class="fas fa-search"></i> Analysis
+        </button>
       </nav>
       
       <div class="tab-content active" data-tab="conditions">
         <div class="card-custom fade-in">
-          <h2 class="card-title">Detected Skin Conditions</h2>
+          <h2 class="card-title">
+            <i class="fas fa-flask"></i> Detected Skin Conditions
+          </h2>
           <ul id="conditionsList" class="condition-grid"></ul>
         </div>
       </div>
       
       <div class="tab-content" data-tab="tips">
         <div class="card-custom fade-in">
-          <h2 class="card-title">Personalized Skincare Recommendations</h2>
+          <h2 class="card-title">
+            <i class="fas fa-lightbulb"></i> Personalized Skincare Recommendations
+          </h2>
           <div id="aiAnalysis" class="tip-content"></div>
         </div>
       </div>
       
       <div class="tab-content" data-tab="products">
         <div class="card-custom fade-in">
-          <h2 class="card-title">Recommended Products</h2>
+          <h2 class="card-title">
+            <i class="fas fa-shopping-bag"></i> Recommended Products
+          </h2>
           <div id="recommendationsContainer" class="product-grid"></div>
         </div>
       </div>
       
       <div class="tab-content" data-tab="analysis">
         <div class="card-custom fade-in">
-          <h2 class="card-title">AI Analysis Visualization</h2>
+          <h2 class="card-title">
+            <i class="fas fa-search"></i> AI Analysis Visualization
+          </h2>
           <div class="image-comparison">
-            <img id="originalImage" class="annotated-img" src="" alt="Original Image" style="display: none;">
-            <img id="annotatedImage" class="annotated-img" src="" alt="Analyzed Image" style="display: none;">
+            <div class="image-wrapper">
+              <img id="originalImage" class="annotated-img" src="/placeholder.svg" alt="Original Image" style="display: none;">
+              <div class="image-overlay">Original uploaded image</div>
+            </div>
+            <div class="image-wrapper">
+              <img id="annotatedImage" class="annotated-img" src="/placeholder.svg" alt="Analyzed Image" style="display: none;">
+              <div class="image-overlay">AI-analyzed image with annotations</div>
+            </div>
           </div>
         </div>
       </div>
@@ -251,62 +1068,182 @@ document.addEventListener("DOMContentLoaded", function () {
     const recommendationsContainer = document.getElementById("recommendationsContainer");
     const aiAnalysis = document.getElementById("aiAnalysis");
     const annotatedImage = document.getElementById("annotatedImage");
+    const originalImage = document.getElementById("originalImage");
 
+    // Add animation to result cards
+    const resultCards = document.querySelectorAll('.card-custom');
+    resultCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transitionDelay = `${index * 0.1}s`;
+    });
+
+    // Handle drag and drop
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadBox.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadBox.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadBox.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight() {
+        uploadBox.style.background = 'rgba(255, 255, 255, 0.15)';
+        uploadBox.style.borderColor = '#FF9F5A';
+        uploadBox.style.transform = 'translateY(-5px)';
+        uploadBox.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.2)';
+    }
+
+    function unhighlight() {
+        uploadBox.style.background = 'rgba(255, 255, 255, 0.05)';
+        uploadBox.style.borderColor = 'rgba(255, 159, 90, 0.3)';
+        uploadBox.style.transform = 'translateY(0)';
+        uploadBox.style.boxShadow = 'none';
+    }
+
+    uploadBox.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        fileInput.files = files;
+        handleFiles(files);
+    }
+
+    function handleFiles(files) {
+        if (files.length > 0) {
+            const file = files[0];
+            if (file.size > 2 * 1024 * 1024) {
+                alert("File too large! Please select a file under 2MB.");
+                fileInput.value = "";
+                fileFeedback.style.display = "none";
+                return;
+            }
+            
+            // Check file type
+            const fileType = file.type.toLowerCase();
+            if (fileType !== 'image/jpeg' && fileType !== 'image/jpg' && fileType !== 'image/png') {
+                alert("Invalid file type. Only JPG and PNG are allowed.");
+                fileInput.value = "";
+                fileFeedback.style.display = "none";
+                return;
+            }
+            
+            fileFeedback.style.display = "block";
+            fileFeedback.textContent = "Selected: " + file.name;
+            fileFeedback.classList.add('pulse');
+            
+            // Preview the original image
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                originalImage.src = e.target.result;
+                originalImage.style.display = "none"; // Will show after analysis
+            };
+            reader.readAsDataURL(file);
+        } else {
+            fileFeedback.style.display = "none";
+        }
+    }
+
+    // Trigger file input when clicking the upload box
     uploadBox.addEventListener("click", () => fileInput.click());
 
     fileInput.addEventListener("change", () => {
         if (fileInput.files.length > 0) {
-            const file = fileInput.files[0];
-            if (file.size > 2 * 1024 * 1024) {
-                alert("File too large! Please select a file under 2MB.");
-                fileInput.value = "";
-                return;
-            }
-            fileFeedback.style.display = "block";
-            fileFeedback.textContent = "Selected File: " + file.name;
-        } else {
-            fileFeedback.style.display = "none";
+            handleFiles(fileInput.files);
         }
     });
 
-    // Add tab switching functionality
+    // Add tab switching functionality with enhanced animations
     document.querySelectorAll('.tab-btn').forEach(button => {
         button.addEventListener('click', function() {
             // Remove active class from all buttons and content
             document.querySelectorAll('.tab-btn').forEach(btn =>
                 btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content =>
-                content.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+                content.style.opacity = '0';
+                content.style.transform = 'translateY(10px)';
+            });
             
             // Add active class to clicked button and corresponding content
             const tabId = this.dataset.tab;
             this.classList.add('active');
-            document.querySelector(`.tab-content[data-tab="${tabId}"]`).classList.add('active');
+            const activeContent = document.querySelector(`.tab-content[data-tab="${tabId}"]`);
+            activeContent.classList.add('active');
+            
+            // Animate the active content
+            setTimeout(() => {
+                activeContent.style.opacity = '1';
+                activeContent.style.transform = 'translateY(0)';
+                activeContent.style.transition = 'all 0.5s ease';
+            }, 50);
             
             // Force annotated image refresh if showing analysis tab
-            if(tabId === 'analysis') annotatedImage.style.display = 'block';
+            if(tabId === 'analysis') {
+                if (annotatedImage.src) annotatedImage.style.display = 'block';
+                if (originalImage.src) originalImage.style.display = 'block';
+            }
         });
+    });
+
+    // Add button hover effect
+    const analyzeBtn = document.querySelector('.btn-analyze');
+    analyzeBtn.addEventListener('mouseenter', () => {
+        analyzeBtn.querySelector('.btn-icon').style.transform = 'rotate(15deg)';
+    });
+    
+    analyzeBtn.addEventListener('mouseleave', () => {
+        analyzeBtn.querySelector('.btn-icon').style.transform = 'rotate(0)';
     });
 
     uploadForm.addEventListener("submit", function (event) {
         event.preventDefault();
+        
+        if (fileInput.files.length === 0) {
+            alert("Please select a file");
+            return;
+        }
+        
         const formData = new FormData();
         formData.append("image", fileInput.files[0]);
 
         loadingSpinner.style.display = "block";
+        analyzeBtn.style.opacity = "0.7";
+        analyzeBtn.disabled = true;
 
         fetch("/predict", {
             method: "POST",
             body: formData
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+            return response.json();
+        })
         .then(data => {
             loadingSpinner.style.display = "none";
+            analyzeBtn.style.opacity = "1";
+            analyzeBtn.disabled = false;
+            
             renderResults(data);
         })
         .catch(error => {
             loadingSpinner.style.display = "none";
+            analyzeBtn.style.opacity = "1";
+            analyzeBtn.disabled = false;
             alert("⚠️ Face not detected. Please upload a clearer image.");
+            console.error("Error:", error);
         });
     });
 
@@ -314,29 +1251,121 @@ document.addEventListener("DOMContentLoaded", function () {
         resultsSection.style.display = "block";
         conditionsList.innerHTML = "";
         recommendationsContainer.innerHTML = "";
-        aiAnalysis.textContent = data.ai_analysis || "No analysis available.";
+        
+        // Animate result cards
+        resultCards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+                card.style.transition = 'all 0.5s ease';
+            }, index * 150);
+        });
+        
+        // Scroll to results
+        setTimeout(() => {
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+        
+        // Show original image in analysis tab
+        originalImage.style.display = "block";
+        
+        // Render AI analysis with formatting
+        if (data.ai_analysis) {
+            aiAnalysis.innerHTML = data.ai_analysis
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>');
+        } else {
+            aiAnalysis.textContent = "No analysis available.";
+        }
 
-        data.classes.forEach(condition => {
+        // Render conditions with animation
+        if (data.classes && data.classes.length > 0) {
+            data.classes.forEach((condition, index) => {
+                const li = document.createElement("li");
+                li.className = "list-group-item";
+                li.textContent = condition;
+                li.style.opacity = '0';
+                li.style.transform = 'translateY(10px)';
+                conditionsList.appendChild(li);
+                
+                setTimeout(() => {
+                    li.style.opacity = '1';
+                    li.style.transform = 'translateY(0)';
+                    li.style.transition = 'all 0.5s ease';
+                }, index * 100);
+            });
+        } else {
             const li = document.createElement("li");
             li.className = "list-group-item";
-            li.textContent = condition;
+            li.textContent = "No conditions detected";
+            li.style.opacity = '0';
+            li.style.transform = 'translateY(10px)';
             conditionsList.appendChild(li);
-        });
+            
+            setTimeout(() => {
+                li.style.opacity = '1';
+                li.style.transform = 'translateY(0)';
+                li.style.transition = 'all 0.5s ease';
+            }, 100);
+        }
 
-        data.recommendations.forEach(rec => {
-            recommendationsContainer.innerHTML += `
-              <div class="recommendation-card">
-                <h3>${rec.condition}</h3>
-                ${rec.products.map(p => `<p><strong>${p.Brand} - ${p.Name}</strong><br>Price: ₹${p.Price}<br>Ingredients: ${p.Ingredients}</p>`).join("")}
-              </div>`;
-        });
+        // Render product recommendations with animation
+        if (data.recommendations && data.recommendations.length > 0) {
+            data.recommendations.forEach((rec, index) => {
+                const recCard = document.createElement("div");
+                recCard.className = "recommendation-card";
+                recCard.style.opacity = '0';
+                recCard.style.transform = 'translateY(10px)';
+                
+                let productsHtml = '';
+                if (rec.products && rec.products.length > 0) {
+                    rec.products.forEach(p => {
+                        productsHtml += `
+                            <p><strong>${p.Brand} - ${p.Name}</strong><br>
+                            Price: ₹${p.Price}<br>
+                            Ingredients: ${p.Ingredients}</p>
+                        `;
+                    });
+                } else {
+                    productsHtml = '<p>No specific products recommended</p>';
+                }
+                
+                recCard.innerHTML = `
+                    <h3>${rec.condition}</h3>
+                    ${productsHtml}
+                `;
+                
+                recommendationsContainer.appendChild(recCard);
+                
+                setTimeout(() => {
+                    recCard.style.opacity = '1';
+                    recCard.style.transform = 'translateY(0)';
+                    recCard.style.transition = 'all 0.5s ease';
+                }, index * 150);
+            });
+        } else {
+            recommendationsContainer.innerHTML = '<p class="text-center" style="color: rgba(255, 255, 255, 0.7);">No product recommendations available</p>';
+        }
 
+        // Show annotated image if available
         if (data.annotated_image) {
             annotatedImage.src = data.annotated_image;
             annotatedImage.style.display = "block";
+            
+            // Add a subtle animation to the image
+            annotatedImage.style.opacity = '0';
+            annotatedImage.style.transform = 'scale(0.95)';
+            
+            setTimeout(() => {
+                annotatedImage.style.opacity = '1';
+                annotatedImage.style.transform = 'scale(1)';
+                annotatedImage.style.transition = 'all 0.5s ease';
+            }, 300);
+        } else {
+            annotatedImage.style.display = "none";
         }
     }
 });
 </script>
-
 {% endblock %}

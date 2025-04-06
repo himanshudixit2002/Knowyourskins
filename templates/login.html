@@ -1,150 +1,316 @@
 {% extends "layout.html" %}
-{% block title %}Login | SKINTELLECT{% endblock %}
+{% block title %}Login | KNOWYOURSKINS{% endblock %}
 {% block content %}
-<link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet">
-
-<div class="min-h-screen bg-gradient-to-br from-sky-50 to-emerald-50 flex items-center p-4">
-    <div class="max-w-5xl w-full mx-auto bg-white/80 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-2 relative isolate border border-white/20 hover:border-white/30 transition-all duration-300 group">
-        <!-- Animated background elements -->
-        <div class="absolute inset-0 -z-10">
-            <div class="absolute -top-32 left-1/2 w-[800px] h-[800px] -translate-x-1/2 bg-[conic-gradient(#a5f3fc_0%,#5eead4_50%,#a5f3fc_100%)] opacity-20 blur-3xl animate-gradient-rotate"></div>
-            <div class="absolute top-1/2 left-1/2 w-96 h-96 -translate-y-1/2 bg-gradient-to-r from-teal-200 to-emerald-200 rounded-full opacity-10 blur-2xl animate-float"></div>
-        </div>
-        <!-- Particle container -->
-        <div class="absolute inset-0 -z-20 particles-container opacity-30"></div>
-        <!-- Visual Section -->
-        <div class="hidden lg:flex flex-col items-center justify-center bg-gradient-to-br from-teal-600 to-emerald-500 p-12 relative overflow-hidden">
-            <div class="animate-float">
-                <img src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png" 
-                     class="w-48 h-48 mb-8 filter drop-shadow-2xl" 
-                     alt="Skincare Illustration">
-            </div>
-            <h1 class="text-4xl font-bold text-white mb-2">Glow Again</h1>
-            <p class="text-emerald-100 text-center">Personalized skincare powered by AI</p>
-            
-            <!-- Animated Background Elements -->
-            <div class="absolute top-0 left-0 w-full h-full opacity-15">
-                <div class="absolute -top-20 -left-20 w-72 h-72 bg-emerald-300 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
-                <div class="absolute top-40 -right-20 w-72 h-72 bg-teal-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
-            </div>
-        </div>
-
-        <!-- Form Section -->
-        <div class="p-12">
-            <div class="flex justify-center mb-8">
-                <div class="w-20 h-20 bg-emerald-100/80 rounded-2xl flex items-center justify-center shadow-lg backdrop-blur-sm">
-                    <i class="ri-leaf-fill text-4xl text-emerald-600"></i>
-                </div>
-            </div>
-
-            <h2 class="text-3xl font-bold text-gray-800 text-center mb-2">Welcome Back</h2>
-            <p class="text-gray-600 text-center mb-8">
-                New to Skintellect? 
-                <a href="{{ url_for('register') }}" class="text-emerald-600 font-semibold hover:underline transition-all">Start your glow-up</a>
-            </p>
-
-            {% if error %}
-            <div class="bg-rose-100/90 border border-rose-200 text-rose-700 px-4 py-3 rounded-lg mb-6 flex items-center backdrop-blur-sm">
-                <i class="ri-alert-fill mr-2"></i>
-                {{ error }}
-            </div>
-            {% endif %}
-
-            <form class="space-y-6" action="{{ url_for('login') }}" method="post">
-                <!-- Username Field -->
-                <div class="relative group">
-                    <input type="text" name="username" required 
-                           class="w-full px-4 py-3 pl-12 rounded-lg border border-gray-200/80 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all peer bg-white/50 backdrop-blur-sm"
-                           placeholder=" ">
-                    <label class="absolute left-12 top-3.5 text-gray-400 pointer-events-none transition-all 
-                                peer-placeholder-shown:text-gray-400 
-                                peer-focus:text-emerald-600
-                                peer-focus:-translate-y-5
-                                peer-focus:scale-90
-                                peer-focus:font-medium
-                                peer-[:not(:placeholder-shown)]:-translate-y-5
-                                peer-[:not(:placeholder-shown)]:scale-90">
-                        Username
-                    </label>
-                    <i class="ri-user-3-line absolute left-4 top-4 text-gray-400"></i>
-                </div>
-
-                <!-- Password Field -->
-                <div class="relative group">
-                    <input type="password" name="password" required 
-                           class="w-full px-4 py-3 pl-12 rounded-lg border border-gray-200/80 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 transition-all peer bg-white/50 backdrop-blur-sm"
-                           placeholder=" ">
-                    <label class="absolute left-12 top-3.5 text-gray-400 pointer-events-none transition-all 
-                                peer-placeholder-shown:text-gray-400 
-                                peer-focus:text-emerald-600
-                                peer-focus:-translate-y-5
-                                peer-focus:scale-90
-                                peer-focus:font-medium
-                                peer-[:not(:placeholder-shown)]:-translate-y-5
-                                peer-[:not(:placeholder-shown)]:scale-90">
-                        Password
-                    </label>
-                    <i class="ri-lock-2-line absolute left-4 top-4 text-gray-400"></i>
-                </div>
-
-                <div class="flex items-center justify-between">
-                    <label class="flex items-center space-x-3 cursor-pointer">
-                        <input type="checkbox" class="h-5 w-5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
-                        <span class="text-gray-600">Remember me</span>
-                    </label>
-                </div>
-
-                <button type="submit"
-                        class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 rounded-lg font-semibold
-                               hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 shadow-emerald-100 mb-4">
-                    Unlock Your Glow
-                </button>
-                
-                <div class="relative py-4">
-                    <div class="absolute inset-0 flex items-center">
-                        <div class="w-full border-t border-gray-300"></div>
-                    </div>
-                    <div class="relative flex justify-center text-sm">
-                        <span class="px-2 bg-white/80 text-gray-500">Or continue with</span>
-                    </div>
-                </div>
-
-                <a href="{{ url_for('google_login') }}"
-                class="w-full flex items-center justify-center gap-2 bg-white/90 border border-gray-200 py-3 rounded-lg font-medium
-                       hover:bg-gray-50 transition-all duration-300 hover:-translate-y-0.5 shadow-sm">
-                 <img src="https://developers.google.com/identity/images/g-logo.png"
-                      class="w-5 h-5" alt="Google logo">
-                 Continue with Google
-             </a>             
-            </form>
-        </div>
-    </div>
-</div>
-
 <style>
-@keyframes float {
-    0% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-20px) rotate(3deg); }
-    100% { transform: translateY(0px) rotate(0deg); }
-}
+  /* Background and Layout */
+  .auth-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1f2c, #2d3748);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+  
+  /* Animated Particles */
+  .particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+  }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    animation: float 15s infinite ease-in-out;
+  }
+  .particle:nth-child(1) { width: 80px; height: 80px; top: 10%; left: 10%; animation-delay: 0s; }
+  .particle:nth-child(2) { width: 60px; height: 60px; top: 20%; left: 80%; animation-delay: 2s; }
+  .particle:nth-child(3) { width: 100px; height: 100px; top: 60%; left: 70%; animation-delay: 4s; }
+  .particle:nth-child(4) { width: 50px; height: 50px; top: 80%; left: 20%; animation-delay: 6s; }
+  .particle:nth-child(5) { width: 70px; height: 70px; top: 40%; left: 30%; animation-delay: 8s; }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0) translateX(0); }
+    25% { transform: translateY(-20px) translateX(10px); }
+    50% { transform: translateY(0) translateX(20px); }
+    75% { transform: translateY(20px) translateX(10px); }
+  }
 
-@keyframes blob {
-    0% { transform: scale(1) rotate(0deg); }
-    33% { transform: scale(1.1) rotate(3deg); }
-    66% { transform: scale(0.9) rotate(-3deg); }
-    100% { transform: scale(1) rotate(0deg); }
-}
+  /* Background Logo Animation */
+  .background-logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60%;
+    max-width: 700px;
+    opacity: 0.05;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    animation: rotateLogo 30s linear infinite;
+  }
+  @keyframes rotateLogo {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+  }
 
-.animate-float {
-    animation: float 6s ease-in-out infinite;
-}
+  /* Decorative Elements */
+  .decorative-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255, 159, 90, 0.2), rgba(255, 122, 0, 0.1));
+    z-index: 0;
+  }
+  .circle-1 {
+    width: 300px;
+    height: 300px;
+    top: -150px;
+    left: -150px;
+  }
+  .circle-2 {
+    width: 400px;
+    height: 400px;
+    bottom: -200px;
+    right: -200px;
+  }
 
-.animate-blob {
-    animation: blob 12s infinite linear;
-}
+  /* Card Styling */
+  .auth-card {
+    background: rgba(30, 35, 45, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 10;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+    max-width: 420px;
+    padding: 2.5rem;
+  }
+  .auth-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+  }
 
-.animation-delay-2000 {
-    animation-delay: 2s;
-}
+  /* Input Fields */
+  .input-field {
+    position: relative;
+    margin-bottom: 1.75rem;
+  }
+  .input-field input {
+    width: 100%;
+    padding: 1.2rem 1.2rem 0.85rem;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    color: #fff;
+    outline: none;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+  }
+  .input-field input:focus {
+    border-color: #FF9F5A;
+    box-shadow: 0 0 10px rgba(255, 159, 90, 0.3);
+  }
+  .input-field label {
+    position: absolute;
+    left: 1.2rem;
+    top: 1.1rem;
+    transform: none;
+    color: rgba(255, 255, 255, 0.6);
+    pointer-events: none;
+    transition: all 0.3s ease;
+    background-color: rgba(30, 35, 45, 0.9);
+    padding: 0 0.5rem;
+    font-weight: 500;
+    z-index: 1;
+  }
+  .input-field input:focus + label,
+  .input-field input:not(:placeholder-shown) + label {
+    top: -0.6rem;
+    font-size: 0.75rem;
+    color: #FF9F5A;
+    background-color: rgba(30, 35, 45, 0.9);
+    border-radius: 4px;
+  }
+
+  /* Button Styles */
+  .btn-submit {
+    width: 100%;
+    padding: 0.85rem;
+    background: linear-gradient(135deg, #FF9F5A, #FF7A00);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: bold;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 159, 90, 0.4);
+  }
+  .btn-submit:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(255, 159, 90, 0.5);
+  }
+  
+  .social-btn {
+    width: 100%;
+    padding: 0.85rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+  .social-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+  }
+
+  /* Divider */
+  .divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 1.5rem 0;
+  }
+  .divider::before,
+  .divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  .divider::before {
+    margin-right: 1rem;
+  }
+  .divider::after {
+    margin-left: 1rem;
+  }
+
+  /* Checkbox Styling */
+  .custom-checkbox {
+    display: flex;
+    align-items: center;
+  }
+  .custom-checkbox input[type="checkbox"] {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    margin-right: 0.5rem;
+    appearance: none;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .custom-checkbox input[type="checkbox"]:checked {
+    background: #FF9F5A;
+    border-color: #FF9F5A;
+  }
+  .custom-checkbox input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 12px;
+  }
+
+  /* Error Message */
+  .error-message {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fecaca;
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+  }
 </style>
+
+<div class="auth-container">
+  <!-- Decorative Elements -->
+  <div class="decorative-circle circle-1"></div>
+  <div class="decorative-circle circle-2"></div>
+  
+  <!-- Animated Particles -->
+  <div class="particles">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+  
+  <!-- Animated Background Logo -->
+  <img src="/static/assets/logo.png" alt="Background Logo" class="background-logo">
+  
+  <!-- Login Card -->
+  <div class="auth-card">
+    <div class="text-center mb-6">
+      <h1 class="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+      <p class="text-gray-300">Login to unlock your glow</p>
+    </div>
+    
+    {% if error %}
+    <div class="error-message mb-5">
+      <i class="ri-alert-fill mr-2"></i>{{ error }}
+    </div>
+    {% endif %}
+    
+    <form action="{{ url_for('login') }}" method="post" class="space-y-5">
+      <!-- Username Field with Floating Label -->
+      <div class="input-field">
+        <input type="text" name="username" required autocomplete="username">
+        <label>Username</label>
+      </div>
+      
+      <!-- Password Field with Floating Label -->
+      <div class="input-field">
+        <input type="password" name="password" required autocomplete="current-password">
+        <label>Password</label>
+      </div>
+      
+      <div class="flex items-center justify-between text-sm text-gray-300 mb-5">
+        <label class="custom-checkbox">
+          <input type="checkbox" name="remember">
+          <span>Remember me</span>
+        </label>
+        <a href="#" class="text-[#FF9F5A] hover:underline transition-all duration-300">Forgot password?</a>
+      </div>
+      
+      <button type="submit" class="btn-submit">Unlock Your Glow</button>
+    </form>
+    
+    <div class="divider">
+      <span>Or continue with</span>
+    </div>
+    
+    <div class="mt-5">
+      <a href="{{ url_for('google_login') }}" class="social-btn">
+        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" class="w-5 h-5">
+        <span>Continue with Google</span>
+      </a>
+    </div>
+    
+    <div class="mt-6 text-center text-gray-400 text-sm">
+      <p>New to KnowYourSkins? <a href="{{ url_for('register') }}" class="text-[#FF9F5A] hover:underline transition-all duration-300">Start your glow-up</a></p>
+    </div>
+  </div>
+</div>
 {% endblock %}
