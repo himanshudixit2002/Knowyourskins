@@ -1,89 +1,198 @@
 {% extends "layout.html" %}
-{% block title %}Skintellect - AI-Powered Skin Analysis{% endblock %}
+{% block title %}KNOWYOURSKINS - AI-Powered Skin Analysis{% endblock %}
 {% block content %}
 
 <!-- HERO SECTION -->
-<section class="relative min-h-screen flex flex-col justify-center items-center text-center bg-gradient-to-br from-indigo-900 via-blue-800 to-purple-900 overflow-hidden">
-  <!-- Background Image -->
-  <div class="absolute inset-0">
-    <img src="/static/assets/1.png" alt="Skincare AI Analysis" class="w-full h-full object-cover opacity-50">
+<section class="relative min-h-[85vh] flex flex-col justify-center items-center text-center overflow-hidden">
+  <!-- Background Gradient Overlay -->
+  <div class="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#121212] to-[#1a1a1a] opacity-90"></div>
+  
+  <!-- Background Image with Overlay -->
+  <div class="absolute inset-0 z-0">
+    <img src="{{ url_for('static', filename='assets/logo.png') }}"
+         alt="KNOWYOURSKINS Logo"
+         class="w-full h-full object-contain opacity-20 object-center"
+         loading="lazy"
+         decoding="async"
+         crossorigin="anonymous">
+    <!-- Hexagon Pattern Overlay -->
+    <div class="absolute inset-0 bg-[#ff8a00] opacity-5" style="mask-image: url('data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;56&quot; height=&quot;100&quot; viewBox=&quot;0 0 56 100&quot;><path d=&quot;M28 0L56 25V75L28 100L0 75V25L28 0Z&quot; /></svg>'); mask-size: 56px 100px; -webkit-mask-image: url('data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;56&quot; height=&quot;100&quot; viewBox=&quot;0 0 56 100&quot;><path d=&quot;M28 0L56 25V75L28 100L0 75V25L28 0Z&quot; /></svg>'); -webkit-mask-size: 56px 100px;"></div>
   </div>
+  
+  <!-- Accent Lights -->
+  <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-[#ff8a00] opacity-5 rounded-full blur-[100px]"></div>
+  <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-[#ff8a00] opacity-5 rounded-full blur-[120px]"></div>
   
   <!-- Hero Content -->
   <div class="relative z-10 max-w-4xl px-6">
-    <h1 class="text-5xl md:text-7xl font-extrabold text-white mb-6 leading-tight">
-      Advanced Skin Analysis AI
+    <div class="inline-block mb-3 px-4 py-1 rounded-full bg-[#ff8a00]/10 border border-[#ff8a00]/20">
+      <span class="text-[#ff8a00] font-medium text-sm">AI-Powered Skin Analysis</span>
+    </div>
+    
+    <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
+      <span class="bg-clip-text text-transparent bg-gradient-to-r from-[#ff8a00] to-[#ffb347]">Advanced</span> Skin Analysis AI
     </h1>
-    <p class="text-lg md:text-2xl text-gray-200 mb-8 max-w-3xl mx-auto">
-      Get comprehensive skin health insights with our deep learning system - analyze facial features, detect conditions, and receive personalized recommendations.
+    
+    <p class="text-lg md:text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+      Get comprehensive skin health insights with our deep learning system – analyze facial features, detect conditions, and receive personalized recommendations.
     </p>
 
-    <!-- Smoothly Animated Buttons -->
-    <div class="flex flex-col md:flex-row gap-6">
+    <!-- Enhanced Buttons -->
+    <div class="flex flex-col sm:flex-row justify-center gap-6 mt-8">
       <!-- Analyse Face Button -->
       <a href="{{ url_for('predict') }}"
-         class="relative flex items-center justify-center gap-3 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-600 hover:to-teal-500 text-white font-semibold py-3 px-12 rounded-full shadow-2xl transition transform hover:scale-105 glow-animation">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+         class="group relative flex items-center justify-center gap-3 bg-gradient-to-r from-[#ff8a00] to-[#ffb347] hover:from-[#ffb347] hover:to-[#ff8a00] text-white font-semibold py-4 px-8 rounded-lg shadow-lg transition-all duration-300 hover:shadow-[0_8px_20px_rgba(255,138,0,0.3)] overflow-hidden">
+        <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-[#ff8a00]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+        <svg class="w-6 h-6 transition-transform duration-300 group-hover:rotate-12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M8 5v14l11-7z"></path>
         </svg>
-        Analyse Face
+        <span class="relative z-10">Analyse Face</span>
+        <span class="absolute bottom-0 left-0 w-full h-1 bg-white/20 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
       </a>
 
       <!-- Analyse Skin Disease Button -->
       <a href="{{ url_for('skin_predict') }}"
-         class="relative flex items-center justify-center gap-3 bg-gradient-to-r from-red-400 to-red-300 hover:from-red-500 hover:to-red-400 text-white font-semibold py-3 px-12 rounded-full shadow-2xl transition transform hover:scale-105 glow-animation">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+         class="group relative flex items-center justify-center gap-3 bg-black/30 backdrop-blur-sm border border-[#ff8a00]/30 text-white font-semibold py-4 px-8 rounded-lg shadow-lg transition-all duration-300 hover:bg-black/50 hover:border-[#ff8a00]/50 hover:shadow-[0_8px_20px_rgba(0,0,0,0.3)] overflow-hidden">
+        <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-[#ff8a00]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+        <svg class="w-6 h-6 text-[#ff8a00] transition-transform duration-300 group-hover:translate-y-[-2px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M19 11l-6 6m0 0l-6-6m6 6V5"></path>
         </svg>
-        Analyse Skin Disease
+        <span class="relative z-10">Analyse Skin Disease</span>
+        <span class="absolute bottom-0 left-0 w-full h-1 bg-[#ff8a00]/30 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
       </a>
     </div>
   </div>
-
-  <!-- Floating Soft Light Effects -->
-  <div class="absolute top-10 left-10 w-24 h-24 bg-emerald-400/10 rounded-full blur-3xl"></div>
-  <div class="absolute bottom-20 right-16 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl"></div>
 </section>
 
 <!-- WHY CHOOSE US SECTION -->
-<section class="bg-gradient-to-r from-blue-900 to-purple-900 py-20 px-6">
-  <div class="container mx-auto text-center">
-    <h2 class="text-4xl md:text-5xl font-bold text-white mb-10">
-      Why Choose Skintellect?
+<section id="why-choose-us" class="py-20 px-6 bg-[#121212] relative overflow-hidden">
+  <!-- Background Elements -->
+  <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#ff8a00]/30 to-transparent"></div>
+  <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#ff8a00]/30 to-transparent"></div>
+  
+  <div class="container mx-auto text-center relative z-10">
+    <div class="inline-block mb-3 px-4 py-1 rounded-full bg-[#ff8a00]/10 border border-[#ff8a00]/20">
+      <span class="text-[#ff8a00] font-medium text-sm">Our Advantages</span>
+    </div>
+    
+    <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
+      Why Choose <span class="bg-clip-text text-transparent bg-gradient-to-r from-[#ff8a00] to-[#ffb347]">KNOWYOURSKINS</span>?
     </h2>
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-7xl mx-auto">
+    
+    <p class="text-gray-400 max-w-2xl mx-auto mb-16">
+      Our platform combines cutting-edge AI technology with dermatological expertise to provide you with accurate skin analysis and personalized recommendations.
+    </p>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
       <!-- Benefit 1 -->
-      <div class="bg-white/10 backdrop-blur-lg shadow-lg rounded-lg p-6 flex flex-col items-center text-center hover:shadow-xl transition">
-        <i class="fas fa-microscope text-4xl text-blue-400 mb-4"></i>
-        <h3 class="text-xl font-semibold text-white">AI-Powered Precision</h3>
-        <p class="text-gray-200 mt-2">
+      <div class="group bg-[#1a1a1a] border border-[#ff8a00]/10 rounded-lg p-6 flex flex-col items-center text-center transition-all duration-300 hover:border-[#ff8a00]/30 hover:bg-[#1e1e1e] hover:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
+        <div class="w-16 h-16 flex items-center justify-center bg-[#ff8a00]/10 text-[#ff8a00] rounded-full mb-6 transition-all duration-300 group-hover:bg-[#ff8a00]/20 group-hover:scale-110">
+          <i class="fas fa-microscope text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-white mb-3">AI-Powered Precision</h3>
+        <p class="text-gray-400">
           Advanced AI detects skin conditions with industry-leading accuracy.
         </p>
       </div>
+      
       <!-- Benefit 2 -->
-      <div class="bg-white/10 backdrop-blur-lg shadow-lg rounded-lg p-6 flex flex-col items-center text-center hover:shadow-xl transition">
-        <i class="fas fa-user-md text-4xl text-green-400 mb-4"></i>
-        <h3 class="text-xl font-semibold text-white">Personalized Routine</h3>
-        <p class="text-gray-200 mt-2">
+      <div class="group bg-[#1a1a1a] border border-[#ff8a00]/10 rounded-lg p-6 flex flex-col items-center text-center transition-all duration-300 hover:border-[#ff8a00]/30 hover:bg-[#1e1e1e] hover:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
+        <div class="w-16 h-16 flex items-center justify-center bg-[#ff8a00]/10 text-[#ff8a00] rounded-full mb-6 transition-all duration-300 group-hover:bg-[#ff8a00]/20 group-hover:scale-110">
+          <i class="fas fa-user-md text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-white mb-3">Personalized Routine</h3>
+        <p class="text-gray-400">
           Get product recommendations tailored to your unique skin type.
         </p>
       </div>
+      
       <!-- Benefit 3 -->
-      <div class="bg-white/10 backdrop-blur-lg shadow-lg rounded-lg p-6 flex flex-col items-center text-center hover:shadow-xl transition">
-        <i class="fas fa-clock text-4xl text-yellow-400 mb-4"></i>
-        <h3 class="text-xl font-semibold text-white">Fast & Easy</h3>
-        <p class="text-gray-200 mt-2">
+      <div class="group bg-[#1a1a1a] border border-[#ff8a00]/10 rounded-lg p-6 flex flex-col items-center text-center transition-all duration-300 hover:border-[#ff8a00]/30 hover:bg-[#1e1e1e] hover:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
+        <div class="w-16 h-16 flex items-center justify-center bg-[#ff8a00]/10 text-[#ff8a00] rounded-full mb-6 transition-all duration-300 group-hover:bg-[#ff8a00]/20 group-hover:scale-110">
+          <i class="fas fa-clock text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-white mb-3">Fast & Easy</h3>
+        <p class="text-gray-400">
           Upload your image, analyze your skin, and get results in seconds.
         </p>
       </div>
+      
       <!-- Benefit 4 -->
-      <div class="bg-white/10 backdrop-blur-lg shadow-lg rounded-lg p-6 flex flex-col items-center text-center hover:shadow-xl transition">
-        <i class="fas fa-hand-holding-heart text-4xl text-red-400 mb-4"></i>
-        <h3 class="text-xl font-semibold text-white">Expert Recommendations</h3>
-        <p class="text-gray-200 mt-2">
+      <div class="group bg-[#1a1a1a] border border-[#ff8a00]/10 rounded-lg p-6 flex flex-col items-center text-center transition-all duration-300 hover:border-[#ff8a00]/30 hover:bg-[#1e1e1e] hover:shadow-[0_10px_30px_rgba(0,0,0,0.2)]">
+        <div class="w-16 h-16 flex items-center justify-center bg-[#ff8a00]/10 text-[#ff8a00] rounded-full mb-6 transition-all duration-300 group-hover:bg-[#ff8a00]/20 group-hover:scale-110">
+          <i class="fas fa-hand-holding-heart text-2xl"></i>
+        </div>
+        <h3 class="text-xl font-semibold text-white mb-3">Expert Recommendations</h3>
+        <p class="text-gray-400">
           Get dermatologist-approved product suggestions for your skin condition.
         </p>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS SECTION -->
+<section class="py-20 px-6 bg-[#0a0a0a] relative overflow-hidden">
+  <div class="container mx-auto relative z-10">
+    <div class="text-center mb-16">
+      <div class="inline-block mb-3 px-4 py-1 rounded-full bg-[#ff8a00]/10 border border-[#ff8a00]/20">
+        <span class="text-[#ff8a00] font-medium text-sm">Simple Process</span>
+      </div>
+      
+      <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
+        How It <span class="bg-clip-text text-transparent bg-gradient-to-r from-[#ff8a00] to-[#ffb347]">Works</span>
+      </h2>
+      
+      <p class="text-gray-400 max-w-2xl mx-auto">
+        Our platform makes skin analysis simple, fast, and accurate in just three easy steps.
+      </p>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+      <!-- Step 1 -->
+      <div class="relative">
+        <div class="absolute top-0 left-6 h-full w-1 bg-gradient-to-b from-[#ff8a00] to-transparent md:hidden"></div>
+        <div class="relative z-10 flex flex-col items-center">
+          <div class="w-12 h-12 flex items-center justify-center bg-[#ff8a00] text-black rounded-full font-bold text-xl mb-6">1</div>
+          <h3 class="text-xl font-semibold text-white mb-3 text-center">Upload Your Photo</h3>
+          <p class="text-gray-400 text-center">
+            Take a clear photo of your face or the affected skin area and upload it to our platform.
+          </p>
+        </div>
+      </div>
+      
+      <!-- Step 2 -->
+      <div class="relative">
+        <div class="absolute top-0 left-6 h-full w-1 bg-gradient-to-b from-[#ff8a00] to-transparent md:hidden"></div>
+        <div class="relative z-10 flex flex-col items-center">
+          <div class="w-12 h-12 flex items-center justify-center bg-[#ff8a00] text-black rounded-full font-bold text-xl mb-6">2</div>
+          <h3 class="text-xl font-semibold text-white mb-3 text-center">AI Analysis</h3>
+          <p class="text-gray-400 text-center">
+            Our advanced AI analyzes your skin, identifying conditions and assessing overall skin health.
+          </p>
+        </div>
+      </div>
+      
+      <!-- Step 3 -->
+      <div class="relative">
+        <div class="relative z-10 flex flex-col items-center">
+          <div class="w-12 h-12 flex items-center justify-center bg-[#ff8a00] text-black rounded-full font-bold text-xl mb-6">3</div>
+          <h3 class="text-xl font-semibold text-white mb-3 text-center">Get Recommendations</h3>
+          <p class="text-gray-400 text-center">
+            Receive personalized treatment recommendations and product suggestions for your skin.
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- CTA Button -->
+    <div class="text-center mt-16">
+      <a href="{{ url_for('predict') }}" class="group relative inline-flex items-center justify-center gap-3 bg-[#ff8a00] text-black font-semibold py-4 px-10 rounded-lg shadow-lg transition-all duration-300 hover:bg-[#ffb347] hover:shadow-[0_8px_20px_rgba(255,138,0,0.3)] overflow-hidden">
+        <span class="relative z-10">Start Your Analysis Now</span>
+        <svg class="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+        </svg>
+      </a>
     </div>
   </div>
 </section>

@@ -8,224 +8,674 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Add Three.js for 3D effects -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     /* Global Reset & Fonts */
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --primary: #ff8a00;
+      --primary-light: #ffb347;
+      --primary-dark: #e67300;
+      --accent: #ff4d00;
+      --text-light: #f8f8f8;
+      --text-dark: #333333;
+      --bg-dark: #121212;
+      --bg-darker: #0a0a0a;
+      --bg-light: #1e1e1e;
+      --border-color: rgba(255, 138, 0, 0.3);
+    }
+    
     body {
-      /* Dark gradient background that complements skin analysis */
-      background-image: linear-gradient(
-          rgba(49, 46, 129, 0.9),
-          rgba(30, 64, 175, 0.9)
-        ),
-        url("{{ url_for('static', filename='assets/bg5.webp') }}");
-      background-size: cover;
-      background-position: center;
-      background-attachment: fixed;
-      padding-top: 80px;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      overflow-x: hidden;
+    }
+    
+    /* Background Pattern */
+    .bg-pattern {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      opacity: 0.05;
+      background-image: 
+        linear-gradient(30deg, var(--primary) 12%, transparent 12.5%, transparent 87%, var(--primary) 87.5%, var(--primary)),
+        linear-gradient(150deg, var(--primary) 12%, transparent 12.5%, transparent 87%, var(--primary) 87.5%, var(--primary)),
+        linear-gradient(30deg, var(--primary) 12%, transparent 12.5%, transparent 87%, var(--primary) 87.5%, var(--primary)),
+        linear-gradient(150deg, var(--primary) 12%, transparent 12.5%, transparent 87%, var(--primary) 87.5%, var(--primary)),
+        linear-gradient(60deg, var(--primary-light) 25%, transparent 25.5%, transparent 75%, var(--primary-light) 75%, var(--primary-light)),
+        linear-gradient(60deg, var(--primary-light) 25%, transparent 25.5%, transparent 75%, var(--primary-light) 75%, var(--primary-light));
+      background-size: 80px 140px;
+      background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+    }
+    
+    /* Header & Navigation */
+    .main-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 100;
+      background: rgba(10, 10, 10, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .nav-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    .nav-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 70px;
+    }
+    
+    /* Logo Styling */
+    .logo-container {
+      display: flex;
+      align-items: center;
+    }
+    
+    .logo-img {
+      height: 70px;
+      width: auto;
+      max-width: 160px;
+      transition: all 0.3s ease;
+    }
+    
+    .logo-text {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-left: 1.5rem;
+      color: var(--primary);
+      transition: all 0.3s ease;
+    }
+    
+    /* Navigation Menu */
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .nav-item {
+      position: relative;
+      padding: 0.5rem 1rem;
+      color: var(--text-light);
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+    
+    .nav-item:hover {
+      background: rgba(255, 138, 0, 0.1);
+      color: var(--primary);
+    }
+    
+    .nav-item.active {
+      background: linear-gradient(to right, var(--primary), var(--primary-light));
+      color: var(--bg-darker);
+      font-weight: 600;
+    }
+    
+    .nav-item.active:hover {
+      background: linear-gradient(to right, var(--primary-light), var(--primary));
+    }
+    
+    .nav-item i {
+      margin-right: 0.5rem;
+    }
+    
+    /* Special Nav Item */
+    .nav-item-special {
+      position: relative;
+      padding: 0.5rem 1.25rem;
+      color: var(--text-light);
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 20px;
+      background: linear-gradient(45deg, var(--primary-dark), var(--primary));
+      overflow: hidden;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-left: auto;
+    }
+    
+    .nav-item-special:hover {
+      background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 138, 0, 0.3);
+    }
+    
+    .nav-item-special::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: all 0.5s ease;
+    }
+    
+    .nav-item-special:hover::before {
+      left: 100%;
+    }
+    
+    /* Mobile Menu Button */
+    .mobile-menu-btn {
+      display: none;
+      background: transparent;
+      border: none;
+      color: var(--text-light);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+    
+    .mobile-menu-btn:hover {
+      background: rgba(255, 138, 0, 0.1);
+      color: var(--primary);
+    }
+    
+    /* Mobile Dropdown Menu */
+    .mobile-dropdown {
+      position: absolute;
+      top: 70px;
+      left: 0;
+      width: 100%;
+      background: rgba(10, 10, 10, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem;
+      display: none;
+      z-index: 99;
+    }
+    
+    .mobile-dropdown.active {
+      display: block;
+    }
+    
+    .mobile-nav-item {
+      display: flex;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      color: var(--text-light);
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      transition: all 0.2s ease;
+    }
+    
+    .mobile-nav-item:hover {
+      background: rgba(255, 138, 0, 0.1);
+      color: var(--primary);
+    }
+    
+    .mobile-nav-item.active {
+      background: linear-gradient(to right, var(--primary), var(--primary-light));
+      color: var(--bg-darker);
+      font-weight: 600;
+    }
+    
+    /* Main Content */
+    .main-content {
+      margin-top: 90px;
+      padding: 1.5rem;
+      min-height: calc(100vh - 90px - 300px); /* Adjust for header and footer */
+    }
+    
+    .content-container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+    
+    /* Content Section */
+    .content-section {
+      background: var(--bg-light);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Interactive Elements */
+    .interactive-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(45deg, var(--primary-dark), var(--primary));
+      color: var(--text-light);
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .interactive-btn:hover {
+      background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 138, 0, 0.3);
+    }
+    
+    .interactive-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: all 0.5s ease;
+    }
+    
+    .interactive-btn:hover::before {
+      left: 100%;
+    }
+    
+    /* Footer */
+    .main-footer {
+      background: var(--bg-darker);
+      border-top: 1px solid var(--border-color);
+      padding: 3rem 1.5rem 1.5rem;
+    }
+    
+    .footer-container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+    
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: 2rem;
+    }
+    
+    @media (min-width: 768px) {
+      .footer-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    
+    .footer-section {
+      margin-bottom: 1.5rem;
+    }
+    
+    .footer-heading {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-light);
+      margin-bottom: 1rem;
+      position: relative;
+      padding-bottom: 0.5rem;
+    }
+    
+    .footer-heading::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 50px;
+      height: 2px;
+      background: var(--primary);
+    }
+    
+    .footer-link {
+      display: flex;
+      align-items: center;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 0.75rem;
+      transition: all 0.2s ease;
+    }
+    
+    .footer-link:hover {
+      color: var(--primary);
+      transform: translateX(5px);
+    }
+    
+    .footer-link i {
+      margin-right: 0.5rem;
+      color: var(--primary);
+    }
+    
+    .social-links {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .social-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: var(--bg-light);
+      color: var(--text-light);
+      border-radius: 50%;
+      transition: all 0.3s ease;
+    }
+    
+    .social-link:hover {
+      background: var(--primary);
+      color: var(--bg-darker);
+      transform: translateY(-3px);
+    }
+    
+    .footer-bottom {
+      text-align: center;
+      padding-top: 1.5rem;
+      margin-top: 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.875rem;
+    }
+    
+    .footer-bottom a {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: underline;
+      transition: color 0.2s ease;
+    }
+    
+    .footer-bottom a:hover {
+      color: var(--primary);
+    }
+    
+    /* Documentation Card */
+    .doc-card {
+      background: var(--bg-light);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+    }
+    
+    .doc-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 5px 15px rgba(255, 138, 0, 0.15);
+    }
+    
+    /* Responsive Adjustments */
+    @media (max-width: 768px) {
+      .nav-menu {
+        display: none;
+      }
+      
+      .mobile-menu-btn {
+        display: block;
+      }
+      
+      .logo-text {
+        font-size: 1.25rem;
+      }
+      
+      .content-section {
+        padding: 1.5rem;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="fixed top-0 w-full z-50 bg-gray-900/95 backdrop-blur-md border-b border-gray-700">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
+  <!-- Background Pattern -->
+  <div class="bg-pattern"></div>
+  
+  <!-- Header & Navigation -->
+  <header class="main-header">
+    <div class="nav-container">
+      <div class="nav-content">
         <!-- Logo -->
-        <div class="flex-shrink-0 flex items-center space-x-3">
-          <i class="fa-solid fa-leaf text-2xl text-emerald-400 animate-pulse"></i>
-          <a href="{{ url_for('index') }}" class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-blue-300 hover:opacity-80 transition-all duration-300">
-            SKINTELLECT
-          </a>
+        <div class="logo-container">
+          <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="KYS Logo" class="logo-img">
+          <a href="{{ url_for('index') }}" class="logo-text">KnowYourSkins</a>
         </div>
-        <!-- Desktop Menu -->
-        <div class="hidden md:flex items-center space-x-6">
-          {% if session.get('is_doctor') %}
-            <a href="{{ url_for('doctor_dashboard') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:bg-gray-700/30">
-              <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
-            </a>
-          {% else %}
-            <a href="{{ url_for('bookappointment') }}" class="group relative overflow-hidden bg-gradient-to-r from-blue-400 to-purple-500 hover:from-purple-500 hover:to-blue-400 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:shadow-xl">
-              <i class="fas fa-robot mr-2 animate-bounce"></i>
-              <span class="relative z-10">AI Skin Assistant</span>
-              <div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <div class="absolute -right-4 top-0 h-full w-12 bg-white/20 transform skew-x-12 transition-all group-hover:right-0"></div>
-              <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <div class="w-4 h-4 bg-white/20 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                <div class="w-4 h-4 bg-white/20 rounded-full animate-bounce mx-2" style="animation-delay: 0.2s"></div>
-                <div class="w-4 h-4 bg-white/20 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
-              </div>
-            </a>
-            <a href="{{ url_for('predict') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:bg-gray-700/30">
-              <i class="fas fa-camera-retro mr-2"></i>Face Analysis
-            </a>
-            <a href="{{ url_for('skin_predict') }}" class="flex items-center bg-red-500/90 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-all duration-300 hover:shadow-lg">
-              <i class="fas fa-flask mr-2"></i>Analyse Skin
-            </a>
-            <a href="{{ url_for('userappoint') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:bg-gray-700/30">
-              <i class="fas fa-calendar-check mr-2"></i>Appointments
-            </a>
-            <a href="{{ url_for('profile') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 hover:bg-gray-700/30">
-              <i class="fas fa-user-circle mr-2"></i>Profile
-            </a>
-          {% endif %}
-          </div>
-        <!-- Mobile Menu Button -->
-        <div class="md:hidden">
-          <button id="dropdown-btn" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700/30 focus:outline-none transition duration-300">
-            <i class="bi bi-list text-2xl"></i>
-          </button>
-        </div>
-        <!-- Desktop Auth Section -->
-        <div class="hidden md:flex items-center space-x-4">
-          {% if session.get('username') %}
-            <a href="{{ url_for('logout') }}" class="flex items-center bg-red-600/90 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:shadow-lg">
-              <i class="fas fa-sign-out-alt mr-2"></i>Logout
-            </a>
-          {% else %}
-            <a href="{{ url_for('login') }}" class="flex items-center bg-green-600/90 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:shadow-lg">
-              <i class="fas fa-sign-in-alt mr-2"></i>Login
-            </a>
-            <a href="{{ url_for('register') }}" class="text-gray-300 hover:text-white px-3 py-2 text-sm font-medium transition-colors duration-300">
-              Register
-            </a>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-    <!-- Mobile Dropdown Menu -->
-    <div id="dropdown-menu" class="md:hidden absolute top-16 inset-x-0 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700 transition-transform duration-300 ease-out hidden">
-      <div class="px-4 py-4 space-y-2">
-        {% if session.get('is_doctor') %}
-          <a href="{{ url_for('doctor_dashboard') }}" class="flex items-center text-gray-300 hover:text-white px-3 py-2 rounded-md transition-colors duration-300">
-            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
-          </a>
-        {% else %}
-        <a href="{{ url_for('bookappointment') }}" class="group relative overflow-hidden bg-gradient-to-r from-blue-400 to-purple-500 hover:from-purple-500 hover:to-blue-400 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:shadow-xl">
-          <i class="fas fa-robot mr-2 animate-bounce"></i>
-          <span class="relative z-10">AI Skin Assistant</span>
-          <div class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          <div class="absolute -right-4 top-0 h-full w-12 bg-white/20 transform skew-x-12 transition-all group-hover:right-0"></div>
-          <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <div class="w-4 h-4 bg-white/20 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-            <div class="w-4 h-4 bg-white/20 rounded-full animate-bounce mx-2" style="animation-delay: 0.2s"></div>
-            <div class="w-4 h-4 bg-white/20 rounded-full animate-bounce" style="animation-delay: 0.3s"></div>
-          </div>
-        </a>
-          <a href="{{ url_for('predict') }}" class="flex items-center text-gray-300 hover:text-white px-3 py-2 rounded-md transition-colors duration-300">
-            <i class="fas fa-camera-retro mr-2"></i>Face Analysis
-          </a>
-          <a href="{{ url_for('skin_predict') }}" class="flex items-center bg-red-500/90 hover:bg-red-600 text-white px-3 py-2 rounded-lg transition-all duration-300">
-            <i class="fas fa-flask mr-2"></i>Analyse Skin
-          </a>
-          <a href="{{ url_for('userappoint') }}" class="flex items-center text-gray-300 hover:text-white px-3 py-2 rounded-md transition-colors duration-300">
-            <i class="fas fa-calendar-check mr-2"></i>Appointments
-          </a>
-          <a href="{{ url_for('profile') }}" class="flex items-center text-gray-300 hover:text-white px-3 py-2 rounded-md transition-colors duration-300">
-            <i class="fas fa-user-circle mr-2"></i>Profile
-          </a>
-        {% endif %}
         
-          {% if session.get('username') %}
-            <a href="{{ url_for('logout') }}" class="flex items-center text-red-400 hover:text-red-300 px-3 py-2 transition-colors duration-300">
-              <i class="fas fa-sign-out-alt mr-2"></i>Logout
+        <!-- Desktop Navigation Menu -->
+        <nav class="nav-menu">
+          {% if session.get('is_doctor') %}
+            <a href="{{ url_for('doctor_dashboard') }}" class="nav-item {% if request.endpoint == 'doctor_dashboard' %}active{% endif %}">
+              <i class="fas fa-tachometer-alt"></i>Dashboard
             </a>
           {% else %}
-            <a href="{{ url_for('login') }}" class="flex items-center text-green-400 hover:text-green-300 px-3 py-2 transition-colors duration-300">
-              <i class="fas fa-sign-in-alt mr-2"></i>Login
+            <a href="{{ url_for('predict') }}" class="nav-item {% if request.endpoint == 'predict' %}active{% endif %}">
+              <i class="fas fa-camera-retro"></i>Face Analysis
             </a>
-            <a href="{{ url_for('register') }}" class="flex items-center text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300">
-              <i class="fas fa-user-plus mr-2"></i>Register
+            <a href="{{ url_for('skin_predict') }}" class="nav-item {% if request.endpoint == 'skin_predict' %}active{% endif %}">
+              <i class="fas fa-flask"></i>Analyse Skin
+            </a>
+            <a href="{{ url_for('userappoint') }}" class="nav-item {% if request.endpoint == 'userappoint' %}active{% endif %}">
+              <i class="fas fa-calendar-check"></i>Appointments
+            </a>
+            <a href="{{ url_for('profile') }}" class="nav-item {% if request.endpoint == 'profile' %}active{% endif %}">
+              <i class="fas fa-user-circle"></i>Profile
+            </a>
+            <a href="{{ url_for('bookappointment') }}" class="nav-item-special ml-4">
+              <i class="fas fa-robot"></i>BOT
             </a>
           {% endif %}
-        </div>
+          
+          {% if session.get('username') %}
+            <a href="{{ url_for('logout') }}" class="nav-item {% if request.endpoint == 'logout' %}active{% endif %}">
+              <i class="fas fa-sign-out-alt"></i>Logout
+            </a>
+          {% else %}
+            <a href="{{ url_for('login') }}" class="nav-item {% if request.endpoint == 'login' %}active{% endif %}">
+              <i class="fas fa-sign-in-alt"></i>Login
+            </a>
+            <a href="{{ url_for('register') }}" class="nav-item {% if request.endpoint == 'register' %}active{% endif %}">
+              <i class="fas fa-user-plus"></i>Register
+            </a>
+          {% endif %}
+        </nav>
+        
+        <!-- Mobile Menu Button -->
+        <button id="mobile-menu-btn" class="mobile-menu-btn">
+          <i class="bi bi-list"></i>
+        </button>
       </div>
     </div>
-  </nav>
+    
+    <!-- Mobile Dropdown Menu -->
+    <div id="mobile-dropdown" class="mobile-dropdown">
+      {% if session.get('is_doctor') %}
+        <a href="{{ url_for('doctor_dashboard') }}" class="mobile-nav-item">
+          <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+        </a>
+      {% else %}
+        <a href="{{ url_for('bookappointment') }}" class="mobile-nav-item active">
+          <i class="fas fa-robot mr-2"></i>AI Skin Assistant
+        </a>
+        <a href="{{ url_for('predict') }}" class="mobile-nav-item">
+          <i class="fas fa-camera-retro mr-2"></i>Face Analysis
+        </a>
+        <a href="{{ url_for('skin_predict') }}" class="mobile-nav-item">
+          <i class="fas fa-flask mr-2"></i>Analyse Skin
+        </a>
+        <a href="{{ url_for('userappoint') }}" class="mobile-nav-item">
+          <i class="fas fa-calendar-check mr-2"></i>Appointments
+        </a>
+        <a href="{{ url_for('profile') }}" class="mobile-nav-item">
+          <i class="fas fa-user-circle mr-2"></i>Profile
+        </a>
+      {% endif %}
+      
+      {% if session.get('username') %}
+        <a href="{{ url_for('logout') }}" class="mobile-nav-item">
+          <i class="fas fa-sign-out-alt mr-2"></i>Logout
+        </a>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="mobile-nav-item">
+          <i class="fas fa-sign-in-alt mr-2"></i>Login
+        </a>
+        <a href="{{ url_for('register') }}" class="mobile-nav-item">
+          <i class="fas fa-user-plus mr-2"></i>Register
+        </a>
+      {% endif %}
+    </div>
+  </header>
 
   <!-- Main Content -->
-  <div class="content p-4 flex-grow w-full min-h-[calc(100vh-180px)] flex flex-col">
-    {% block content %}{% endblock %}
-  </div>
+  <main class="main-content">
+    <div class="content-container">
+      <section class="content-section">
+        {% block content %}{% endblock %}
+      </section>
+    </div>
+  </main>
 
   <!-- Footer -->
-  <footer class="bg-gray-900 text-gray-300 py-8 mt-12 border-t border-gray-700">
-    <div class="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-8">
-      <div class="text-center md:text-left">
-        <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-blue-300 mb-2">SKINTELLECT</h2>
-        <p class="text-sm text-gray-400">AI-Driven Dermatology Solutions</p>
-        <div class="mt-4 space-y-2">
-          <p class="text-sm flex items-center justify-center md:justify-start">
-            <i class="fas fa-envelope mr-2 text-emerald-400"></i>
-            himanshudixit2406@gmail.com
-          </p>
-          <p class="text-sm flex items-center justify-center md:justify-start">
-            <i class="fas fa-phone mr-2 text-emerald-400"></i>
-            +917390922922
-          </p>
+  <footer class="main-footer">
+    <div class="footer-container">
+      <div class="footer-grid">
+        <!-- Company Info -->
+        <div class="footer-section">
+          <h3 class="footer-heading">KNOWYOURSKINS</h3>
+          <p class="text-sm text-gray-400 mb-4">AI-Driven Dermatology Solutions</p>
+          <div class="space-y-2">
+            <p class="text-sm flex items-center">
+              <i class="fas fa-envelope mr-2 text-orange-400"></i>
+              himanshudixit2406@gmail.com
+            </p>
+            <p class="text-sm flex items-center">
+              <i class="fas fa-phone mr-2 text-orange-400"></i>
+              +917390922922
+            </p>
+          </div>
+          
+          <!-- Social Links -->
+          <div class="social-links">
+            <a href="https://www.instagram.com/himanshu.dixitt?igsh=MXExMWI4ZzIxNDA4cw==" class="social-link">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a href="https://www.linkedin.com/in/himanshudixit2406/" class="social-link">
+              <i class="fab fa-linkedin"></i>
+            </a>
+            <a href="https://github.com/himanshudixit2002" class="social-link">
+              <i class="fab fa-github"></i>
+            </a>
+          </div>
+        </div>
+        
+        <!-- Quick Links -->
+        <div class="footer-section">
+          <h3 class="footer-heading">Quick Links</h3>
+          <div class="flex flex-col">
+            <a href="{{ url_for('predict') }}" class="footer-link">
+              <i class="fas fa-camera-retro"></i>
+              Skin Analysis
+            </a>
+            <a href="{{ url_for('bookappointment') }}" class="footer-link">
+              <i class="fas fa-calendar-plus"></i>
+              Consultation
+            </a>
+            <a href="{{ url_for('profile') }}" class="footer-link">
+              <i class="fas fa-user-circle"></i>
+              Profile
+            </a>
+            <a href="{{ url_for('userappoint') }}" class="footer-link">
+              <i class="fas fa-calendar-check"></i>
+              Appointments
+            </a>
+          </div>
+        </div>
+        
+        <!-- Documentation Card -->
+        <div class="footer-section">
+          <h3 class="footer-heading">Documentation</h3>
+          <div class="doc-card">
+            <p class="text-sm text-gray-400 mb-4">
+              Explore our comprehensive guide for installation, usage, and advanced tips to make the most of KNOWYOURSKINS.
+            </p>
+            <a href="{{ url_for('documentation') }}" target="_blank" class="interactive-btn">
+              Read Documentation
+            </a>
+          </div>
         </div>
       </div>
-      <div class="space-y-4">
-        <h3 class="font-semibold text-gray-200 mb-2">Quick Links</h3>
-        <div class="flex flex-col space-y-3">
-          <a href="{{ url_for('predict') }}" class="text-sm hover:text-emerald-400 transition-colors flex items-center">
-            <i class="fas fa-camera-retro mr-2"></i>
-            Skin Analysis
-          </a>
-          <a href="{{ url_for('bookappointment') }}" class="text-sm hover:text-emerald-400 transition-colors flex items-center">
-            <i class="fas fa-calendar-plus mr-2"></i>
-            Consultation
-          </a>
-          <a href="{{ url_for('profile') }}" class="text-sm hover:text-emerald-400 transition-colors flex items-center">
-            <i class="fas fa-user-circle mr-2"></i>
-            Profile
-          </a>
-          <a href="{{ url_for('userappoint') }}" class="text-sm hover:text-emerald-400 transition-colors flex items-center">
-            <i class="fas fa-calendar-check mr-2"></i>
-            Appointments
-          </a>
-        </div>
-      </div>
-      <!-- Documentation Card -->
-    <div class="space-y-4">
-      <h3 class="font-semibold text-gray-200 mb-2">Documentation</h3>
-      <div class="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors shadow-lg">
-        <p class="text-sm text-gray-400 mb-3">
-          Explore our comprehensive guide for installation, usage, and advanced tips to make the most of SKINTELLECT.
+      
+      <!-- Footer Bottom -->
+      <div class="footer-bottom">
+        <p>
+          &copy; 2025 KNOWYOURSKINS. All rights reserved. |
+          <a href="{{ url_for('privacy_policy') }}">Privacy Policy</a> |
+          <a href="{{ url_for('terms_of_service') }}">Terms of Service</a>
         </p>
-        <a href="{{ url_for('documentation') }}" target="_blank" class="inline-block bg-emerald-400 text-gray-900 px-4 py-2 rounded-md text-sm font-semibold hover:bg-emerald-300 transition-colors">
-          Read Documentation
-        </a>
-      </div>
-    </div>
-      <div class="space-y-4">
-        <h3 class="font-semibold text-gray-200 mb-2">Connect With Us</h3>
-        <div class="flex space-x-6 text-2xl justify-center md:justify-start">
-          <a href="https://www.instagram.com/himanshu.dixitt?igsh=MXExMWI4ZzIxNDA4cw==" class="text-gray-400 hover:text-emerald-400 transition-colors">
-            <i class="fab fa-instagram"></i>
-          </a>
-          <a href="https://www.linkedin.com/in/himanshudixit2406/" class="text-gray-400 hover:text-emerald-400 transition-colors">
-            <i class="fab fa-linkedin"></i>
-          </a>
-          <a href="https://github.com/himanshudixit2002" class="text-gray-400 hover:text-emerald-400 transition-colors">
-            <i class="fab fa-github"></i>
-          </a>
-        </div>
-      </div>
-    </div>
-    <div class="mt-8 pt-6 border-t border-gray-700">
-      <div class="text-center text-sm text-gray-400">
-        &copy; 2025 SKINTELLECT. All rights reserved. |
-        <a href="{{ url_for('privacy_policy') }}" class="hover:text-emerald-400 underline transition-colors">Privacy Policy</a> |
-        <a href="{{ url_for('terms_of_service') }}" class="hover:text-emerald-400 underline transition-colors">Terms of Service</a>
       </div>
     </div>
   </footer>
+
   <script>
-    // Toggle mobile dropdown menu
-    document.getElementById("dropdown-btn").addEventListener("click", function() {
-      let menu = document.getElementById("dropdown-menu");
-      menu.classList.toggle("hidden");
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileDropdown = document.getElementById('mobile-dropdown');
+    
+    mobileMenuBtn.addEventListener('click', function() {
+      mobileDropdown.classList.toggle('active');
+      
+      // Change icon based on menu state
+      const icon = mobileMenuBtn.querySelector('i');
+      if (mobileDropdown.classList.contains('active')) {
+        icon.classList.remove('bi-list');
+        icon.classList.add('bi-x-lg');
+      } else {
+        icon.classList.remove('bi-x-lg');
+        icon.classList.add('bi-list');
+      }
+    });
+    
+    // Interactive button effects
+    document.querySelectorAll('.interactive-btn').forEach(button => {
+      button.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-2px)';
+      });
+      
+      button.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+      });
+    });
+    
+    // Add active class to current page nav item
+    document.addEventListener('DOMContentLoaded', function() {
+      const currentPath = window.location.pathname;
+      
+      // Desktop menu
+      document.querySelectorAll('.nav-item, .nav-item-special').forEach(item => {
+        const href = item.getAttribute('href');
+        if (href === currentPath) {
+          item.classList.add('active');
+        }
+      });
+      
+      // Mobile menu
+      document.querySelectorAll('.mobile-nav-item').forEach(item => {
+        const href = item.getAttribute('href');
+        if (href === currentPath) {
+          item.classList.add('active');
+        }
+      });
     });
   </script>
 </body>

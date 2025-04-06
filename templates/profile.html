@@ -1,112 +1,457 @@
 {% extends "layout.html" %}
-{% block title %}SKINTELLECT | Profile{% endblock %}
+{% block title %}Knowyourskins | Profile{% endblock %}
 {% block content %}
 
-<div class="min-h-screen w-screen flex items-center justify-center relative px-4 py-16 bg-gradient-to-br from-indigo-900 via-blue-800 to-purple-900">
-  <div class="max-w-screen-md w-full md:w-1/2 bg-white/90 rounded-2xl p-8 shadow-lg backdrop-blur-md z-10 mt-16">
-    
-    <!-- Profile Header -->
-    <div class="flex items-center justify-center mb-8 gap-4 flex-wrap">
-      <img src="{{ url_for('static', filename='assets/user.png') }}" alt="Profile Image" class="w-14 h-14 rounded-full shadow-md">
-      <p class="text-3xl md:text-4xl font-bold text-center text-gray-900">{{ survey.name }}</p>
-    </div>
+<style>
+  /* Background and Layout */
+  .profile-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1f2c, #2d3748);
+    position: relative;
+    overflow: hidden;
+    padding: 2rem 1rem;
+  }
+  
+  /* Animated Particles */
+  .particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+  }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    animation: float 15s infinite ease-in-out;
+  }
+  .particle:nth-child(1) { width: 80px; height: 80px; top: 10%; left: 10%; animation-delay: 0s; }
+  .particle:nth-child(2) { width: 60px; height: 60px; top: 20%; left: 80%; animation-delay: 2s; }
+  .particle:nth-child(3) { width: 100px; height: 100px; top: 60%; left: 70%; animation-delay: 4s; }
+  .particle:nth-child(4) { width: 50px; height: 50px; top: 80%; left: 20%; animation-delay: 6s; }
+  .particle:nth-child(5) { width: 70px; height: 70px; top: 40%; left: 30%; animation-delay: 8s; }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0) translateX(0); }
+    25% { transform: translateY(-20px) translateX(10px); }
+    50% { transform: translateY(0) translateX(20px); }
+    75% { transform: translateY(20px) translateX(10px); }
+  }
 
+  /* Background Logo Animation */
+  .background-logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60%;
+    max-width: 700px;
+    opacity: 0.05;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    animation: rotateLogo 30s linear infinite;
+  }
+  @keyframes rotateLogo {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+
+  /* Decorative Elements */
+  .decorative-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255, 159, 90, 0.2), rgba(255, 122, 0, 0.1));
+    z-index: 0;
+  }
+  .circle-1 {
+    width: 300px;
+    height: 300px;
+    top: -150px;
+    left: -150px;
+  }
+  .circle-2 {
+    width: 400px;
+    height: 400px;
+    bottom: -200px;
+    right: -200px;
+  }
+
+  /* Profile Card */
+  .profile-card {
+    background: rgba(30, 35, 45, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 10;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+  
+  /* Profile Header */
+  .profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 2rem;
+    position: relative;
+  }
+  
+  .profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid rgba(255, 159, 90, 0.7);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    margin-bottom: 1rem;
+    background-color: #2d3748;
+    padding: 0.25rem;
+  }
+  
+  .profile-name {
+    font-size: 2rem;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Info Grid */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  
+  @media (min-width: 768px) {
+    .info-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  .info-item {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+  }
+  
+  .info-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    background: rgba(255, 159, 90, 0.1);
+    border-color: rgba(255, 159, 90, 0.3);
+  }
+  
+  .info-label {
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+  }
+  
+  .info-value {
+    color: white;
+    font-size: 1rem;
+    word-break: break-word;
+  }
+  
+  /* Routine Section */
+  .routine-section {
+    background: linear-gradient(135deg, rgba(30, 35, 45, 0.9), rgba(45, 55, 72, 0.9));
+    border: 1px solid rgba(255, 159, 90, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .routine-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  .routine-icon {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+    color: #FF9F5A;
+  }
+  
+  .routine-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+  }
+  
+  .routine-subtitle {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .routine-time {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .routine-time-title {
+    display: flex;
+    align-items: center;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+  
+  .morning-title {
+    color: #FF9F5A;
+  }
+  
+  .night-title {
+    color: #9F7AEA;
+  }
+  
+  .routine-time-content {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+    padding-left: 1.75rem;
+  }
+  
+  /* Button Styles */
+  .btn-generate {
+    width: 100%;
+    padding: 0.85rem;
+    background: linear-gradient(135deg, #FF9F5A, #FF7A00);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: bold;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 159, 90, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1.5rem;
+    cursor: pointer;
+  }
+  
+  .btn-generate:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(255, 159, 90, 0.5);
+  }
+  
+  .btn-generate:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  .status-message {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 500;
+  }
+  
+  .status-success {
+    background: rgba(16, 185, 129, 0.2);
+    color: #d1fae5;
+  }
+  
+  .status-error {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fecaca;
+  }
+  
+  /* Loading Spinner */
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .spinner {
+    display: inline-block;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+    margin-left: 0.75rem;
+  }
+</style>
+
+<div class="profile-container">
+  <!-- Decorative Elements -->
+  <div class="decorative-circle circle-1"></div>
+  <div class="decorative-circle circle-2"></div>
+  
+  <!-- Animated Particles -->
+  <div class="particles">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+  
+  <!-- Animated Background Logo -->
+  <img src="/static/assets/logo.png" alt="Background Logo" class="background-logo">
+  
+  <!-- Profile Card -->
+  <div class="profile-card">
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <img src="{{ url_for('static', filename='assets/user.png') }}" alt="Profile Image" class="profile-avatar">
+      <h1 class="profile-name">{{ survey.name }}</h1>
+    </div>
+    
     <!-- User Info -->
-    <div class="text-gray-800 flex flex-col gap-4">
+    <div class="info-grid">
       {% set fields = [
-        ("Name", survey.name, "bg-blue-100"),
-        ("Age", survey.age, "bg-blue-200"),
-        ("Gender", survey.gender, "bg-blue-100"),
-        ("Concerns", survey.concerns, "bg-blue-200"),
-        ("How Often Does Your Acne Appear?", survey.acne_frequency, "bg-blue-100"),
-        ("How Many Comedones Do You Have?", survey.comedones_count, "bg-blue-200"),
-        ("First Concern You'd Like To Address", survey.first_concern, "bg-blue-100"),
-        ("Cosmetic Usage Frequency", survey.cosmetic_usage, "bg-blue-200"),
-        ("Reaction to Skincare Products", survey.skin_reaction, "bg-blue-100"),
-        ("Skin Type Description", survey.skin_type, "bg-blue-200"),
-        ("Medications That May Interact", survey.medications, "bg-blue-100"),
-        ("Current Skincare Routine", survey.skincare_routine, "bg-blue-200"),
-        ("Stress Level (0-5)", survey.stress_level, "bg-blue-100")
+        ("Age", survey.age),
+        ("Gender", survey.gender),
+        ("Concerns", survey.concerns),
+        ("Acne Frequency", survey.acne_frequency),
+        ("Comedones Count", survey.comedones_count),
+        ("First Concern", survey.first_concern),
+        ("Cosmetic Usage", survey.cosmetic_usage),
+        ("Skin Reaction", survey.skin_reaction),
+        ("Skin Type", survey.skin_type),
+        ("Medications", survey.medications),
+        ("Skincare Routine", survey.skincare_routine),
+        ("Stress Level", survey.stress_level)
       ] %}
 
-      {% for label, value, bg_color in fields %}
-        <div class="px-6 py-3 flex flex-col md:flex-row justify-between items-center rounded-lg {{ bg_color }} shadow-sm hover:bg-blue-50 transition-colors duration-200">
-          <label class="font-semibold text-base md:text-lg text-gray-900">{{ label }}:</label>
-          <span class="text-base md:text-lg text-gray-700 text-right">{{ value if value else "N/A" }}</span>
+      {% for label, value in fields %}
+        <div class="info-item">
+          <div class="info-label">{{ label }}</div>
+          <div class="info-value">{{ value if value else "N/A" }}</div>
         </div>
       {% endfor %}
     </div>
 
     <!-- AI-Generated Skincare Routine -->
-    <div class="mt-8 p-6 bg-gradient-to-r from-emerald-200 to-blue-300 rounded-xl shadow-lg">
-      <h2 class="text-xl font-bold text-gray-800">🌿 Your Personalized Skincare Routine</h2>
-      <p class="text-gray-600 text-sm">Generated based on your skin assessment</p>
+    <div class="routine-section">
+      <div class="routine-header">
+        <span class="routine-icon">✨</span>
+        <h2 class="routine-title">Your Personalized Skincare Routine</h2>
+      </div>
+      <p class="routine-subtitle">Tailored specifically for your skin needs based on your assessment</p>
 
-      <div class="mt-4">
-        <h3 class="text-lg font-semibold text-blue-600">🌞 Morning Routine</h3>
-        <p class="text-gray-700" id="morningRoutine">
+      <div class="routine-time">
+        <h3 class="routine-time-title morning-title">
+          <span class="mr-2">☀️</span> Morning Routine
+        </h3>
+        <p class="routine-time-content" id="morningRoutine">
           {{ routine.morning_routine if routine and routine.morning_routine else "Not generated yet." }}
         </p>
       </div>
 
-      <div class="mt-4">
-        <h3 class="text-lg font-semibold text-purple-600">🌙 Night Routine</h3>
-        <p class="text-gray-700" id="nightRoutine">
+      <div class="routine-time">
+        <h3 class="routine-time-title night-title">
+          <span class="mr-2">🌙</span> Night Routine
+        </h3>
+        <p class="routine-time-content" id="nightRoutine">
           {{ routine.night_routine if routine and routine.night_routine else "Not generated yet." }}
         </p>
       </div>
 
       <!-- Routine Generation Status -->
-      <p id="routineStatus" class="text-green-700 font-semibold mt-3 hidden"></p>
+      <div id="routineStatus" class="status-message hidden"></div>
 
       <!-- Generate Routine Button -->
-      <button id="generateButton" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-all flex items-center justify-center"
-        onclick="generateRoutine()">
+      <button id="generateButton" class="btn-generate" onclick="generateRoutine()">
         <span id="buttonText">Generate New Routine</span>
-        <span id="loadingSpinner" class="hidden ml-2">
-          <i class="fas fa-spinner fa-spin"></i>
-        </span>
+        <span id="loadingSpinner" class="spinner hidden"></span>
       </button>
     </div>
   </div>
 </div>
 
 <script>
-function generateRoutine() {
-    let button = document.getElementById("generateButton");
-    let buttonText = document.getElementById("buttonText");
-    let spinner = document.getElementById("loadingSpinner");
-    let routineStatus = document.getElementById("routineStatus");
-
-    // Show loading spinner
-    buttonText.textContent = "Generating...";
-    spinner.classList.remove("hidden");
-    button.disabled = true;
-
-    fetch('/generate_routine', { method: 'POST' })
-    .then(response => response.json())
-    .then(data => {
-        if (data.routine) {
-            document.getElementById("morningRoutine").textContent = data.routine.morning_routine;
-            document.getElementById("nightRoutine").textContent = data.routine.night_routine;
-            routineStatus.textContent = "✅ New skincare routine generated!";
-            routineStatus.classList.remove("hidden");
-        } else {
-            routineStatus.textContent = "❌ Failed to generate routine.";
-            routineStatus.classList.remove("hidden");
+  function generateRoutine() {
+      let button = document.getElementById("generateButton");
+      let buttonText = document.getElementById("buttonText");
+      let spinner = document.getElementById("loadingSpinner");
+      let routineStatus = document.getElementById("routineStatus");
+  
+      // Ensure spinner is immediately visible when clicked
+      buttonText.textContent = "Generating...";
+      spinner.style.display = "inline-block";
+      button.disabled = true;
+      routineStatus.style.display = "none";
+  
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+  
+      fetch('/generate_routine', {
+        method: 'POST',
+        signal: controller.signal
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-    })
-    .catch(() => {
-        routineStatus.textContent = "❌ Error fetching routine.";
-        routineStatus.classList.remove("hidden");
-    })
-    .finally(() => {
-        // Reset button
-        buttonText.textContent = "Generate New Routine";
-        spinner.classList.add("hidden");
-        button.disabled = false;
-    });
-}
-</script>
+        return response.json();
+      })
+      .then(data => {
+          if (data.routine) {
+              document.getElementById("morningRoutine").textContent = data.routine.morning_routine;
+              document.getElementById("nightRoutine").textContent = data.routine.night_routine;
+              routineStatus.textContent = "✅ New skincare routine generated successfully!";
+              routineStatus.className = "status-message status-success";
+          } else {
+              routineStatus.textContent = "❌ Failed to generate routine. Please try again.";
+              routineStatus.className = "status-message status-error";
+          }
+      })
+      .catch((error) => {
+          const errorMsg = error.name === 'AbortError'
+            ? "Request timed out. Please try again."
+            : "Error connecting to server. Please try again later.";
+          routineStatus.textContent = `❌ ${errorMsg}`;
+          routineStatus.className = "status-message status-error";
+      })
+      .finally(() => {
+          buttonText.textContent = "Generate New Routine";
+          spinner.style.display = "none";
+          button.disabled = false;
+          routineStatus.style.display = "block";
+      });
+  }
+  
+  // Ensure loader starts hidden initially
+  window.onload = () => {
+      document.getElementById("loadingSpinner").style.display = "none";
+  };
+  
+  // Animation on page load for info items
+  window.addEventListener('DOMContentLoaded', function() {
+      const infoItems = document.querySelectorAll('.info-item');
+      infoItems.forEach((item, index) => {
+          item.style.opacity = '0';
+          item.style.transform = 'translateY(20px)';
+          item.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+  
+          setTimeout(() => {
+              item.style.opacity = '1';
+              item.style.transform = 'translateY(0)';
+          }, index * 50);
+      });
+  });
+  </script>
 
 {% endblock %}

@@ -1,8 +1,8 @@
-# Skintellect Documentation
+# Knowyourskins Documentation
 
 ## Project Overview
 
-Skintellect is an intelligent skincare analysis and recommendation system designed to provide users with personalized skincare advice and product recommendations based on their individual skin conditions and concerns. The system combines computer vision techniques with skincare science to analyze user-uploaded images, identify potential skin issues, and suggest appropriate products and routines. The target audience includes individuals seeking personalized skincare solutions, as well as dermatologists and skincare professionals looking for tools to assist in diagnosis and treatment planning.
+Knowyourskins is an intelligent skincare analysis and recommendation system designed to provide users with personalized skincare advice and product recommendations based on their individual skin conditions and concerns. The system combines computer vision techniques with skincare science to analyze user-uploaded images, identify potential skin issues, and suggest appropriate products and routines. The target audience includes individuals seeking personalized skincare solutions, as well as dermatologists and skincare professionals looking for tools to assist in diagnosis and treatment planning.
 
 ## Features
 
@@ -42,8 +42,8 @@ Skintellect is an intelligent skincare analysis and recommendation system design
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/Skintellect.git
-cd Skintellect
+git clone https://github.com/yourusername/Knowyourskins.git
+cd Knowyourskins
 
 # Create virtual environment
 python -m venv venv

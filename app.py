@@ -853,6 +853,7 @@ def predict():
             return jsonify({"error": "An error occurred during analysis.", "details": str(e)}), 500
     return render_template("face_analysis.html", data={})
 
+
 # -----------------------------------------------------------------------------
 # Skin Disease Classifier Prediction Endpoint
 # -----------------------------------------------------------------------------

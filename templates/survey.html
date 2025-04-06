@@ -2,126 +2,541 @@
 {% block title %}Skin Health Survey | SKINTELLECT{% endblock %}
 {% block content %}
 
-<div class="min-h-screen w-full flex items-center justify-center p-4 bg-gradient-to-br from-indigo-900 via-blue-800 to-purple-900">
-    <div class="w-full max-w-4xl bg-white/90 backdrop-blur-md rounded-2xl shadow-xl overflow-hidden">
-        <!-- Survey Header -->
-        <div class="bg-gradient-to-r from-indigo-700 to-blue-600 text-white p-6">
-            <div class="flex items-center justify-between">
-                <h1 class="text-2xl md:text-3xl font-bold">Skin Health Assessment</h1>
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-clipboard-list text-xl"></i>
-                    <span class="text-sm">Page</span>
-                </div>
-            </div>
-        </div>
+<style>
+  /* Import Google Fonts */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-        <!-- Survey Content -->
-        <form action="/survey" method="POST" class="p-8 space-y-6">
-            <!-- Hidden input field for name -->
-            <input type="hidden" id="name" name="name" value="{{ name }}">
+  /* Base Styles */
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(135deg, #1a1f2c, #2d3748);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
 
-            <!-- Age -->
-            <label for="age" class="text-lg font-semibold text-gray-800">1. What Is Your Age?</label>
-            <select id="age" name="age" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-400 transition">
-                <option value="<12">&lt;12</option>
-                <option value="12-18">12-18</option>
-                <option value="18-25">18-25</option>
-                <option value="26-45">26-45</option>
-                <option value="46-55">46-55</option>
-                <option value="55+">55+</option>
-            </select>
+  /* Animated Background */
+  .animated-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+  }
 
-            <!-- Gender -->
-            <label for="gender" class="text-lg font-semibold text-gray-800">2. What is your Gender?</label>
-            <select id="gender" name="gender" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-400 transition">
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-            </select>
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    animation: float 15s infinite ease-in-out;
+  }
+  .particle:nth-child(1) { width: 100px; height: 100px; top: 10%; left: 10%; animation-delay: 0s; }
+  .particle:nth-child(2) { width: 80px; height: 80px; top: 20%; left: 80%; animation-delay: 2s; }
+  .particle:nth-child(3) { width: 120px; height: 120px; top: 60%; left: 70%; animation-delay: 4s; }
+  .particle:nth-child(4) { width: 60px; height: 60px; top: 80%; left: 20%; animation-delay: 6s; }
+  .particle:nth-child(5) { width: 90px; height: 90px; top: 40%; left: 30%; animation-delay: 8s; }
 
-            <!-- Concerns -->
-            <label for="concerns" class="text-lg font-semibold text-gray-800">3. Please Select Your Concerns:</label>
-            <select id="concerns" name="concerns" multiple required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-400 transition">
-                <option value="Acne">Acne</option>
-                <option value="Dry skin">Dry skin</option>
-                <option value="Oily skin">Oily skin</option>
-                <option value="Blackheads or whiteheads">Blackheads or whiteheads</option>
-                <option value="Papules">Papules</option>
-                <option value="Skin allergies or irritations">Skin allergies or irritations</option>
-            </select>
+  @keyframes float {
+    0%, 100% { transform: translateY(0) translateX(0); }
+    25% { transform: translateY(-20px) translateX(10px); }
+    50% { transform: translateY(0) translateX(20px); }
+    75% { transform: translateY(20px) translateX(10px); }
+  }
 
-            <!-- Acne Frequency -->
-            <label for="acne_frequency" class="text-lg font-semibold text-gray-800">4. How Often Does Your Acne Appear?</label>
-            <select id="acne_frequency" name="acne_frequency" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-400 transition">
-                <option value="Never">Never</option>
-                <option value="Once in a month">Once in a month</option>
-                <option value="Once in 3 months">Once in 3 months</option>
-                <option value="Always Present">Always Present</option>
-            </select>
+  /* Decorative Elements */
+  .decorative-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255, 159, 90, 0.1), rgba(255, 122, 0, 0.05));
+    z-index: 0;
+  }
+  .circle-1 {
+    width: 300px;
+    height: 300px;
+    top: -150px;
+    left: -150px;
+  }
+  .circle-2 {
+    width: 400px;
+    height: 400px;
+    bottom: -200px;
+    right: -200px;
+  }
 
-            <!-- Comedones Count -->
-            <label for="comedones_count" class="text-lg font-semibold text-gray-800">5. How Many Comedones (Whiteheads, Blackheads) Do You Have?</label>
-            <select id="comedones_count" name="comedones_count" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-400 transition">
-                <option value="None">None</option>
-                <option value="Less than 5">Less than 5</option>
-                <option value="About 5-10">About 5-10</option>
-                <option value="More than 10">More than 10</option>
-            </select>
+  /* Main Container */
+  .survey-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+  }
 
-            <!-- First Concern -->
-            <label for="first_concern" class="text-lg font-semibold text-gray-800">6. Please Select The Concern You'd Like To Address First:</label>
-            <select id="first_concern" name="first_concern" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-400 transition">
-                <option value="Acne">Acne</option>
-                <option value="Dry skin">Dry skin</option>
-                <option value="Oily skin">Oily skin</option>
-                <option value="Blackheads or whiteheads">Blackheads or whiteheads</option>
-                <option value="Papules">Papules</option>
-            </select>
+  /* Survey Card */
+  .survey-card {
+    width: 100%;
+    max-width: 800px;
+    background: rgba(30, 35, 45, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
 
-            <!-- Cosmetic Usage -->
-            <label for="cosmetics_usage" class="text-lg font-semibold text-gray-800">7. How Often Do You Use Cosmetics?</label>
-            <select id="cosmetics_usage" name="cosmetics_usage" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-400 transition">
-                <option value="Everyday">Everyday</option>
-                <option value="Occasionally">Occasionally</option>
-                <option value="Rarely Or Never">Rarely Or Never</option>
-            </select>
+  /* Survey Header */
+  .survey-header {
+    background: linear-gradient(135deg, #FF9F5A, #FF7A00);
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
 
-            <!-- Skin Reaction -->
-            <label for="skin_reaction" class="text-lg font-semibold text-gray-800">8. Does Your Skin React to Skincare Products?</label>
-            <select id="skin_reaction" name="skin_reaction" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-400 transition">
-                <option value="Rarely/Never">Rarely/Never</option>
-                <option value="Often">Often</option>
-            </select>
+  .survey-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 
-            <!-- Skin Type -->
-            <label for="skin_type" class="text-lg font-semibold text-gray-800">9. Which Best Describes Your Skin Type?</label>
-            <select id="skin_type" name="skin_type_details" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-400 transition">
-                <option value="Combination Skin">Part Oily And Part Normal (Combination Skin)</option>
-                <option value="Normal">Neither Very Oily Nor Very Dry</option>
-                <option value="Oily T-Zone">Oily Forehead And Nose Bridge (T-Zone)</option>
-                <option value="None Of The Above">None Of The Above</option>
-            </select>
+  .survey-title {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: white;
+  }
 
-            <!-- Medications -->
-            <label for="medications" class="text-lg font-semibold text-gray-800">10. Are You Taking Any Medications?</label>
-            <select id="medications" name="medications" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-400 transition">
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
-            </select>
+  .survey-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
 
-            <!-- Skincare Routine -->
-            <label for="skincare_routine" class="text-lg font-semibold text-gray-800">11. Describe Your Current Skincare Routine:</label>
-            <textarea id="skincare_routine" name="skincare_routine" rows="4" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-400 transition"></textarea>
+  .survey-progress-icon {
+    color: white;
+    font-size: 1.25rem;
+  }
 
-            <!-- Stress Level -->
-            <label for="stress_level" class="text-lg font-semibold text-gray-800">12. How Would You Describe Your Stress Level? (0-5)</label>
-            <input type="number" id="stress_level" name="stress_level" min="0" max="5" required class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-400 transition">
+  .survey-progress-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
 
-            <!-- Submit Button -->
-            <button type="submit" class="text-white font-semibold text-lg bg-gradient-to-r from-emerald-400 to-blue-300 w-full p-2 rounded-lg hover:from-emerald-300 hover:to-blue-200 transition">
-                Submit
-            </button>
-        </form>
-    </div>
+  /* Survey Form */
+  .survey-form {
+    padding: 2rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .form-label {
+    display: block;
+    margin-bottom: 0.75rem;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: white;
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.3s ease;
+  }
+
+  .form-control:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #FF9F5A;
+    box-shadow: 0 0 0 3px rgba(255, 159, 90, 0.2);
+  }
+
+  .form-control option {
+    background-color: #2d3748;
+    color: white;
+  }
+
+  .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+
+  /* Multiple Select Styling */
+  select[multiple] {
+    height: auto;
+    min-height: 120px;
+  }
+
+  /* Textarea Styling */
+  textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  /* Number Input Styling */
+  input[type="number"].form-control {
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"].form-control::-webkit-outer-spin-button,
+  input[type="number"].form-control::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Submit Button */
+  .submit-button {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, #FF9F5A, #FF7A00);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 159, 90, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .submit-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 159, 90, 0.4);
+  }
+
+  .submit-button:active {
+    transform: translateY(1px);
+  }
+
+  .submit-button-icon {
+    font-size: 1.25rem;
+  }
+
+  /* Progress Bar */
+  .progress-container {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+  }
+
+  .progress-bar {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.5));
+    border-radius: 3px;
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .survey-container {
+      padding: 1rem;
+    }
+
+    .survey-header {
+      padding: 1.25rem 1.5rem;
+    }
+
+    .survey-title {
+      font-size: 1.5rem;
+    }
+
+    .survey-form {
+      padding: 1.5rem;
+    }
+
+    .form-label {
+      font-size: 1rem;
+    }
+
+    .form-control {
+      padding: 0.75rem;
+      font-size: 0.95rem;
+    }
+
+    .submit-button {
+      padding: 0.875rem;
+      font-size: 1rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .survey-header {
+      padding: 1rem;
+    }
+
+    .survey-title {
+      font-size: 1.25rem;
+    }
+
+    .survey-progress-icon {
+      font-size: 1rem;
+    }
+
+    .survey-progress-text {
+      font-size: 0.75rem;
+    }
+
+    .survey-form {
+      padding: 1rem;
+    }
+
+    .form-label {
+      font-size: 0.95rem;
+    }
+
+    .form-control {
+      padding: 0.7rem;
+      font-size: 0.9rem;
+    }
+
+    .submit-button {
+      padding: 0.75rem;
+      font-size: 0.95rem;
+    }
+  }
+</style>
+
+<div class="animated-background">
+  <div class="decorative-circle circle-1"></div>
+  <div class="decorative-circle circle-2"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
 </div>
 
+<div class="survey-container">
+  <div class="survey-card">
+    <!-- Survey Header -->
+    <div class="survey-header">
+      <div class="survey-header-content">
+        <h1 class="survey-title">Skin Health Assessment</h1>
+        <div class="survey-progress">
+          <i class="fas fa-clipboard-list survey-progress-icon"></i>
+          <span class="survey-progress-text">12 Questions</span>
+        </div>
+      </div>
+      <div class="progress-container">
+        <div class="progress-bar"></div>
+      </div>
+    </div>
+
+    <!-- Survey Form -->
+    <form action="/survey" method="POST" class="survey-form">
+      <!-- Hidden input field for name -->
+      <input type="hidden" id="name" name="name" value="{{ name }}">
+
+      <!-- Age -->
+      <div class="form-group">
+        <label for="age" class="form-label">1. What Is Your Age?</label>
+        <select id="age" name="age" required class="form-control">
+          <option value="" disabled selected>Select your age range</option>
+          <option value="<12">&lt;12</option>
+          <option value="12-18">12-18</option>
+          <option value="18-25">18-25</option>
+          <option value="26-45">26-45</option>
+          <option value="46-55">46-55</option>
+          <option value="55+">55+</option>
+        </select>
+      </div>
+
+      <!-- Gender -->
+      <div class="form-group">
+        <label for="gender" class="form-label">2. What is your Gender?</label>
+        <select id="gender" name="gender" required class="form-control">
+          <option value="" disabled selected>Select your gender</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+      </div>
+
+      <!-- Concerns -->
+      <div class="form-group">
+        <label for="concerns" class="form-label">3. Please Select Your Concerns:</label>
+        <select id="concerns" name="concerns" multiple required class="form-control">
+          <option value="Acne">Acne</option>
+          <option value="Dry skin">Dry skin</option>
+          <option value="Oily skin">Oily skin</option>
+          <option value="Blackheads or whiteheads">Blackheads or whiteheads</option>
+          <option value="Papules">Papules</option>
+          <option value="Skin allergies or irritations">Skin allergies or irritations</option>
+        </select>
+      </div>
+
+      <!-- Acne Frequency -->
+      <div class="form-group">
+        <label for="acne_frequency" class="form-label">4. How Often Does Your Acne Appear?</label>
+        <select id="acne_frequency" name="acne_frequency" required class="form-control">
+          <option value="" disabled selected>Select frequency</option>
+          <option value="Never">Never</option>
+          <option value="Once in a month">Once in a month</option>
+          <option value="Once in 3 months">Once in 3 months</option>
+          <option value="Always Present">Always Present</option>
+        </select>
+      </div>
+
+      <!-- Comedones Count -->
+      <div class="form-group">
+        <label for="comedones_count" class="form-label">5. How Many Comedones (Whiteheads, Blackheads) Do You Have?</label>
+        <select id="comedones_count" name="comedones_count" required class="form-control">
+          <option value="" disabled selected>Select amount</option>
+          <option value="None">None</option>
+          <option value="Less than 5">Less than 5</option>
+          <option value="About 5-10">About 5-10</option>
+          <option value="More than 10">More than 10</option>
+        </select>
+      </div>
+
+      <!-- First Concern -->
+      <div class="form-group">
+        <label for="first_concern" class="form-label">6. Please Select The Concern You'd Like To Address First:</label>
+        <select id="first_concern" name="first_concern" required class="form-control">
+          <option value="" disabled selected>Select primary concern</option>
+          <option value="Acne">Acne</option>
+          <option value="Dry skin">Dry skin</option>
+          <option value="Oily skin">Oily skin</option>
+          <option value="Blackheads or whiteheads">Blackheads or whiteheads</option>
+          <option value="Papules">Papules</option>
+        </select>
+      </div>
+
+      <!-- Cosmetic Usage -->
+      <div class="form-group">
+        <label for="cosmetics_usage" class="form-label">7. How Often Do You Use Cosmetics?</label>
+        <select id="cosmetics_usage" name="cosmetics_usage" required class="form-control">
+          <option value="" disabled selected>Select frequency</option>
+          <option value="Everyday">Everyday</option>
+          <option value="Occasionally">Occasionally</option>
+          <option value="Rarely Or Never">Rarely Or Never</option>
+        </select>
+      </div>
+
+      <!-- Skin Reaction -->
+      <div class="form-group">
+        <label for="skin_reaction" class="form-label">8. Does Your Skin React to Skincare Products?</label>
+        <select id="skin_reaction" name="skin_reaction" required class="form-control">
+          <option value="" disabled selected>Select reaction frequency</option>
+          <option value="Rarely/Never">Rarely/Never</option>
+          <option value="Often">Often</option>
+        </select>
+      </div>
+
+      <!-- Skin Type -->
+      <div class="form-group">
+        <label for="skin_type" class="form-label">9. Which Best Describes Your Skin Type?</label>
+        <select id="skin_type" name="skin_type_details" required class="form-control">
+          <option value="" disabled selected>Select skin type</option>
+          <option value="Combination Skin">Part Oily And Part Normal (Combination Skin)</option>
+          <option value="Normal">Neither Very Oily Nor Very Dry</option>
+          <option value="Oily T-Zone">Oily Forehead And Nose Bridge (T-Zone)</option>
+          <option value="None Of The Above">None Of The Above</option>
+        </select>
+      </div>
+
+      <!-- Medications -->
+      <div class="form-group">
+        <label for="medications" class="form-label">10. Are You Taking Any Medications?</label>
+        <select id="medications" name="medications" required class="form-control">
+          <option value="" disabled selected>Select option</option>
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+      </div>
+
+      <!-- Skincare Routine -->
+      <div class="form-group">
+        <label for="skincare_routine" class="form-label">11. Describe Your Current Skincare Routine:</label>
+        <textarea id="skincare_routine" name="skincare_routine" rows="4" required class="form-control" placeholder="Please describe your daily skincare routine..."></textarea>
+      </div>
+
+      <!-- Stress Level -->
+      <div class="form-group">
+        <label for="stress_level" class="form-label">12. How Would You Describe Your Stress Level? (0-5)</label>
+        <input type="number" id="stress_level" name="stress_level" min="0" max="5" required class="form-control" placeholder="Enter a number from 0 (low) to 5 (high)">
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="submit-button">
+        <i class="fas fa-paper-plane submit-button-icon"></i>
+        Submit Assessment
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Track form progress
+  const formGroups = document.querySelectorAll('.form-group');
+  const progressBar = document.querySelector('.progress-bar');
+  const totalQuestions = formGroups.length;
+  let completedQuestions = 0;
+  
+  // Add animation delay to form groups
+  formGroups.forEach((group, index) => {
+    group.style.animationDelay = `${index * 0.05}s`;
+  });
+  
+  // Update progress when form fields change
+  document.querySelectorAll('.form-control').forEach(control => {
+    control.addEventListener('change', updateProgress);
+  });
+  
+  function updateProgress() {
+    completedQuestions = 0;
+    
+    // Check each form control
+    document.querySelectorAll('.form-control').forEach(control => {
+      if (control.value && control.value.trim() !== '') {
+        completedQuestions++;
+      }
+    });
+    
+    // Update progress bar
+    const progressPercentage = (completedQuestions / totalQuestions) * 100;
+    progressBar.style.width = `${progressPercentage}%`;
+    
+    // Update progress text
+    document.querySelector('.survey-progress-text').textContent = 
+      `${completedQuestions}/${totalQuestions} Questions`;
+  }
+  
+  // Initial progress update
+  updateProgress();
+});
+</script>
+
 {% endblock %}
+
