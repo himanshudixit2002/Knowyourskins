@@ -65,6 +65,7 @@
       z-index: 100;
       background: rgba(10, 10, 10, 0.95);
       backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px); /* For Safari */
       border-bottom: 1px solid var(--border-color);
     }
     
@@ -72,6 +73,7 @@
       max-width: 1280px;
       margin: 0 auto;
       padding: 0 1rem;
+      width: 100%;
     }
     
     .nav-content {
@@ -88,18 +90,19 @@
     }
     
     .logo-img {
-      height: 70px;
+      height: 50px;
       width: auto;
-      max-width: 160px;
+      max-width: 120px;
       transition: all 0.3s ease;
     }
     
     .logo-text {
-      font-size: 2rem;
+      font-size: 1.5rem;
       font-weight: 700;
-      margin-left: 1.5rem;
+      margin-left: 1rem;
       color: var(--primary);
       transition: all 0.3s ease;
+      text-decoration: none;
     }
     
     /* Navigation Menu */
@@ -118,6 +121,8 @@
       text-decoration: none;
       border-radius: 6px;
       transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
     }
     
     .nav-item:hover {
@@ -154,7 +159,7 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      margin-left: auto;
+      margin-left: 0.5rem;
     }
     
     .nav-item-special:hover {
@@ -189,6 +194,10 @@
       padding: 0.5rem;
       border-radius: 4px;
       transition: all 0.2s ease;
+      min-width: 44px;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
     }
     
     .mobile-menu-btn:hover {
@@ -204,10 +213,14 @@
       width: 100%;
       background: rgba(10, 10, 10, 0.95);
       backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px); /* For Safari */
       border-bottom: 1px solid var(--border-color);
       padding: 1rem;
       display: none;
       z-index: 99;
+      max-height: calc(100vh - 70px);
+      overflow-y: auto;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
     }
     
     .mobile-dropdown.active {
@@ -219,12 +232,13 @@
       align-items: center;
       padding: 0.75rem 1rem;
       color: var(--text-light);
-      font-size: 0.875rem;
+      font-size: 1rem;
       font-weight: 500;
       text-decoration: none;
-      border-radius: 6px;
-      margin-bottom: 0.5rem;
+      border-radius: 8px;
+      margin-bottom: 0.75rem;
       transition: all 0.2s ease;
+      min-height: 52px; /* Better touch target */
     }
     
     .mobile-nav-item:hover {
@@ -238,16 +252,23 @@
       font-weight: 600;
     }
     
+    .mobile-nav-item i {
+      margin-right: 0.75rem;
+    }
+    
     /* Main Content */
     .main-content {
       margin-top: 90px;
       padding: 1.5rem;
       min-height: calc(100vh - 90px - 300px); /* Adjust for header and footer */
+      width: 100%;
     }
     
+    /* Content Container */
     .content-container {
       max-width: 1280px;
       margin: 0 auto;
+      width: 100%;
     }
     
     /* Content Section */
@@ -258,6 +279,8 @@
       padding: 2rem;
       margin-bottom: 2rem;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      overflow: hidden; /* Prevent child elements from overflowing */
+      width: 100%;
     }
     
     /* Interactive Elements */
@@ -275,6 +298,7 @@
       cursor: pointer;
       overflow: hidden;
       transition: all 0.3s ease;
+      text-decoration: none;
     }
     
     .interactive-btn:hover {
@@ -303,11 +327,13 @@
       background: var(--bg-darker);
       border-top: 1px solid var(--border-color);
       padding: 3rem 1.5rem 1.5rem;
+      width: 100%;
     }
     
     .footer-container {
       max-width: 1280px;
       margin: 0 auto;
+      width: 100%;
     }
     
     .footer-grid {
@@ -351,6 +377,7 @@
       color: rgba(255, 255, 255, 0.7);
       margin-bottom: 0.75rem;
       transition: all 0.2s ease;
+      text-decoration: none;
     }
     
     .footer-link:hover {
@@ -379,6 +406,7 @@
       color: var(--text-light);
       border-radius: 50%;
       transition: all 0.3s ease;
+      text-decoration: none;
     }
     
     .social-link:hover {
@@ -427,15 +455,167 @@
       }
       
       .mobile-menu-btn {
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
       
       .logo-text {
         font-size: 1.25rem;
+        margin-left: 1rem;
       }
       
       .content-section {
-        padding: 1.5rem;
+        padding: 1.5rem 1rem;
+        border-radius: 10px;
+        width: 100%;
+        margin-bottom: 1.5rem;
+      }
+      
+      .main-content {
+        margin-top: 70px;
+        padding: 1rem 0.75rem;
+        width: 100%;
+      }
+      
+      .content-container {
+        width: 100%;
+        padding: 0;
+      }
+      
+      .logo-img {
+        height: 40px;
+        max-width: 100px;
+      }
+      
+      .mobile-nav-item {
+        padding: 0.85rem 0.75rem;
+        margin-bottom: 0.65rem;
+        min-height: 48px;
+        border-radius: 8px;
+      }
+      
+      .mobile-dropdown {
+        top: 70px;
+        padding: 1.25rem 1rem;
+        max-height: calc(100vh - 70px);
+      }
+      
+      .footer-grid {
+        gap: 1.75rem;
+      }
+      
+      .footer-heading {
+        font-size: 1.1rem;
+        margin-bottom: 0.85rem;
+      }
+      
+      .footer-link {
+        margin-bottom: 0.65rem;
+        min-height: 40px; /* Better touch target */
+        display: flex;
+        align-items: center;
+        font-size: 0.95rem;
+        padding: 0.5rem 0;
+      }
+      
+      .social-links {
+        gap: 0.85rem;
+        margin-top: 1.25rem;
+      }
+      
+      .social-link {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .interactive-btn {
+        padding: 0.85rem 1.35rem;
+        font-size: 0.95rem;
+        width: 100%;
+        justify-content: center;
+        min-height: 48px; /* Better touch target */
+        margin-top: 0.5rem;
+      }
+      
+      /* Adjust footer spacing */
+      .main-footer {
+        padding: 2.5rem 1.25rem 1.5rem;
+      }
+    }
+    
+    /* Additional mobile optimizations for smaller screens */
+    @media (max-width: 480px) {
+      .nav-content {
+        height: 60px;
+      }
+      
+      .logo-img {
+        height: 36px;
+        max-width: 90px;
+      }
+      
+      .logo-text {
+        font-size: 1.1rem;
+        margin-left: 0.5rem;
+      }
+      
+      .mobile-menu-btn {
+        font-size: 1.25rem;
+        padding: 0.5rem;
+        min-width: 40px;
+        min-height: 40px;
+      }
+      
+      .mobile-dropdown {
+        top: 60px;
+        padding: 1rem;
+      }
+      
+      .content-section {
+        padding: 1.25rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.25rem;
+      }
+      
+      .main-content {
+        margin-top: 60px;
+        padding: 1rem 0.5rem;
+        min-height: calc(100vh - 60px - 250px);
+      }
+      
+      .footer-section {
+        margin-bottom: 1.5rem;
+      }
+      
+      .footer-heading {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+      }
+      
+      .footer-link {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+      }
+      
+      .social-link {
+        width: 36px;
+        height: 36px;
+      }
+      
+      .footer-bottom {
+        font-size: 0.8rem;
+        padding-top: 1.25rem;
+        margin-top: 1.25rem;
+      }
+      
+      .interactive-btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        min-height: 44px;
       }
     }
   </style>
@@ -473,7 +653,7 @@
             <a href="{{ url_for('profile') }}" class="nav-item {% if request.endpoint == 'profile' %}active{% endif %}">
               <i class="fas fa-user-circle"></i>Profile
             </a>
-            <a href="{{ url_for('bookappointment') }}" class="nav-item-special ml-4">
+            <a href="{{ url_for('bookappointment') }}" class="nav-item-special">
               <i class="fas fa-robot"></i>BOT
             </a>
           {% endif %}
@@ -493,7 +673,7 @@
         </nav>
         
         <!-- Mobile Menu Button -->
-        <button id="mobile-menu-btn" class="mobile-menu-btn">
+        <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Toggle mobile menu">
           <i class="bi bi-list"></i>
         </button>
       </div>
@@ -502,37 +682,37 @@
     <!-- Mobile Dropdown Menu -->
     <div id="mobile-dropdown" class="mobile-dropdown">
       {% if session.get('is_doctor') %}
-        <a href="{{ url_for('doctor_dashboard') }}" class="mobile-nav-item">
-          <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+        <a href="{{ url_for('doctor_dashboard') }}" class="mobile-nav-item {% if request.endpoint == 'doctor_dashboard' %}active{% endif %}">
+          <i class="fas fa-tachometer-alt"></i>Dashboard
         </a>
       {% else %}
-        <a href="{{ url_for('bookappointment') }}" class="mobile-nav-item active">
-          <i class="fas fa-robot mr-2"></i>AI Skin Assistant
+        <a href="{{ url_for('bookappointment') }}" class="mobile-nav-item {% if request.endpoint == 'bookappointment' %}active{% endif %}">
+          <i class="fas fa-robot"></i>AI Skin Assistant
         </a>
-        <a href="{{ url_for('predict') }}" class="mobile-nav-item">
-          <i class="fas fa-camera-retro mr-2"></i>Face Analysis
+        <a href="{{ url_for('predict') }}" class="mobile-nav-item {% if request.endpoint == 'predict' %}active{% endif %}">
+          <i class="fas fa-camera-retro"></i>Face Analysis
         </a>
-        <a href="{{ url_for('skin_predict') }}" class="mobile-nav-item">
-          <i class="fas fa-flask mr-2"></i>Analyse Skin
+        <a href="{{ url_for('skin_predict') }}" class="mobile-nav-item {% if request.endpoint == 'skin_predict' %}active{% endif %}">
+          <i class="fas fa-flask"></i>Analyse Skin
         </a>
-        <a href="{{ url_for('userappoint') }}" class="mobile-nav-item">
-          <i class="fas fa-calendar-check mr-2"></i>Appointments
+        <a href="{{ url_for('userappoint') }}" class="mobile-nav-item {% if request.endpoint == 'userappoint' %}active{% endif %}">
+          <i class="fas fa-calendar-check"></i>Appointments
         </a>
-        <a href="{{ url_for('profile') }}" class="mobile-nav-item">
-          <i class="fas fa-user-circle mr-2"></i>Profile
+        <a href="{{ url_for('profile') }}" class="mobile-nav-item {% if request.endpoint == 'profile' %}active{% endif %}">
+          <i class="fas fa-user-circle"></i>Profile
         </a>
       {% endif %}
       
       {% if session.get('username') %}
-        <a href="{{ url_for('logout') }}" class="mobile-nav-item">
-          <i class="fas fa-sign-out-alt mr-2"></i>Logout
+        <a href="{{ url_for('logout') }}" class="mobile-nav-item {% if request.endpoint == 'logout' %}active{% endif %}">
+          <i class="fas fa-sign-out-alt"></i>Logout
         </a>
       {% else %}
-        <a href="{{ url_for('login') }}" class="mobile-nav-item">
-          <i class="fas fa-sign-in-alt mr-2"></i>Login
+        <a href="{{ url_for('login') }}" class="mobile-nav-item {% if request.endpoint == 'login' %}active{% endif %}">
+          <i class="fas fa-sign-in-alt"></i>Login
         </a>
-        <a href="{{ url_for('register') }}" class="mobile-nav-item">
-          <i class="fas fa-user-plus mr-2"></i>Register
+        <a href="{{ url_for('register') }}" class="mobile-nav-item {% if request.endpoint == 'register' %}active{% endif %}">
+          <i class="fas fa-user-plus"></i>Register
         </a>
       {% endif %}
     </div>
@@ -568,13 +748,13 @@
           
           <!-- Social Links -->
           <div class="social-links">
-            <a href="https://www.instagram.com/himanshu.dixitt?igsh=MXExMWI4ZzIxNDA4cw==" class="social-link">
+            <a href="https://www.instagram.com/himanshu.dixitt?igsh=MXExMWI4ZzIxNDA4cw==" class="social-link" aria-label="Instagram">
               <i class="fab fa-instagram"></i>
             </a>
-            <a href="https://www.linkedin.com/in/himanshudixit2406/" class="social-link">
+            <a href="https://www.linkedin.com/in/himanshudixit2406/" class="social-link" aria-label="LinkedIn">
               <i class="fab fa-linkedin"></i>
             </a>
-            <a href="https://github.com/himanshudixit2002" class="social-link">
+            <a href="https://github.com/himanshudixit2002" class="social-link" aria-label="GitHub">
               <i class="fab fa-github"></i>
             </a>
           </div>
@@ -610,7 +790,7 @@
             <p class="text-sm text-gray-400 mb-4">
               Explore our comprehensive guide for installation, usage, and advanced tips to make the most of KNOWYOURSKINS.
             </p>
-            <a href="{{ url_for('documentation') }}" target="_blank" class="interactive-btn">
+            <a href="{{ url_for('documentation') }}" class="interactive-btn">
               Read Documentation
             </a>
           </div>
@@ -642,6 +822,16 @@
         icon.classList.remove('bi-list');
         icon.classList.add('bi-x-lg');
       } else {
+        icon.classList.remove('bi-x-lg');
+        icon.classList.add('bi-list');
+      }
+    });
+    
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(event) {
+      if (!mobileMenuBtn.contains(event.target) && !mobileDropdown.contains(event.target)) {
+        mobileDropdown.classList.remove('active');
+        const icon = mobileMenuBtn.querySelector('i');
         icon.classList.remove('bi-x-lg');
         icon.classList.add('bi-list');
       }

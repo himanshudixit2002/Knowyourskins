@@ -145,7 +145,7 @@ Feel free to add a little comment or question to keep our chat going!
 {text}
 -----------------------------------
 
-Thanks a lot!
+make a thanking note
 """
     prompt = PromptTemplate(
         input_variables=["text", "max_length", "min_length"],
