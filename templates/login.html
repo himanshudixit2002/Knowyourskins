@@ -93,6 +93,193 @@
     max-width: 420px;
     padding: 2.5rem;
   }
+  
+  /* Mobile Responsive Adjustments */
+  @media (max-width: 768px) {
+    .auth-card {
+      padding: 2.25rem 1.75rem;
+      max-width: 90%;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+    }
+    
+    .content-header h1 {
+      font-size: 1.8rem;
+    }
+    
+    .input-field {
+      margin-bottom: 1.75rem;
+    }
+    
+    .input-field input {
+      padding: 1.2rem 1.2rem 0.85rem;
+      min-height: 56px; /* Improved tap target size */
+    }
+    
+    .btn-submit {
+      padding: 0.85rem;
+      min-height: 50px; /* Improved tap target size */
+    }
+    
+    .auth-container {
+      padding: 1.25rem;
+    }
+    
+    .custom-checkbox input[type="checkbox"] {
+      width: 22px;
+      height: 22px; /* Larger checkbox for better touch targets */
+      margin-right: 0.6rem;
+    }
+    
+    .custom-checkbox span {
+      font-size: 0.9rem;
+    }
+    
+    /* Better spacing for the forgot password link */
+    .flex.items-center.justify-between {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.75rem;
+    }
+    
+    .social-btn {
+      min-height: 50px; /* Improved tap target size */
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .auth-card {
+      padding: 1.75rem 1.5rem;
+      border-radius: 16px;
+      max-width: 95%;
+    }
+    
+    .auth-card:hover {
+      transform: none; /* Disable hover effects on mobile */
+    }
+    
+    .decorative-circle.circle-1 {
+      width: 200px;
+      height: 200px;
+      top: -100px;
+      left: -100px;
+    }
+    
+    .decorative-circle.circle-2 {
+      width: 250px;
+      height: 250px;
+      bottom: -125px;
+      right: -125px;
+    }
+    
+    .text-center h1 {
+      font-size: 1.6rem;
+      margin-bottom: 0.65rem;
+    }
+    
+    .text-center p {
+      font-size: 0.95rem;
+    }
+    
+    .input-field input {
+      font-size: 1rem;
+      padding: 1.1rem 1.2rem 0.75rem;
+      border-radius: 12px;
+    }
+    
+    .input-field label {
+      font-size: 0.95rem;
+    }
+    
+    .custom-checkbox span,
+    .text-sm {
+      font-size: 0.85rem;
+    }
+    
+    .btn-submit {
+      padding: 0.8rem;
+      font-size: 1rem;
+      border-radius: 12px;
+    }
+    
+    .divider {
+      margin: 1.5rem 0;
+      font-size: 0.85rem;
+    }
+    
+    .social-btn {
+      padding: 0.8rem;
+      font-size: 0.95rem;
+      border-radius: 12px;
+    }
+    
+    .error-message {
+      padding: 0.85rem;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+      border-radius: 12px;
+    }
+    
+    /* Improve the spacing of the "remember me" row */
+    .flex.items-center.justify-between {
+      flex-direction: row;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .mt-6.text-center.text-gray-400.text-sm {
+      margin-top: 1.75rem;
+      font-size: 0.9rem;
+    }
+  }
+  
+  /* Extra small devices */
+  @media (max-width: 360px) {
+    .auth-card {
+      padding: 1.5rem 1.25rem;
+      max-width: 100%;
+    }
+    
+    .text-center h1 {
+      font-size: 1.4rem;
+    }
+    
+    .text-center p {
+      font-size: 0.9rem;
+    }
+    
+    .input-field {
+      margin-bottom: 1.5rem;
+    }
+    
+    .input-field input {
+      padding: 1rem 1rem 0.7rem;
+    }
+    
+    /* Stack the remember me and forgot password on very small screens */
+    .flex.items-center.justify-between {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    
+    .flex.items-center.justify-between a {
+      align-self: flex-end;
+    }
+    
+    .social-btn {
+      padding: 0.75rem;
+      font-size: 0.9rem;
+    }
+    
+    .divider {
+      margin: 1.25rem 0;
+    }
+    
+    .mt-6.text-center.text-gray-400.text-sm {
+      margin-top: 1.5rem;
+    }
+  }
   .auth-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
@@ -153,6 +340,10 @@
     letter-spacing: 0.5px;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(255, 159, 90, 0.4);
+    height: 50px; /* Fixed height for better mobile touch target */
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   .btn-submit:hover {
     transform: translateY(-3px);

@@ -97,6 +97,121 @@
     transform: translateY(-5px);
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
   }
+  
+  /* Mobile Responsive Adjustments */
+  @media (max-width: 768px) {
+    .auth-card {
+      padding: 2.25rem 1.75rem;
+      max-width: 90%;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+    }
+    
+    .auth-container {
+      padding: 1.25rem;
+    }
+    
+    .input-field input {
+      min-height: 56px; /* Improved tap target size */
+    }
+    
+    .btn-submit {
+      min-height: 52px; /* Improved tap target size */
+    }
+    
+    .custom-checkbox input[type="checkbox"] {
+      width: 22px;
+      height: 22px; /* Larger checkbox for better touch targets */
+      margin-right: 0.6rem;
+    }
+    
+    .checkbox-container {
+      padding: 1.25rem;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .auth-card {
+      padding: 1.75rem 1.5rem;
+      max-width: 95%;
+    }
+    
+    .auth-card:hover {
+      transform: none; /* Disable hover effects on mobile */
+    }
+    
+    .text-center h1 {
+      font-size: 1.6rem;
+      margin-bottom: 0.65rem;
+    }
+    
+    .text-center p {
+      font-size: 0.95rem;
+    }
+    
+    /* Make grid single column for very small screens */
+    .grid.grid-cols-1.md\:grid-cols-2 {
+      grid-template-columns: 1fr;
+    }
+    
+    .input-field {
+      margin-bottom: 1.5rem;
+    }
+    
+    .input-field input {
+      font-size: 1rem;
+      padding: 1.1rem 1.2rem 0.75rem;
+      border-radius: 12px;
+    }
+    
+    .input-field label {
+      font-size: 0.95rem;
+    }
+    
+    .btn-submit {
+      padding: 0.8rem;
+      font-size: 1rem;
+      border-radius: 12px;
+    }
+    
+    .flash-message {
+      padding: 0.85rem;
+      font-size: 0.9rem;
+      margin-bottom: 1.25rem;
+      border-radius: 12px;
+    }
+    
+    .text-sm {
+      font-size: 0.85rem;
+    }
+  }
+  
+  /* Extra small devices */
+  @media (max-width: 360px) {
+    .auth-card {
+      padding: 1.5rem 1.25rem;
+      max-width: 100%;
+    }
+    
+    .text-center h1 {
+      font-size: 1.4rem;
+    }
+    
+    .text-center p {
+      font-size: 0.9rem;
+    }
+    
+    .input-field {
+      margin-bottom: 1.25rem;
+    }
+    
+    .checkbox-container {
+      padding: 0.85rem;
+    }
+    
+    .strength-bar-container {
+      height: 5px;
+    }
+  }
 
   /* Input Fields */
   .input-field {
@@ -113,6 +228,7 @@
     outline: none;
     transition: all 0.3s ease;
     font-size: 1rem;
+    height: 56px; /* Fixed height for better mobile touch target */
   }
   .input-field input:focus {
     border-color: #FF9F5A;
