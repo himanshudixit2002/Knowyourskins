@@ -139,13 +139,14 @@ def langchain_summarize(text, max_length, min_length):
     prompt_template = """
 Hey, could you please summarize the text below in a simple, friendly way?
 Keep it short—between {min_length} and {max_length} words.
-Feel free to add a little comment or question to keep our chat going!
+Include a conclusive statement or practical tip at the end.
+Make sure your summary is self-contained and COMPLETE, not requiring additional context.
 
 -----------------------------------
 {text}
 -----------------------------------
 
-make a thanking note
+Always end with a clear, complete thought. Never leave the response hanging or incomplete.
 """
     prompt = PromptTemplate(
         input_variables=["text", "max_length", "min_length"],
@@ -439,8 +440,17 @@ def get_skincare_routine(user_id):
 # -----------------------------------------------------------------------------
 def build_conversation_prompt(history, user_input):
     prompt = (
-        "You are a friendly, knowledgeable skincare assistant. Your responses should be concise, engaging, "
-        "and formatted in Markdown with emojis where appropriate.\n\n"
+        "You are a professional, knowledgeable skincare assistant for KNOWYOURSKINS. Your responses should be concise, engaging, "
+        "informative, and formatted in Markdown with emojis where appropriate.\n\n"
+        "IMPORTANT: Always provide COMPLETE answers that fully address the user's question. Never end your response abruptly.\n\n"
+        "Guidelines:\n"
+        "- Always introduce yourself as KNOWYOURSKINS Assistant when starting a new conversation\n"
+        "- Make your responses helpful and educational about skincare topics\n"
+        "- Keep responses focused and to the point (between 50-150 words)\n"
+        "- Use medical terms when appropriate, but explain them simply\n"
+        "- When you don't know something, admit it and suggest consulting a dermatologist\n"
+        "- ALWAYS end your responses with a conclusive statement or helpful tip\n"
+        "- Make sure your answers are self-contained and don't require follow-up to be useful\n\n"
         "Conversation so far:\n"
     )
     for msg in history:
@@ -452,41 +462,122 @@ def build_conversation_prompt(history, user_input):
 
 def complete_answer_if_incomplete(answer):
     answer = answer.strip()
-    if not answer or answer[-1] not in ".!?":
+    if not answer:
+        return "I apologize, but I couldn't generate a response. Could you please rephrase your question?"
+    
+    # Check if the answer appears incomplete (no ending punctuation or seems cut off)
+    if answer[-1] not in ".!?" or len(answer.split()) < 10:
         continuation_prompt = (
-            "It appears that the response may have been cut off. "
-            "Could you please continue the answer in the same style, ensuring a complete and coherent response? "
-            "Here is the answer so far:\n\n"
-            f"{answer}\n\nContinue:"
+            "It appears that your previous response to the user was incomplete or cut off. "
+            "Please provide a complete, coherent response that maintains the professional skincare assistant persona. "
+            "Ensure the response has a proper beginning, middle, and conclusion. "
+            "Here is the incomplete answer so far:\n\n"
+            f"{answer}\n\n"
+            "Please rewrite a complete response:"
         )
-        headers = {"Content-Type": "application/json"}
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
-        response = requests.post(url, headers=headers, json={"contents": [{"parts": [{"text": continuation_prompt}]}]})
-        if response.status_code == 200:
-            data = response.json()
-            continuation = (data.get("candidates", [{}])[0]
-                              .get("content", {})
-                              .get("parts", [{}])[0]
-                              .get("text", ""))
-            return answer + " " + continuation.strip()
-        else:
-            return answer
+        
+        try:
+            headers = {"Content-Type": "application/json"}
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+            response = requests.post(url, headers=headers, json={"contents": [{"parts": [{"text": continuation_prompt}]}]})
+            
+            if response.status_code == 200:
+                data = response.json()
+                full_response = (data.get("candidates", [{}])[0]
+                                .get("content", {})
+                                .get("parts", [{}])[0]
+                                .get("text", ""))
+                
+                if full_response and len(full_response) > len(answer):
+                    return full_response.strip()
+                else:
+                    return answer + " I hope this helps! Let me know if you have any other questions."
+            else:
+                # If API call fails, at least make sure the response ends properly
+                return answer + " I hope this helps with your question. Is there anything else you'd like to know?"
+        except Exception as e:
+            print(f"Error completing answer: {e}")
+            return answer + " I hope this helps! Let me know if you need further assistance."
     else:
         return answer
+
+# New helper functions for conversation persistence
+def save_conversation_message(user_id, role, message):
+    try:
+        with get_db_connection() as conn:
+            conn.execute(
+                "INSERT INTO conversations (user_id, role, message) VALUES (?, ?, ?)",
+                (user_id, role, message)
+            )
+            conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error saving conversation message: {e}")
+        return False
+
+def get_conversation_history(user_id, limit=20):
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            conversation = cursor.execute(
+                "SELECT role, message FROM conversations WHERE user_id = ? ORDER BY timestamp ASC LIMIT ?",
+                (user_id, limit)
+            ).fetchall()
+            return [{"role": row["role"], "text": row["message"]} for row in conversation]
+    except Exception as e:
+        print(f"Error retrieving conversation history: {e}")
+        return []
+
+def clear_conversation_history(user_id):
+    try:
+        with get_db_connection() as conn:
+            conn.execute("DELETE FROM conversations WHERE user_id = ?", (user_id,))
+            conn.commit()
+        return True
+    except Exception as e:
+        print(f"Error clearing conversation history: {e}")
+        return False
 
 @app.route("/chatbot", methods=["POST"])
 def chatbot():
     data = request.get_json()
     user_input = data.get("userInput")
+    
     if not user_input:
         return jsonify({"error": "No user input provided."}), 400
-    if "conversation_history" not in session:
-        session["conversation_history"] = []
-    conversation_history = session["conversation_history"]
+    
+    # Get user ID for persistent storage
+    user_id = None
+    if "username" in session:
+        user = get_user(session.get("username"))
+        if user:
+            user_id = user["id"]
+    
+    # Initialize session variables if they don't exist
     if "conversation_state" not in session:
         session["conversation_state"] = {}
     conversation_state = session["conversation_state"]
-
+    
+    # Load conversation history from database if available, otherwise use session
+    conversation_history = []
+    if user_id:
+        conversation_history = get_conversation_history(user_id)
+    elif "conversation_history" in session:
+        conversation_history = session["conversation_history"]
+    
+    # Handle special case: clear chat request
+    if user_input.lower() in ["clear chat", "start new chat", "reset chat"]:
+        if user_id:
+            clear_conversation_history(user_id)
+        session["conversation_history"] = []
+        session["conversation_state"] = {}
+        session.modified = True
+        return jsonify({
+            "botReply": "I've cleared our conversation history. How can I help you today?",
+            "type": "clear_confirmation"
+        })
+    
+    # Handle appointment flow states
     if conversation_state.get("awaiting_date"):
         parsed_date = dateparser.parse(user_input)
         if parsed_date:
@@ -494,14 +585,23 @@ def chatbot():
             conversation_state["awaiting_date"] = False
             conversation_state["awaiting_reason"] = True
             session.modified = True
+            
+            # Save the user message
             conversation_history.append({"role": "user", "text": user_input})
-            conversation_history.append({
-                "role": "assistant",
-                "text": f"Great! Your appointment is set for {conversation_state['date']}. Now, please describe the reason for your appointment."
-            })
+            if user_id:
+                save_conversation_message(user_id, "user", user_input)
+            
+            # Generate and save the bot response
+            bot_reply = f"Great! Your appointment is set for {conversation_state['date']}. Now, please describe the reason for your appointment."
+            conversation_history.append({"role": "assistant", "text": bot_reply})
+            if user_id:
+                save_conversation_message(user_id, "assistant", bot_reply)
+            
+            # Update session if needed
             session["conversation_history"] = conversation_history
+            
             return jsonify({
-                "botReply": f"Great! Your appointment is set for {conversation_state['date']}. Now, please describe the reason for your appointment.",
+                "botReply": bot_reply,
                 "type": "appointment_flow"
             })
         else:
@@ -509,12 +609,19 @@ def chatbot():
                 "botReply": "I couldn't understand that date format. Please try again with a valid date (e.g., 'Next Monday at 3 PM').",
                 "type": "error"
             })
+            
     if conversation_state.get("awaiting_reason"):
         reason = user_input
         user = get_user(session.get("username"))
-        survey_data = dict(get_survey_response(user["id"]))
-        if not user or not survey_data:
+        
+        if not user:
+            return jsonify({"botReply": "Please log in to schedule an appointment.", "type": "error"})
+        
+        survey_data = get_survey_response(user["id"])
+        if not survey_data:
             return jsonify({"botReply": "Please complete your profile survey first.", "type": "error"})
+        
+        survey_data = dict(survey_data)
         appointment_id = insert_appointment_data(
             name=survey_data["name"],
             email=user["username"],
@@ -526,50 +633,131 @@ def chatbot():
             status=False,
             username=user["username"]
         )
+        
+        # Save the user message
         conversation_history.append({"role": "user", "text": user_input})
-        conversation_history.append({
-            "role": "assistant",
-            "text": f"Your appointment has been successfully scheduled for {conversation_state['date']} with the reason: {reason}. Your reference ID is APPT-{appointment_id}."
-        })
+        if user_id:
+            save_conversation_message(user_id, "user", user_input)
+        
+        # Generate and save the bot response
+        bot_reply = f"Your appointment has been successfully scheduled for {conversation_state['date']} with the reason: {reason}. Your reference ID is APPT-{appointment_id}."
+        conversation_history.append({"role": "assistant", "text": bot_reply})
+        if user_id:
+            save_conversation_message(user_id, "assistant", bot_reply)
+        
+        # Reset conversation state
         session["conversation_history"] = conversation_history
         session["conversation_state"] = {}
         session.modified = True
+        
         return jsonify({
-            "botReply": f"Your appointment has been successfully scheduled for {conversation_state['date']} with the reason: {reason}. Your reference ID is APPT-{appointment_id}.",
+            "botReply": bot_reply,
             "type": "appointment_confirmation",
             "appointmentId": appointment_id
         })
+        
+    # Handle appointment request
     if "make an appointment" in user_input.lower():
         conversation_state["awaiting_date"] = True
         session.modified = True
+        
+        # Save the user message
         conversation_history.append({"role": "user", "text": user_input})
-        conversation_history.append({
-            "role": "assistant",
-            "text": "When would you like to schedule your appointment? (e.g., 'March 10 at 3 PM')"
-        })
+        if user_id:
+            save_conversation_message(user_id, "user", user_input)
+        
+        # Generate and save the bot response
+        bot_reply = "When would you like to schedule your appointment? (e.g., 'March 10 at 3 PM')"
+        conversation_history.append({"role": "assistant", "text": bot_reply})
+        if user_id:
+            save_conversation_message(user_id, "assistant", bot_reply)
+        
+        # Update session
         session["conversation_history"] = conversation_history
+        
         return jsonify({
-            "botReply": "When would you like to schedule your appointment? (e.g., 'March 10 at 3 PM')",
+            "botReply": bot_reply,
             "type": "appointment_flow"
         })
+    
+    # Handle general conversation
+    # Save the user message first
     conversation_history.append({"role": "user", "text": user_input})
+    if user_id:
+        save_conversation_message(user_id, "user", user_input)
+    
+    # Generate response
     prompt = build_conversation_prompt(conversation_history, user_input)
     try:
         response = genai.GenerativeModel("gemini-1.5-flash").generate_content(prompt)
         bot_reply = response.text
-        bot_reply = langchain_summarize(bot_reply, max_length=60, min_length=40)
-        bot_reply = complete_answer_if_incomplete(bot_reply)
+        
+        # Process the reply only if we got something back
+        if bot_reply:
+            # Avoid overprocessing if the response is already good
+            if len(bot_reply.split()) < 30 or bot_reply[-1] not in ".!?":
+                bot_reply = langchain_summarize(bot_reply, max_length=100, min_length=40)
+            
+            # Ensure the reply is complete
+            bot_reply = complete_answer_if_incomplete(bot_reply)
+        else:
+            bot_reply = "I apologize, but I couldn't generate a response. Could you please rephrase your question?"
+        
+        # Save the bot response
         conversation_history.append({"role": "assistant", "text": bot_reply})
+        if user_id:
+            save_conversation_message(user_id, "assistant", bot_reply)
+        
+        # Update session
         session["conversation_history"] = conversation_history
-        if not bot_reply:
-            return jsonify({
-                "botReply": "I'm having trouble understanding. Could you rephrase that?",
-                "type": "clarification_request"
-            })
+        
         return jsonify({"botReply": bot_reply, "type": "general_response"})
     except Exception as e:
         print("Generative AI error:", e)
-        return jsonify({"error": "Error processing request."}), 500
+        error_message = "I'm having trouble processing your request right now. Could you try again in a moment?"
+        
+        # Still save the error response for continuity
+        conversation_history.append({"role": "assistant", "text": error_message})
+        if user_id:
+            save_conversation_message(user_id, "assistant", error_message)
+        
+        # Update session
+        session["conversation_history"] = conversation_history
+        
+        return jsonify({"botReply": error_message, "type": "error"})
+
+# New route to fetch conversation history on page load
+@app.route("/get_conversation_history", methods=["GET"])
+def get_chat_history():
+    if "username" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+    
+    user = get_user(session.get("username"))
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    conversation_history = get_conversation_history(user["id"])
+    return jsonify({"history": conversation_history})
+
+# New route to clear conversation history
+@app.route("/clear_conversation", methods=["POST"])
+def clear_conversation():
+    if "username" not in session:
+        return jsonify({"error": "Not logged in"}), 401
+    
+    user = get_user(session.get("username"))
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    success = clear_conversation_history(user["id"])
+    session["conversation_history"] = []
+    session["conversation_state"] = {}
+    session.modified = True
+    
+    if success:
+        return jsonify({"message": "Conversation history cleared successfully"})
+    else:
+        return jsonify({"error": "Failed to clear conversation history"}), 500
 
 @app.route("/generate_routine", methods=["POST"])
 def generate_routine():

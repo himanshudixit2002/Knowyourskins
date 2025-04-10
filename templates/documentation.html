@@ -138,17 +138,17 @@
       max-width: 1200px;
       margin: 40px auto;
       display: grid;
-      grid-template-columns: 1fr 3fr;
+      grid-template-columns: 1fr;
       gap: 30px;
       position: relative;
     }
     
     /* Sidebar */
     .sidebar {
-      position: sticky;
-      top: 30px;
-      height: calc(100vh - 60px);
-      overflow-y: auto;
+      position: relative;
+      top: 0;
+      height: auto;
+      margin-bottom: 30px;
       padding-right: 10px;
       scrollbar-width: thin;
     }
@@ -232,7 +232,7 @@
     /* Main content */
     .main-content {
       background: var(--section-bg);
-      padding: 40px;
+      padding: 20px;
       border-radius: var(--border-radius);
       box-shadow: var(--shadow);
     }
@@ -580,7 +580,7 @@
       }
       
       .main-content {
-        padding: 30px;
+        padding: 20px;
       }
     }
     
@@ -599,15 +599,15 @@
       }
       
       .main-content {
-        padding: 25px;
+        padding: 20px;
       }
       
       h2 {
-        font-size: 1.8em;
+        font-size: 1.6em;
       }
       
       h3 {
-        font-size: 1.4em;
+        font-size: 1.3em;
       }
       
       .feature-grid, .tech-grid {
@@ -660,18 +660,24 @@
   </style>
 </head>
 <body>
-  <header>
+<header>
     <div class="content">
-      <h1>Knowyourskins Documentation</h1>
-      <p>Empowering Skincare Through Intelligent Analysis</p>
-      <div class="contact-info">
-        Himanshu Dixit | <a href="mailto:himanshu@knowyourskins.com">himanshudixit2406@gmail.com</a> | +917390922922
+      <h1 class="text-5xl md:text-7xl font-extrabold text-white mb-4 tracking-tight">
+        Knowyourskins Documentation
+      </h1>
+      <p class="mt-4 text-xl text-gray-200 max-w-2xl mx-auto">
+        Empowering Skincare Through Intelligent Analysis
+      </p>
+      <div class="mt-8 inline-flex items-center px-6 py-3 bg-white/10 backdrop-blur-md rounded-full text-white text-sm">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        Last Updated: February 25, 2025
       </div>
     </div>
   </header>
+
   
-  <div class="container">
-    <!-- Sidebar with Table of Contents -->
+<div class="container">
     <div class="sidebar">
       <nav class="toc">
         <h4>Table of Contents</h4>
@@ -694,12 +700,12 @@
       </nav>
     </div>
     
-    <!-- Main Content -->
     <div class="main-content">
       <section id="project-overview">
         <h2>1. Project Overview</h2>
         <p>Knowyourskins is an AI-driven skincare analysis platform that leverages advanced image processing and machine learning techniques to provide personalized skincare recommendations. It seamlessly integrates a user-friendly interface with robust backend services, making advanced dermatological analysis accessible to everyone.</p>
       </section>
+
 
       <div class="section-divider"></div>
 
