@@ -773,9 +773,13 @@ def generate_routine():
 
 @app.route("/")
 def index():
-    if "username" not in session:
-        return redirect(url_for("login"))
-    return render_template("index.html")
+    if "username" in session:
+        # User is signed in; pass along session data for personalized content if desired.
+        return render_template("index.html", logged_in=True, username=session["username"])
+    else:
+        # User is not signed in; render the home page without redirecting.
+        return render_template("index.html", logged_in=False)
+
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
