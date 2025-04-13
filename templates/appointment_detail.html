@@ -327,25 +327,28 @@
         <div class="detail-value">{{ appointment.address }}</div>
       </div>
       
-      <!-- Appointment Status -->
-      <div class="detail-item full-width">
+      <!-- Status Indicator -->
+      <div class="detail-item">
         <div class="detail-label">
-          <span class="detail-label-icon">🔔</span>
-          <span>Status</span>
+          <i class="fas fa-clipboard-check detail-label-icon"></i>
+          Status
         </div>
         <div class="detail-value">
-          {% if appointment.status == 0 %}
-            <span class="status-badge status-pending">
-              <span class="mr-1">⏳</span> Pending
-            </span>
-          {% elif appointment.status == 1 %}
-            <span class="status-badge status-confirmed">
-              <span class="mr-1">✅</span> Confirmed
-            </span>
-          {% elif appointment.status == 2 %}
-            <span class="status-badge status-rejected">
-              <span class="mr-1">❌</span> Rejected
-            </span>
+          {% if appointment.status == 'approved' %}
+          <span class="status-badge status-confirmed">
+            <i class="fas fa-check-circle mr-2"></i>
+            Confirmed
+          </span>
+          {% elif appointment.status == 'declined' %}
+          <span class="status-badge status-rejected">
+            <i class="fas fa-times-circle mr-2"></i>
+            Declined
+          </span>
+          {% else %}
+          <span class="status-badge status-pending">
+            <i class="fas fa-clock mr-2"></i>
+            Pending
+          </span>
           {% endif %}
         </div>
       </div>

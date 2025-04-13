@@ -132,9 +132,6 @@ python app.py
 - `/face_analysis`: Handles face analysis and skin condition prediction.
     - **Request**: POST
     - **Response**: JSON response with prediction results and recommendations.
-- `/doctor_dashboard`: Doctor dashboard to view and manage appointments.
-    - **Request**: GET
-    - **Response**: Renders the `doctor_dashboard.html` template with appointment data.
 - `/predict`: AI Skin Analysis & Product Recommendation Endpoint.
     - **Request**: POST, GET
     - **Response**: JSON response with prediction results and recommendations.
@@ -152,7 +149,7 @@ python app.py
 
 The application uses SQLite as its database. The database schema includes the following tables:
 
-- `users`: Stores user information (id, username, password, is_doctor).
+- `users`: Stores user information (id, username, password).
 - `survey_responses`: Stores user survey responses (id, user_id, name, age, gender, concerns, acne_frequency, comedones_count, first_concern, cosmetic_usage, skin_reaction, skin_type, medications, skincare_routine, stress_level).
 - `appointment`: Stores appointment information (id, name, email, date, skin, phone, age, address, status, username).
 - `skincare_routines`: Stores user skincare routines (id, user_id, morning_routine, night_routine, last_updated).
@@ -190,7 +187,6 @@ The application uses SQLite as its database. The database schema includes the fo
 - `@app.route("/userappointment", methods=["GET"])`: Defines the route for displaying user appointments. This route handles GET requests to the `/userappointment` URL and renders the `userappointment.html` template with user appointments.
 - `@app.route("/delete_user_request", methods=["POST"])`: Defines the route for deleting a user appointment request. This route handles POST requests to the `/delete_user_request` URL and deletes a user appointment request from the database.
 - `@app.route("/face_analysis", methods=["POST"])`: Defines the route for performing face analysis. This route handles POST requests to the `/face_analysis` URL and performs face analysis on a user-uploaded image. The route then returns a JSON response with the analysis results.
-- `@app.route("/doctor_dashboard")`: Defines the route for the doctor dashboard. This route handles GET requests to the `/doctor_dashboard` URL and renders the `doctor_dashboard.html` template with appointment data.
 - `@app.route("/predict", methods=["POST", "GET"])`: Defines the route for AI skin analysis and product recommendation. This route handles POST and GET requests to the `/predict` URL and performs AI skin analysis and product recommendation based on user-uploaded images and survey data. The route then returns a JSON response with the prediction results and recommendations.
 - `@app.route("/skin_predict", methods=["GET", "POST"])`: Defines the route for skin disease classification. This route handles GET and POST requests to the `/skin_predict` URL and performs skin disease classification on a user-uploaded image. The route then returns a JSON response with the prediction results and AI analysis.
 - `@app.route("/privacy_policy")`: Defines the route for the privacy policy page. This route handles GET requests to the `/privacy_policy` URL and renders the `privacy_policy.html` template.

@@ -881,6 +881,14 @@
           </a>
           
           {% if session.get('username') %}
+            {% set user = get_user(session.get('username')) %}
+            {% if user %}
+              {% if user.is_doctor %}
+              <a href="{{ url_for('doctor_appointments') }}" class="nav-item {% if request.endpoint == 'doctor_appointments' %}active{% endif %}">
+                <i class="fas fa-user-md"></i>Doctor Panel
+              </a>
+              {% endif %}
+            {% endif %}
             <a href="{{ url_for('logout') }}" class="nav-item {% if request.endpoint == 'logout' %}active{% endif %}">
               <i class="fas fa-sign-out-alt"></i>Logout
             </a>
@@ -920,6 +928,14 @@
       </a>
       
       {% if session.get('username') %}
+        {% set user = get_user(session.get('username')) %}
+        {% if user %}
+          {% if user.is_doctor %}
+          <a href="{{ url_for('doctor_appointments') }}" class="mobile-nav-item {% if request.endpoint == 'doctor_appointments' %}active{% endif %}">
+            <i class="fas fa-user-md"></i>Doctor Panel
+          </a>
+          {% endif %}
+        {% endif %}
         <a href="{{ url_for('logout') }}" class="mobile-nav-item {% if request.endpoint == 'logout' %}active{% endif %}">
           <i class="fas fa-sign-out-alt"></i>Logout
         </a>

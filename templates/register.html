@@ -414,6 +414,23 @@
     background-color: rgba(30, 35, 45, 0.9);
     border-radius: 4px;
   }
+
+  .custom-checkbox {
+    display: flex;
+    align-items: center;
+  }
+
+  .custom-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    accent-color: #FF9F5A;
+  }
+
+  .custom-checkbox label {
+    color: white;
+    font-weight: 500;
+  }
 </style>
 
 <div class="auth-container">
@@ -497,32 +514,12 @@
       </div>
       
       <!-- Doctor Checkbox -->
-      <div class="checkbox-container">
+      <div class="checkbox-container mt-5">
         <div class="custom-checkbox">
           <input type="checkbox" id="is_doctor" name="is_doctor" value="1">
           <label for="is_doctor">Register as a Doctor</label>
         </div>
         <p class="text-sm text-gray-400 mt-2">Select this option if you are a healthcare professional and would like to join our platform as a doctor.</p>
-      </div>
-      
-      <!-- Doctor Fields -->
-      <div class="doctor-fields">
-        <h3 class="text-white text-lg font-medium mb-4">Professional Information</h3>
-        
-        <div class="input-field">
-          <input type="text" name="specialization" id="specialization" placeholder=" ">
-          <label for="specialization">Specialization</label>
-        </div>
-        
-        <div class="input-field">
-          <input type="number" name="experience_years" id="experience_years" min="0" placeholder=" ">
-          <label for="experience_years">Years of Experience</label>
-        </div>
-        
-        <div class="input-field">
-          <textarea name="bio" id="bio" rows="4" placeholder=" "></textarea>
-          <label for="bio">Professional Bio</label>
-        </div>
       </div>
       
       <!-- Submit Button -->
@@ -575,34 +572,6 @@ document.getElementById('password').addEventListener('input', function(e) {
     strengthBar.style.width = '0%';
     strengthText.textContent = 'Weak';
     strengthText.style.color = colors[0];
-  }
-});
-
-document.getElementById('is_doctor').addEventListener('change', function() {
-  const doctorFields = document.querySelector('.doctor-fields');
-  const doctorInputs = doctorFields.querySelectorAll('input, textarea');
-  const checkboxContainer = document.querySelector('.checkbox-container');
-  
-  if (this.checked) {
-    doctorFields.classList.add('show');
-    checkboxContainer.classList.add('active');
-    
-    // Add small delay to make the animation smoother
-    setTimeout(() => {
-      doctorInputs.forEach(input => {
-        input.required = true;
-        input.setAttribute('placeholder', ' '); 
-      });
-    }, 300);
-    
-    // Scroll to make fields visible
-    setTimeout(() => {
-      doctorFields.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 400);
-  } else {
-    doctorFields.classList.remove('show');
-    checkboxContainer.classList.remove('active');
-    doctorInputs.forEach(input => input.required = false);
   }
 });
 </script>

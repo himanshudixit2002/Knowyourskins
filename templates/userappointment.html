@@ -407,17 +407,17 @@
               </p>
               <div class="status-container">
                 <span class="status-badge 
-                  {% if appointment.status == 0 %}status-pending
-                  {% elif appointment.status == 1 %}status-confirmed
-                  {% elif appointment.status == 2 %}status-rejected{% endif %}">
+                  {% if appointment.status == 'pending' %}status-pending
+                  {% elif appointment.status == 'approved' %}status-confirmed
+                  {% elif appointment.status == 'declined' %}status-rejected{% endif %}">
                   <span class="appointment-icon">
-                    {% if appointment.status == 0 %}⏳
-                    {% elif appointment.status == 1 %}✅
-                    {% elif appointment.status == 2 %}❌{% endif %}
+                    {% if appointment.status == 'pending' %}⏳
+                    {% elif appointment.status == 'approved' %}✅
+                    {% elif appointment.status == 'declined' %}❌{% endif %}
                   </span>
-                  {% if appointment.status == 0 %}Pending
-                  {% elif appointment.status == 1 %}Confirmed
-                  {% elif appointment.status == 2 %}Rejected{% endif %}
+                  {% if appointment.status == 'pending' %}Pending
+                  {% elif appointment.status == 'approved' %}Confirmed
+                  {% elif appointment.status == 'declined' %}Rejected{% endif %}
                 </span>
               </div>
             </div>
