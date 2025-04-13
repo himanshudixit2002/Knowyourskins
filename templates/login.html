@@ -485,19 +485,13 @@
         <a href="#" class="text-[#FF9F5A] hover:underline transition-all duration-300">Forgot password?</a>
       </div>
       
-      <button type="submit" class="btn-submit">Unlock Your Glow</button>
+      <button type="submit" class="btn-submit w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 shadow-lg hover:shadow-xl flex items-center justify-center">
+        <span>Sign In</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+        </svg>
+      </button>
     </form>
-    
-    <div class="divider">
-      <span>Or continue with</span>
-    </div>
-    
-    <div class="mt-5">
-      <a href="{{ url_for('google_login') }}" class="social-btn">
-        <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google Logo" class="w-5 h-5">
-        <span>Continue with Google</span>
-      </a>
-    </div>
     
     <div class="mt-6 text-center text-gray-400 text-sm">
       <p>New to KnowYourSkins? <a href="{{ url_for('register') }}" class="text-[#FF9F5A] hover:underline transition-all duration-300">Start your glow-up</a></p>

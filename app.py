@@ -10,7 +10,6 @@ import requests
 import traceback
 import google.generativeai as genai
 from flask import Flask, render_template, request, redirect, session, url_for, jsonify, abort
-from flask_dance.contrib.google import make_google_blueprint, google
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
 from roboflow import Roboflow
@@ -42,49 +41,6 @@ app.secret_key = SECRET_KEY
 app.config['TEMPLATES_AUTO_RELOAD'] = os.getenv("FLASK_ENV") == "development"
 app.config['SESSION_COOKIE_SECURE'] = False  # Set True in production
 app.config['SESSION_COOKIE_HTTPONLY'] = True
-
-# -----------------------------------------------------------------------------
-# Google OAuth Configuration with Flask-Dance
-# -----------------------------------------------------------------------------
-# Google OAuth Configuration with Flask-Dance
-google_blueprint = make_google_blueprint(
-    client_id=os.getenv("GOOGLE_CLIENT_ID"),
-    client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
-    scope=[
-        "openid",
-        "https://www.googleapis.com/auth/userinfo.email",
-        "https://www.googleapis.com/auth/userinfo.profile"
-    ],
-    redirect_to="google_authorized"  # Callback route name
-)
-app.register_blueprint(google_blueprint, url_prefix="/login")
-@app.before_request
-def set_google_tokengetter():
-    google.tokengetter = lambda: session.get("google_token")
-
-@app.route("/login/google/authorized")
-def google_authorized():
-    resp = google.authorized_response()
-    if resp is None or resp.get("access_token") is None:
-        return "Access denied: reason={} error={}".format(
-            request.args.get("error_reason"),
-            request.args.get("error_description")
-        )
-    session["google_token"] = (resp["access_token"], "")
-    user_info = google.get("/oauth2/v1/userinfo").json()
-    session["user"] = user_info
-    session["username"] = user_info["email"]  # Use email as username
-    return redirect(url_for("index"))
-
-
-@app.route("/login/google")
-def google_login():
-    return redirect(url_for("google.login"))
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("login"))
 
 # -----------------------------------------------------------------------------
 # Environment & API Configuration (Model Download, Gemini API, etc.)
@@ -232,12 +188,26 @@ def create_tables():
         )''')
         connection.commit()
 
-create_tables()
+def ensure_database_compatibility():
+    # Check if is_doctor column exists in users table
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        # Get column info for users table
+        columns = [column[1] for column in cursor.execute("PRAGMA table_info(users)").fetchall()]
+        
+        # Add is_doctor column if it doesn't exist
+        if "is_doctor" not in columns:
+            print("Adding is_doctor column to users table...")
+            cursor.execute("ALTER TABLE users ADD COLUMN is_doctor INTEGER DEFAULT 0")
+            conn.commit()
 
-def insert_user(username, password, is_doctor=False):
+create_tables()
+ensure_database_compatibility()
+
+def insert_user(username, password, is_doctor=0):
     with get_db_connection() as conn:
         conn.execute("INSERT INTO users (username, password, is_doctor) VALUES (?, ?, ?)",
-                     (username, password, int(is_doctor)))
+                     (username, password, is_doctor))
         conn.commit()
 
 def get_user(username):
@@ -784,18 +754,15 @@ def index():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
-        is_doctor = True if request.form.get("is_doctor") == "on" else False
-        name = request.form.get("name", "")
-        age = request.form.get("age", "")
-        hashed_password = generate_password_hash(password)
+        username = request.form.get("username")
+        password = request.form.get("password")
+        if not username or not password:
+            return render_template("register.html", error="Username and password are required.")
         if get_user(username):
             return render_template("register.html", error="Username already exists.")
-        insert_user(username, hashed_password, is_doctor)
-        session["username"] = username
-        session["name"] = name
-        session["age"] = age
+        
+        hashed_password = generate_password_hash(password)
+        insert_user(username, hashed_password)
         return redirect(url_for("login"))
     return render_template("register.html")
 
@@ -806,58 +773,84 @@ def login_html_redirect():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        username = request.form.get("username")
+        password = request.form.get("password")
         user = get_user(username)
-        if user and check_password_hash(user["password"], password):
-            session["username"] = username
-            if user["is_doctor"] == 1:
-                session["is_doctor"] = True
-                return redirect(url_for("doctor_dashboard"))
-            session["is_doctor"] = False
-            survey_response = get_survey_response(user["id"])
-            if survey_response:
-                return redirect(url_for("profile"))
-            else:
-                return redirect(url_for("survey"))
-        return render_template("login.html", error="Invalid username or password")
+        if not user or not check_password_hash(user["password"], password):
+            return render_template("login.html", error="Invalid username or password.")
+        
+        session["user_id"] = user["id"]
+        session["username"] = username
+        return redirect(url_for("index"))
     return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
 
 @app.route("/survey", methods=["GET", "POST"])
 def survey():
     if "username" not in session:
-        return redirect(url_for("index"))
+        return redirect(url_for("login"))
+        
     if request.method == "POST":
         user = get_user(session["username"])
         user_id = user["id"]
-        name = session.get("name", "")
-        age = session.get("age", "")
-        gender = request.form["gender"]
+        
+        # Get form data
+        name = request.form.get("name", "")
+        age = request.form.get("age", "")
+        gender = request.form.get("gender")
         concerns = ",".join(request.form.getlist("concerns"))
-        acne_frequency = request.form["acne_frequency"]
-        comedones_count = request.form["comedones_count"]
-        first_concern = request.form["first_concern"]
-        cosmetics_usage = request.form["cosmetics_usage"]
-        skin_reaction = request.form["skin_reaction"]
-        skin_type = request.form["skin_type_details"]
-        medications = request.form["medications"]
-        skincare_routine = request.form["skincare_routine"]
-        stress_level = request.form["stress_level"]
+        acne_frequency = request.form.get("acne_frequency")
+        comedones_count = request.form.get("comedones_count")
+        first_concern = request.form.get("first_concern")
+        cosmetics_usage = request.form.get("cosmetics_usage")
+        skin_reaction = request.form.get("skin_reaction")
+        skin_type = request.form.get("skin_type_details")
+        medications = request.form.get("medications")
+        skincare_routine = request.form.get("skincare_routine")
+        stress_level = request.form.get("stress_level")
+        
         insert_survey_response(user_id, name, age, gender, concerns, acne_frequency, comedones_count,
                                first_concern, cosmetics_usage, skin_reaction, skin_type,
                                medications, skincare_routine, stress_level)
         return redirect(url_for("profile"))
-    return render_template("survey.html", name=session.get("name", ""), age=session.get("age", ""))
+        
+    # Check if user already has a survey response
+    user = get_user(session["username"])
+    survey_response = get_survey_response(user["id"])
+    
+    if survey_response:
+        # Pre-fill the form with existing data
+        return render_template("survey.html", survey=survey_response)
+    else:
+        # Show empty form
+        return render_template("survey.html")
 
 @app.route("/profile")
 def profile():
     if "username" in session:
         user = get_user(session["username"])
+        if not user:
+            return redirect(url_for("login"))
+            
+        # Get survey response for the user
         survey_response = get_survey_response(user["id"])
+        
+        # Get skincare routine for the user
         routine = get_skincare_routine(user["id"])
+        
+        # If user has completed the survey, show their profile
         if survey_response:
             return render_template("profile.html", survey=survey_response, routine=routine)
-    return redirect(url_for("index"))
+        else:
+            # If no survey response, redirect to survey page
+            return redirect(url_for("survey"))
+    
+    # If user is not logged in, redirect to login page
+    return redirect(url_for("login"))
 
 @app.route("/documentation")
 def documentation():
@@ -875,46 +868,38 @@ def appointment_detail(appointment_id):
 @app.route("/update_appointment", methods=["POST"])
 def update_appointment():
     if "username" not in session:
-        return jsonify({"error": "Unauthorized"}), 401
+        return redirect(url_for("login"))
     user = get_user(session["username"])
-    if not user or user["is_doctor"] != 1:
-        return jsonify({"error": "Access denied"}), 403
-    data = request.get_json()
-    appointment_id = data.get("appointment_id")
-    action = data.get("action")
-    if not appointment_id or not action:
-        return jsonify({"error": "Missing appointment id or action."}), 400
-    status = 1 if action == "confirm" else 2 if action == "reject" else None
-    if status is None:
-        return jsonify({"error": "Invalid action."}), 400
-    try:
-        update_appointment_status(appointment_id, status)
-        return jsonify({"message": f"Appointment {appointment_id} updated successfully.", "new_status": status})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    appointment_id = request.form.get("appointment_id")
+    status = request.form.get("status", 0, type=int)
+    
+    if not user:
+        return redirect(url_for("login"))
+    
+    update_appointment_status(appointment_id, status)
+    return redirect(url_for("profile"))
 
 @app.route("/delete_appointment", methods=["POST"])
 def delete_appointment_route():
     if "username" not in session:
-        return jsonify({"error": "Unauthorized"}), 401
-    data = request.get_json()
-    try:
-        appointment_id = int(data.get("id"))
-    except (ValueError, TypeError):
-        return jsonify({"error": "Invalid appointment ID"}), 400
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        appointment = cursor.execute("SELECT * FROM appointment WHERE id = ?", (appointment_id,)).fetchone()
-        if not appointment:
-            return jsonify({"error": "Appointment not found."}), 404
-        if appointment["username"] != session["username"]:
-            return jsonify({"error": "You do not have permission to delete this appointment."}), 403
+        return redirect(url_for("login"))
+    user = get_user(session["username"])
+    appointment_id = request.form.get("appointment_id")
+    
+    if not user:
+        return redirect(url_for("login"))
+    
     delete_appointment(appointment_id)
-    return jsonify({"message": "Appointment deleted successfully."})
+    return redirect(url_for("profile"))
 
 @app.route("/bookappointment")
 def bookappointment():
-    return render_template("bookappointment.html")
+    # Redirect to the chatbot page instead
+    return redirect(url_for('chatbot_page'))
+
+@app.route("/chatbot_page")
+def chatbot_page():
+    return render_template('chatbot.html')
 
 @app.route("/appointment", methods=["POST"])
 def appointment():
@@ -944,47 +929,37 @@ def userappoint():
 
 @app.route("/delete_user_request", methods=["POST"])
 def delete_user_request():
-    data = request.get_json()
-    try:
-        appointment_id = int(data.get("id"))
-    except (ValueError, TypeError):
-        return jsonify({"error": "Invalid appointment ID"}), 400
+    if "username" not in session:
+        return redirect(url_for("login"))
+    user = get_user(session["username"])
+    appointment_id = request.form.get("appointment_id")
+    
+    if not user:
+        return redirect(url_for("login"))
+    
     delete_appointment(appointment_id)
-    return jsonify({"message": "deleted successfully"})
+    return redirect(url_for("userappointment"))
 
 @app.route("/face_analysis", methods=["POST"])
 def face_analysis():
     if "username" not in session:
         return jsonify({"error": "Unauthorized"}), 401
     user = get_user(session["username"])
-    if not user or user["is_doctor"] != 1:
+    if not user:
         return jsonify({"error": "Access denied"}), 403
+    
+    # Check if is_doctor exists and is equal to 1
+    doctor_access = user.get("is_doctor", 0) == 1
+    if not doctor_access:
+        return jsonify({"error": "Access denied. Only doctors can perform face analysis."}), 403
+        
     appointment_id = request.form.get("appointment_id")
     update_appointment_status(appointment_id, 1)  # For example, setting status 1 to confirm
     return jsonify({"message": "Appointment status updated after face analysis."})
 
 def get_all_appointments():
     with get_db_connection() as conn:
-        cursor = conn.cursor()
-        appointments = cursor.execute("SELECT * FROM appointment").fetchall()
-        return [dict(row) for row in appointments]
-
-@app.route("/doctor_dashboard")
-def doctor_dashboard():
-    if "username" not in session:
-        return redirect(url_for("login"))
-    user = get_user(session["username"])
-    if not user or user["is_doctor"] != 1:
-        return redirect(url_for("login"))
-    appointments = get_all_appointments()
-    return render_template("doctor_dashboard.html", appointments=appointments, current_user=user)
-
-UPLOAD_FOLDER = "static/uploads"
-ANNOTATIONS_FOLDER = "static/annotations"
-class_mapping = {
-    "Jenis Kulit Wajah - v6 2023-06-17 11-53am": "oily skin",
-    "-": "normal/dry skin"
-}
+        return conn.execute("SELECT * FROM appointment").fetchall()
 
 @app.route("/predict", methods=["POST", "GET"])
 def predict():
@@ -1123,8 +1098,8 @@ def privacy_policy():
 def terms_of_service():
     return render_template("terms_of_service.html")
 
-@app.route("/skin_predict", methods=["GET", "POST"])
-def skin_predict():
+@app.route("/skin_disease_prediction", methods=["GET", "POST"])
+def skin_disease_prediction():
     if request.method == "POST":
         if "image" not in request.files:
             return jsonify({"error": "No image uploaded"}), 400
@@ -1158,8 +1133,15 @@ def skin_predict():
         if request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.content_type == "application/json":
             return jsonify(result)
         else:
-            return render_template("skin_result.html", **result)
-    return render_template("skin_upload.html")
+            return render_template("skin_disease_prediction.html", **result)
+    return render_template("skin_disease_prediction.html")
+
+# Redirect old route to new one
+@app.route("/skin_predict", methods=["GET", "POST"])
+def skin_predict():
+    if request.method == "POST":
+        return redirect(url_for("skin_disease_prediction"), code=307)  # 307 preserves POST data
+    return redirect(url_for("skin_disease_prediction"))
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=os.getenv("FLASK_DEBUG", "false").lower() == "true")

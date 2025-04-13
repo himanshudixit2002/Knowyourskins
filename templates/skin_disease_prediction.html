@@ -1,0 +1,1018 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<style>
+  /* Import Google Fonts */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+  /* Base Styles */
+  :root {
+    --primary-color: #FF9F5A;
+    --primary-dark: #FF7A00;
+    --bg-dark: #1a1f2c;
+    --bg-darker: #151922;
+    --text-light: rgba(255, 255, 255, 0.9);
+    --text-muted: rgba(255, 255, 255, 0.7);
+    --border-light: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Main Container */
+  .container-main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Navigation Tabs */
+  .tab-navigation {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .tab-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .tab-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+  }
+
+  /* Active state set conditionally based on prediction */
+  .tab-btn.active {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    border-color: transparent;
+    box-shadow: 0 4px 15px rgba(255, 159, 90, 0.3);
+  }
+
+  /* Tab Content */
+  .tab-content {
+    display: none;
+    animation: fadeIn 0.5s ease forwards;
+    padding: 2rem;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+  
+  /* Upload Box */
+  .upload-box {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px dashed rgba(255, 159, 90, 0.3);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .upload-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, 
+                rgba(255, 255, 255, 0.05), 
+                transparent 70%);
+    pointer-events: none;
+  }
+
+  .upload-box:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--primary-color);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  }
+
+  .upload-box.highlight {
+    background: rgba(255, 159, 90, 0.1);
+    border-color: var(--primary-color);
+  }
+
+  .upload-box input[type="file"] {
+    display: none;
+  }
+
+  .upload-box h3 {
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .upload-box p {
+    color: var(--text-muted);
+    margin: 0.5rem 0;
+  }
+
+  .text-sm {
+    font-size: 0.875rem;
+  }
+
+  .text-gray-400 {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .upload-icon-container {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 159, 90, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  .upload-box:hover .upload-icon-container {
+    transform: scale(1.1);
+    background: rgba(255, 159, 90, 0.2);
+  }
+
+  .upload-icon {
+    font-size: 2rem;
+    color: var(--primary-color);
+  }
+
+  /* Preview Container */
+  .preview-container {
+    margin-top: 2rem;
+    display: none;
+    text-align: center;
+  }
+
+  .preview-image-container {
+    position: relative;
+    max-width: 300px;
+    margin: 0 auto;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .preview-image {
+    width: 100%;
+    border-radius: 16px;
+    display: block;
+  }
+
+  .remove-preview {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .remove-preview:hover {
+    background: rgba(255, 0, 0, 0.7);
+    transform: scale(1.1);
+  }
+
+  .upload-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 159, 90, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .upload-btn:hover {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(255, 159, 90, 0.4);
+  }
+
+  .upload-btn:disabled {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.5);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Loading Spinner - Completely Redesigned */
+  .loading-spinner {
+    display: none;
+    text-align: center;
+    padding: 3rem 2rem;
+    background: rgba(30, 35, 45, 0.9);
+    border-radius: 16px;
+    border: 1px solid var(--border-light);
+    margin: 2rem auto;
+    max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+
+  .spinner-wrapper {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    position: relative;
+    /* The key fix: isolate transforms to this element */
+    isolation: isolate;
+  }
+
+  @supports not (isolation: isolate) {
+    .spinner-wrapper {
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+  }
+
+  .spinner-outer {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border: 4px solid transparent;
+    border-top-color: var(--primary-color);
+    border-right-color: var(--primary-color);
+    border-radius: 50%;
+    /* Individual transform context */
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: spin-clockwise 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+  }
+
+  .spinner-middle {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 60px;
+    height: 60px;
+    border: 4px solid transparent;
+    border-bottom-color: var(--primary-dark);
+    border-left-color: var(--primary-dark);
+    border-radius: 50%;
+    /* Individual transform context */
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: spin-counterclockwise 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+  }
+
+  .spinner-inner {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    border: 4px solid transparent;
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    /* Individual transform context */
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: spin-clockwise 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
+  }
+
+  @keyframes spin-clockwise {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  @keyframes spin-counterclockwise {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(-360deg); }
+  }
+
+  .loading-text {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+
+  .loading-subtext {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0 0 1.5rem;
+  }
+
+  .loading-progress {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    margin: 1.5rem auto 0;
+    overflow: hidden;
+    max-width: 300px;
+    position: relative;
+  }
+
+  .loading-progress-bar {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--primary-dark), var(--primary-color));
+    border-radius: 3px;
+    animation: progress 2s ease infinite;
+    position: relative;
+  }
+
+  @keyframes progress {
+    0% { width: 0; }
+    50% { width: 70%; }
+    70% { width: 90%; }
+    100% { width: 95%; }
+  }
+
+  /* Analysis Card */
+  .analysis-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-light);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .analysis-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: linear-gradient(90deg, var(--primary-dark), var(--primary-color));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .analysis-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+
+  .analysis-card:hover::before {
+    opacity: 1;
+  }
+
+  .card-title {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .card-title i {
+    color: var(--primary-color);
+  }
+
+  /* Diagnosis Result */
+  .prediction-text {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin: 0;
+    text-shadow: 0 2px 10px rgba(255, 159, 90, 0.3);
+  }
+
+  /* Metrics */
+  pre {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    padding: 1.25rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 0;
+  }
+
+  /* Analysis Text */
+  .ai-analysis-text {
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.6;
+    font-size: 1rem;
+  }
+
+  /* Result Image */
+  .result-image-container {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    margin-bottom: 1.5rem;
+  }
+
+  .result-image {
+    width: 100%;
+    display: block;
+    border-radius: 16px;
+    transition: transform 0.3s ease;
+  }
+
+  .result-image-container:hover .result-image {
+    transform: scale(1.02);
+  }
+
+  /* Back Button */
+  .back-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+  }
+
+  .back-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+  }
+
+  /* Progress Bar */
+  .progress-container {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    margin-top: 1rem;
+    overflow: hidden;
+    display: none;
+  }
+
+  .progress-bar {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, var(--primary-dark), var(--primary-color));
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+
+  /* Confidence Meter */
+  .confidence-meter {
+    display: flex;
+    align-items: center;
+    margin-top: 1rem;
+  }
+
+  .confidence-bar {
+    flex-grow: 1;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    overflow: hidden;
+    margin: 0 1rem;
+  }
+
+  .confidence-level {
+    height: 100%;
+    background: linear-gradient(90deg, #ff7a00, #ff9f5a);
+    border-radius: 5px;
+    transition: width 1s ease;
+  }
+
+  .confidence-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    min-width: 60px;
+  }
+
+  /* Tooltip */
+  .tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: help;
+  }
+
+  .tooltip .tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 10px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 0.85rem;
+  }
+
+  .tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  /* New Animated Elements */
+  .glow-effect {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 159, 90, 0.2) 0%, transparent 70%);
+    animation: pulse 4s infinite ease-in-out;
+    z-index: -1;
+  }
+
+  .glow-1 {
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+  }
+
+  .glow-2 {
+    bottom: 30%;
+    right: 15%;
+    animation-delay: 2s;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.5); opacity: 0.2; }
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .content-container {
+      max-width: 100%;
+    }
+
+    .content-header h1 {
+      font-size: 2rem;
+    }
+
+    .upload-box {
+      padding: 2rem 1rem;
+    }
+
+    .upload-btn {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .container-main {
+      padding: 1rem;
+    }
+
+    .content-header h1 {
+      font-size: 1.75rem;
+    }
+
+    .content-header p {
+      font-size: 1rem;
+    }
+
+    .tab-btn {
+      padding: 0.6rem 1rem;
+      font-size: 0.9rem;
+    }
+
+    .upload-box h3 {
+      font-size: 1.25rem;
+    }
+
+    .prediction-text {
+      font-size: 1.5rem;
+    }
+  }
+
+  .hidden {
+    display: none;
+  }
+</style>
+
+<div class="container-main">
+  <!-- Decorative Elements -->
+  <div class="decorative-circle circle-1"></div>
+  <div class="decorative-circle circle-2"></div>
+  <div class="decorative-circle circle-3"></div>
+  <div class="gradient-bg"></div>
+  <div class="glow-effect glow-1"></div>
+  <div class="glow-effect glow-2"></div>
+  
+  <!-- Animated Background -->
+  <div class="animated-background">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+  
+  <div class="content-container" id="app-container" data-has-prediction="{{ 'true' if prediction is defined else 'false' }}">
+    <div class="content-header">
+      <h1>Skin Disease Prediction</h1>
+      <p>AI-powered analysis for accurate skin condition diagnosis</p>
+    </div>
+
+    <div class="tab-navigation">
+      <button class="tab-btn {% if prediction is not defined %}active{% endif %}" data-tab="upload" type="button">
+        <i class="fas fa-upload"></i> Upload Image
+      </button>
+      {% if prediction is defined %}
+      <button class="tab-btn {% if prediction is defined %}active{% endif %}" data-tab="results" type="button">
+        <i class="fas fa-chart-pie"></i> Analysis Results
+      </button>
+      {% endif %}
+    </div>
+
+    <!-- Upload Tab -->
+    <div id="upload-tab" class="tab-content {% if prediction is not defined %}active{% endif %}">
+      <form id="upload-form" action="{{ url_for('skin_disease_prediction') }}" method="post" enctype="multipart/form-data">
+        <div class="upload-box" id="upload-area">
+          <div class="upload-icon-container">
+            <i class="fas fa-upload upload-icon"></i>
+          </div>
+          <h3>Upload Your Skin Image</h3>
+          <p>Click or drag & drop to upload</p>
+          <p class="text-sm text-gray-400">Supported formats: JPG, JPEG, PNG (Max: 10MB)</p>
+          <input type="file" name="image" id="file-input" accept=".jpg,.jpeg,.png">
+        </div>
+        
+        <div class="preview-container" id="preview-container">
+          <div class="preview-image-container">
+            <img id="preview-image" class="preview-image" src="#" alt="Preview">
+            <button type="button" class="remove-preview" id="remove-preview">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="progress-container" id="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+          </div>
+          <button type="submit" class="upload-btn" id="upload-btn" disabled>
+            <i class="fas fa-diagnoses"></i> Analyze Skin Condition
+          </button>
+        </div>
+      </form>
+      
+      <div class="loading-spinner" id="loading-spinner">
+        <div class="spinner-wrapper">
+          <div class="spinner-outer"></div>
+          <div class="spinner-middle"></div>
+          <div class="spinner-inner"></div>
+        </div>
+        <p class="loading-text">Analyzing Your Image</p>
+        <p class="loading-subtext">Our AI is examining your skin for potential conditions</p>
+        <div class="loading-progress">
+          <div class="loading-progress-bar" id="loading-progress-bar"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Results Tab -->
+    <div id="results-tab" class="tab-content {% if prediction is defined %}active{% endif %}">
+      {% if prediction is defined %}
+        <!-- Image Preview -->
+        <div class="result-image-container">
+          <img src="{{ image_url }}" alt="Skin Image" class="result-image">
+        </div>
+        
+        <!-- Diagnosis Card -->
+        <div class="analysis-card">
+          <h3 class="card-title">
+            <i class="fas fa-stethoscope"></i> Diagnosis Result
+          </h3>
+          <p class="prediction-text">{{ prediction }}</p>
+        </div>
+        
+        <!-- Probability Metrics -->
+        <div class="analysis-card">
+          <h3 class="card-title">
+            <i class="fas fa-chart-bar"></i> Confidence Scores
+          </h3>
+          <pre>{{ probabilities }}</pre>
+        </div>
+        
+        <!-- AI Analysis -->
+        <div class="analysis-card">
+          <h3 class="card-title">
+            <i class="fas fa-robot"></i> AI Analysis & Recommendation
+          </h3>
+          <div class="ai-analysis-text">
+            {{ ai_analysis | safe }}
+            
+            {% if confidence_score is defined and confidence_score %}
+            <div class="confidence-meter">
+              <span class="confidence-label">Confidence:</span>
+              <div class="confidence-bar">
+                <div class="confidence-level" id="confidence-level-bar" data-confidence="{{ confidence_score }}"></div>
+              </div>
+              <span class="confidence-label">{{ confidence_score }}%</span>
+            </div>
+            <p class="text-sm text-gray-400 tooltip">What does this mean?
+              <span class="tooltip-text">This indicates the AI's confidence level in its diagnosis. Higher percentages suggest greater certainty, but all results should be confirmed by a medical professional.</span>
+            </p>
+            {% endif %}
+          </div>
+        </div>
+        
+        <!-- Back Button -->
+        <button class="back-btn" id="analyze-another-btn" type="button">
+          <i class="fas fa-arrow-left"></i> Analyze Another Image
+        </button>
+      {% else %}
+        <div class="text-center p-6">
+          <h3 class="text-white text-xl mb-4">No Analysis Results Yet</h3>
+          <p class="text-gray-400 mb-4">Upload a skin image to see AI-powered analysis results here.</p>
+          <button class="tab-btn" id="go-to-upload-btn" type="button">
+            <i class="fas fa-upload"></i> Go to Upload
+          </button>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Tab navigation
+  function switchTab(tabId) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tab => {
+      tab.classList.remove('active');
+    });
+    
+    // Remove active class from all tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    
+    // Show selected tab content
+    const tabElement = document.getElementById(tabId + '-tab');
+    if (tabElement) {
+      tabElement.classList.add('active');
+    }
+    
+    // Add active class to clicked button
+    const activeButton = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+    if (activeButton) {
+      activeButton.classList.add('active');
+    }
+  }
+  
+  // Add event listeners to tab buttons
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabId = btn.getAttribute('data-tab');
+      switchTab(tabId);
+    });
+  });
+  
+  // File upload handling
+  const uploadArea = document.getElementById('upload-area');
+  const fileInput = document.getElementById('file-input');
+  const previewContainer = document.getElementById('preview-container');
+  const previewImage = document.getElementById('preview-image');
+  const removePreviewBtn = document.getElementById('remove-preview');
+  const uploadBtn = document.getElementById('upload-btn');
+  const loadingSpinner = document.getElementById('loading-spinner');
+  const uploadForm = document.getElementById('upload-form');
+  const progressContainer = document.getElementById('progress-container');
+  const progressBar = document.getElementById('progress-bar');
+  const loadingProgressBar = document.getElementById('loading-progress-bar');
+  const analyzeAnotherBtn = document.getElementById('analyze-another-btn');
+  const goToUploadBtn = document.getElementById('go-to-upload-btn');
+  const appContainer = document.getElementById('app-container');
+  
+  // Click on upload area to trigger file input
+  if (uploadArea) {
+    uploadArea.addEventListener('click', () => {
+      fileInput.click();
+    });
+    
+    // Handle drag and drop
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      uploadArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+      uploadArea.addEventListener(eventName, () => {
+        uploadArea.classList.add('highlight');
+      });
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+      uploadArea.addEventListener(eventName, () => {
+        uploadArea.classList.remove('highlight');
+      });
+    });
+    
+    uploadArea.addEventListener('drop', handleDrop);
+  }
+  
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  
+  function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    if (files.length) {
+      fileInput.files = files;
+      updatePreview();
+    }
+  }
+  
+  // Handle file selection
+  if (fileInput) {
+    fileInput.addEventListener('change', updatePreview);
+  }
+  
+  function updatePreview() {
+    const file = fileInput.files[0];
+    if (file) {
+      // Check file type
+      const fileType = file.type;
+      if (!['image/jpeg', 'image/jpg', 'image/png'].includes(fileType)) {
+        alert('Please select a valid image file (JPG, JPEG, or PNG)');
+        resetFileInput();
+        return;
+      }
+      
+      // Check file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('File size exceeds 10MB limit');
+        resetFileInput();
+        return;
+      }
+      
+      // Update preview
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        previewImage.src = e.target.result;
+        previewContainer.style.display = 'block';
+        uploadArea.style.display = 'none';
+        uploadBtn.disabled = false;
+        if (progressContainer) {
+          progressContainer.style.display = 'block';
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+  
+  // Remove preview image
+  if (removePreviewBtn) {
+    removePreviewBtn.addEventListener('click', resetFileInput);
+  }
+  
+  function resetFileInput() {
+    if (fileInput) {
+      fileInput.value = '';
+    }
+    if (previewContainer) {
+      previewContainer.style.display = 'none';
+    }
+    if (uploadArea) {
+      uploadArea.style.display = 'block';
+    }
+    if (uploadBtn) {
+      uploadBtn.disabled = true;
+    }
+    if (progressContainer) {
+      progressContainer.style.display = 'none';
+    }
+  }
+  
+  // Handle form submission
+  if (uploadForm) {
+    uploadForm.addEventListener('submit', function(e) {
+      if (!fileInput.files.length) {
+        e.preventDefault();
+        alert('Please select an image to upload');
+        return;
+      }
+      
+      // Show loading spinner
+      if (loadingSpinner) {
+        loadingSpinner.style.display = 'block';
+      }
+      if (previewContainer) {
+        previewContainer.style.display = 'none';
+      }
+      
+      // Animate the progress bar
+      if (loadingProgressBar) {
+        let width = 0;
+        let increment = 2;
+        let maxWidth = 90; // Only go to 90% until results come back
+        
+        const progressInterval = setInterval(function() {
+          if (width >= maxWidth) {
+            clearInterval(progressInterval);
+          } else {
+            width += increment;
+            increment = Math.max(0.5, increment * 0.97); // Gradually slow down
+            loadingProgressBar.style.width = width + '%';
+          }
+        }, 80);
+      }
+    });
+  }
+  
+  // Go to Upload button event listener
+  if (goToUploadBtn) {
+    goToUploadBtn.addEventListener('click', function() {
+      switchTab('upload');
+    });
+  }
+  
+  // Analyze Another Image button event listener
+  if (analyzeAnotherBtn) {
+    analyzeAnotherBtn.addEventListener('click', function() {
+      resetFileInput();
+      switchTab('upload');
+    });
+  }
+  
+  // Initialize confidence level bar if it exists
+  const confidenceLevelBar = document.getElementById('confidence-level-bar');
+  if (confidenceLevelBar) {
+    const confidenceScore = confidenceLevelBar.dataset.confidence;
+    if (confidenceScore) {
+      confidenceLevelBar.style.width = confidenceScore + '%';
+    }
+  }
+  
+  // Initialize the correct tab based on if results exist
+  if (appContainer) {
+    const hasPrediction = appContainer.dataset.hasPrediction === 'true';
+    if (hasPrediction) {
+      switchTab('results');
+    } else {
+      switchTab('upload');
+    }
+  }
+});
+</script>
+{% endblock %}
