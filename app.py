@@ -42,6 +42,18 @@ app.config['TEMPLATES_AUTO_RELOAD'] = os.getenv("FLASK_ENV") == "development"
 app.config['SESSION_COOKIE_SECURE'] = False  # Set True in production
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 
+# Define upload folders
+UPLOAD_FOLDER = os.path.join("static", "uploads")
+ANNOTATIONS_FOLDER = os.path.join("static", "annotations")
+
+# Define oiliness class mapping
+class_mapping = {
+    "oily": "oiliness",
+    "dry": "dryness",
+    "combination": "combination skin",
+    "normal": "normal skin"
+}
+
 # -----------------------------------------------------------------------------
 # Environment & API Configuration (Model Download, Gemini API, etc.)
 # -----------------------------------------------------------------------------
