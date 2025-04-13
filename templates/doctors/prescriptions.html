@@ -1,0 +1,427 @@
+{% extends "doctors/layout.html" %}
+
+{% block title %}Prescriptions - Doctor Portal{% endblock %}
+
+{% block extra_css %}
+.prescription-card {
+    border-radius: 1rem;
+    box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.05);
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+    border: none;
+    overflow: hidden;
+}
+
+.prescription-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 1rem 2rem rgba(0,0,0,0.1);
+}
+
+.prescription-header {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.prescription-date {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.prescription-patient {
+    font-weight: 600;
+    margin: 0;
+}
+
+.prescription-badge {
+    border-radius: 2rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.prescription-content {
+    padding: 1.5rem;
+}
+
+.prescription-section {
+    margin-bottom: 1rem;
+}
+
+.prescription-section-title {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.prescription-item {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.new-prescription-form {
+    border-radius: 1rem;
+    box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.05);
+    padding: 1.5rem;
+    background-color: white;
+}
+
+.form-section {
+    margin-bottom: 1.5rem;
+}
+
+.form-section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #495057;
+}
+
+.patient-select {
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e0e0e0;
+}
+
+.patient-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(255, 159, 90, 0.25);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    color: #adb5bd;
+    margin-bottom: 1rem;
+}
+
+.empty-text {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Prescriptions</h2>
+        <p class="text-muted mb-0">Manage patient prescriptions and medication plans</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newPrescriptionModal">
+        <i class="bi bi-plus-lg me-2"></i>New Prescription
+    </button>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">All Prescriptions</h5>
+                    <div class="input-group" style="width: 300px;">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" id="prescription-search" placeholder="Search prescriptions...">
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if prescriptions %}
+                <div class="row">
+                    {% for prescription in prescriptions %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="prescription-card">
+                            <div class="prescription-header d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="prescription-patient">{{ prescription.patient_name }}</h6>
+                                    <div class="prescription-date">
+                                        <i class="bi bi-calendar-event me-1"></i>{{ prescription.created_at }}
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="badge bg-info prescription-badge">{{ prescription.diagnosis }}</span>
+                                </div>
+                            </div>
+                            <div class="prescription-content">
+                                <div class="prescription-section">
+                                    <div class="prescription-section-title">Medications</div>
+                                    <div class="prescription-item">{{ prescription.medications }}</div>
+                                </div>
+                                
+                                <div class="prescription-section">
+                                    <div class="prescription-section-title">Instructions</div>
+                                    <div class="prescription-item">{{ prescription.instructions }}</div>
+                                </div>
+                                
+                                {% if prescription.duration %}
+                                <div class="prescription-section">
+                                    <div class="prescription-section-title">Duration</div>
+                                    <div class="prescription-item">{{ prescription.duration }}</div>
+                                </div>
+                                {% endif %}
+                                
+                                <div class="d-flex justify-content-between mt-3">
+                                    <button class="btn btn-sm btn-outline-primary view-prescription" data-id="{{ prescription.id }}">
+                                        <i class="bi bi-eye me-1"></i>View
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary print-prescription" data-id="{{ prescription.id }}">
+                                        <i class="bi bi-printer me-1"></i>Print
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="bi bi-file-medical"></i>
+                    </div>
+                    <div class="empty-text">No prescriptions found</div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newPrescriptionModal">
+                        <i class="bi bi-plus-lg me-2"></i>Create Your First Prescription
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Prescription Modal -->
+<div class="modal fade" id="newPrescriptionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Prescription</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="prescription-form">
+                    <div class="form-section">
+                        <div class="form-section-title">Patient Information</div>
+                        <div class="mb-3">
+                            <label for="patient-select" class="form-label">Select Patient</label>
+                            <select class="form-select patient-select" id="patient-select" name="patient_id" required>
+                                <option value="" selected disabled>Choose a patient</option>
+                                {% for patient in patients %}
+                                <option value="{{ patient.id }}">{{ patient.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <div class="form-section-title">Prescription Details</div>
+                        <div class="mb-3">
+                            <label for="diagnosis" class="form-label">Diagnosis</label>
+                            <input type="text" class="form-control" id="diagnosis" name="diagnosis" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="medications" class="form-label">Medications</label>
+                            <textarea class="form-control" id="medications" name="medications" rows="3" required placeholder="List all medications with dosage details"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="instructions" class="form-label">Instructions</label>
+                            <textarea class="form-control" id="instructions" name="instructions" rows="3" required placeholder="Provide detailed instructions for medication use"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="duration" class="form-label">Duration (Optional)</label>
+                            <input type="text" class="form-control" id="duration" name="duration" placeholder="e.g., 2 weeks, 1 month">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="save-prescription-btn">Create Prescription</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Prescription Modal -->
+<div class="modal fade" id="viewPrescriptionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Prescription Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="prescription-view">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6>Patient Information</h6>
+                            <p><strong>Name:</strong> <span id="view-patient-name"></span></p>
+                            <p><strong>Age:</strong> <span id="view-patient-age"></span></p>
+                            <p><strong>Gender:</strong> <span id="view-patient-gender"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Prescription Information</h6>
+                            <p><strong>Date:</strong> <span id="view-prescription-date"></span></p>
+                            <p><strong>Diagnosis:</strong> <span id="view-diagnosis"></span></p>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h6>Medications</h6>
+                    <div class="card mb-3">
+                        <div class="card-body" id="view-medications"></div>
+                    </div>
+                    
+                    <h6>Instructions</h6>
+                    <div class="card mb-3">
+                        <div class="card-body" id="view-instructions"></div>
+                    </div>
+                    
+                    <div id="view-duration-section">
+                        <h6>Duration</h6>
+                        <div class="card mb-3">
+                            <div class="card-body" id="view-duration"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="print-view-btn">
+                    <i class="bi bi-printer me-1"></i>Print
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize prescription search
+    const prescriptionSearch = document.getElementById('prescription-search');
+    if (prescriptionSearch) {
+        prescriptionSearch.addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            document.querySelectorAll('.prescription-card').forEach(card => {
+                const patientName = card.querySelector('.prescription-patient').textContent.toLowerCase();
+                const diagnosis = card.querySelector('.prescription-badge').textContent.toLowerCase();
+                const medications = card.querySelectorAll('.prescription-item')[0].textContent.toLowerCase();
+                
+                if (patientName.includes(searchTerm) || diagnosis.includes(searchTerm) || medications.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    }
+    
+    // Handle prescription form submission
+    const saveButton = document.getElementById('save-prescription-btn');
+    const prescriptionForm = document.getElementById('prescription-form');
+    
+    if (saveButton && prescriptionForm) {
+        saveButton.addEventListener('click', function() {
+            // Simple validation
+            const patient = document.getElementById('patient-select').value;
+            const diagnosis = document.getElementById('diagnosis').value;
+            const medications = document.getElementById('medications').value;
+            const instructions = document.getElementById('instructions').value;
+            
+            if (!patient || !diagnosis || !medications || !instructions) {
+                alert('Please fill in all required fields');
+                return;
+            }
+            
+            // Disable button and show loading state
+            saveButton.disabled = true;
+            saveButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Saving...';
+            
+            // Submit the form via AJAX
+            const formData = new FormData(prescriptionForm);
+            
+            fetch('/doctor/prescriptions', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                    saveButton.disabled = false;
+                    saveButton.innerHTML = 'Create Prescription';
+                    return;
+                }
+                
+                // Success - reload the page to show the new prescription
+                alert('Prescription created successfully!');
+                window.location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+                saveButton.disabled = false;
+                saveButton.innerHTML = 'Create Prescription';
+            });
+        });
+    }
+    
+    // View prescription details
+    document.querySelectorAll('.view-prescription').forEach(button => {
+        button.addEventListener('click', function() {
+            const prescriptionId = this.getAttribute('data-id');
+            const modal = new bootstrap.Modal(document.getElementById('viewPrescriptionModal'));
+            
+            // Find the prescription data from the cards (in a real app, you would fetch this from the server)
+            const card = this.closest('.prescription-card');
+            const patientName = card.querySelector('.prescription-patient').textContent;
+            const date = card.querySelector('.prescription-date').textContent.trim();
+            const diagnosis = card.querySelector('.prescription-badge').textContent;
+            const medications = card.querySelectorAll('.prescription-item')[0].textContent;
+            const instructions = card.querySelectorAll('.prescription-item')[1].textContent;
+            const durationElement = card.querySelectorAll('.prescription-item')[2];
+            const duration = durationElement ? durationElement.textContent : null;
+            
+            // Populate the modal
+            document.getElementById('view-patient-name').textContent = patientName;
+            document.getElementById('view-patient-age').textContent = 'N/A'; // This would come from the server in a real app
+            document.getElementById('view-patient-gender').textContent = 'N/A'; // This would come from the server in a real app
+            document.getElementById('view-prescription-date').textContent = date;
+            document.getElementById('view-diagnosis').textContent = diagnosis;
+            document.getElementById('view-medications').textContent = medications;
+            document.getElementById('view-instructions').textContent = instructions;
+            
+            if (duration) {
+                document.getElementById('view-duration').textContent = duration;
+                document.getElementById('view-duration-section').style.display = 'block';
+            } else {
+                document.getElementById('view-duration-section').style.display = 'none';
+            }
+            
+            modal.show();
+        });
+    });
+    
+    // Print prescription
+    document.querySelectorAll('.print-prescription').forEach(button => {
+        button.addEventListener('click', function() {
+            // In a real app, this would generate a PDF or open a printable view
+            alert('This would print the prescription in a real application');
+        });
+    });
+    
+    document.getElementById('print-view-btn').addEventListener('click', function() {
+        // In a real app, this would generate a PDF or open a printable view
+        alert('This would print the prescription in a real application');
+    });
+});
+</script>
+{% endblock %} 

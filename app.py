@@ -26,6 +26,7 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 import h5py
 import gdown
+import json
 
 # -----------------------------------------------------------------------------
 # Load Environment Variables and App Configuration
@@ -144,34 +145,19 @@ def get_db_connection():
     return conn
 
 def create_tables():
-    with get_db_connection() as connection:
-        cursor = connection.cursor()
-        cursor.execute('''CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+    with get_db_connection() as conn:
+        conn.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY,
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             is_doctor INTEGER DEFAULT 0
-        )''')
-        cursor.execute('''CREATE TABLE IF NOT EXISTS survey_responses (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            name TEXT NOT NULL,
-            age TEXT NOT NULL,
-            gender TEXT NOT NULL,
-            concerns TEXT NOT NULL,
-            acne_frequency TEXT NOT NULL,
-            comedones_count TEXT NOT NULL,
-            first_concern TEXT NOT NULL,
-            cosmetic_usage TEXT NOT NULL,
-            skin_reaction TEXT NOT NULL,
-            skin_type TEXT NOT NULL,
-            medications TEXT NOT NULL,
-            skincare_routine TEXT NOT NULL,
-            stress_level TEXT NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )''')
-        cursor.execute('''CREATE TABLE IF NOT EXISTS appointment (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+        )
+        ''')
+        
+        conn.execute('''
+        CREATE TABLE IF NOT EXISTS appointment (
+            id INTEGER PRIMARY KEY,
             name TEXT,
             email TEXT,
             date TEXT,
@@ -179,38 +165,158 @@ def create_tables():
             phone TEXT,
             age TEXT,
             address TEXT,
-            status INTEGER DEFAULT 0,
-            username TEXT
-        )''')
-        cursor.execute('''CREATE TABLE IF NOT EXISTS skincare_routines (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT,
+            status TEXT DEFAULT 'pending'
+        )
+        ''')
+        
+        conn.execute('''
+        CREATE TABLE IF NOT EXISTS doctor_profiles (
+            id INTEGER PRIMARY KEY,
             user_id INTEGER UNIQUE NOT NULL,
-            morning_routine TEXT NOT NULL,
-            night_routine TEXT NOT NULL,
-            last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )''')
-        cursor.execute('''CREATE TABLE IF NOT EXISTS conversations (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            role TEXT NOT NULL,
-            message TEXT NOT NULL,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        )''')
-        connection.commit()
+            name TEXT NOT NULL,
+            bio TEXT NOT NULL,
+            specialization TEXT NOT NULL,
+            experience_years INTEGER NOT NULL,
+            email TEXT,
+            phone TEXT,
+            location TEXT,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+        ''')
+        
+        conn.execute('''
+        CREATE TABLE IF NOT EXISTS patients (
+            id INTEGER PRIMARY KEY,
+            doctor_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            age INTEGER NOT NULL,
+            gender TEXT NOT NULL,
+            phone TEXT,
+            skin_type TEXT,
+            medical_history TEXT,
+            allergies TEXT,
+            current_medications TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (doctor_id) REFERENCES users (id)
+        )
+        ''')
+        
+        conn.execute('''
+        CREATE TABLE IF NOT EXISTS prescriptions (
+            id INTEGER PRIMARY KEY,
+            doctor_id INTEGER NOT NULL,
+            patient_id INTEGER NOT NULL,
+            diagnosis TEXT NOT NULL,
+            medications TEXT NOT NULL,
+            instructions TEXT NOT NULL,
+            duration TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (doctor_id) REFERENCES users (id),
+            FOREIGN KEY (patient_id) REFERENCES patients (id)
+        )
+        ''')
+        
+        conn.execute('''
+        CREATE TABLE IF NOT EXISTS skin_analyses (
+            id INTEGER PRIMARY KEY,
+            doctor_id INTEGER NOT NULL,
+            patient_id INTEGER NOT NULL,
+            image_path TEXT NOT NULL,
+            analysis_result TEXT NOT NULL,
+            doctor_notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (doctor_id) REFERENCES users (id),
+            FOREIGN KEY (patient_id) REFERENCES patients (id)
+        )
+        ''')
+        
+        conn.execute('''
+        CREATE TABLE IF NOT EXISTS appointment_notes (
+            id INTEGER PRIMARY KEY,
+            appointment_id INTEGER UNIQUE NOT NULL,
+            notes TEXT NOT NULL,
+            FOREIGN KEY (appointment_id) REFERENCES appointment (id)
+        )
+        ''')
+        
+        conn.execute('''
+        CREATE TABLE IF NOT EXISTS survey (
+            id INTEGER PRIMARY KEY,
+            user_id INTEGER,
+            name TEXT,
+            age TEXT,
+            gender TEXT,
+            concerns TEXT,
+            acne_frequency TEXT,
+            comedones_count TEXT,
+            first_concern TEXT,
+            cosmetics_usage TEXT,
+            skin_reaction TEXT,
+            skin_type TEXT,
+            medications TEXT,
+            skincare_routine TEXT,
+            stress_level TEXT
+        )
+        ''')
+        
+        conn.execute('''
+        CREATE TABLE IF NOT EXISTS conversation (
+            id INTEGER PRIMARY KEY,
+            user_id INTEGER,
+            role TEXT,
+            message TEXT,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        conn.execute('''
+        CREATE TABLE IF NOT EXISTS skincare_routines (
+            id INTEGER PRIMARY KEY,
+            user_id INTEGER UNIQUE,
+            morning_routine TEXT,
+            night_routine TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        conn.commit()
 
 def ensure_database_compatibility():
     # Check if is_doctor column exists in users table
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        # Get column info for users table
-        columns = [column[1] for column in cursor.execute("PRAGMA table_info(users)").fetchall()]
+        table_info = cursor.execute("PRAGMA table_info(users)").fetchall()
+        column_names = [column[1] for column in table_info]
         
-        # Add is_doctor column if it doesn't exist
-        if "is_doctor" not in columns:
+        if "is_doctor" not in column_names:
             print("Adding is_doctor column to users table...")
-            cursor.execute("ALTER TABLE users ADD COLUMN is_doctor INTEGER DEFAULT 0")
+            conn.execute("ALTER TABLE users ADD COLUMN is_doctor INTEGER DEFAULT 0")
+            conn.commit()
+    
+    # Check if necessary columns exist in doctor_profiles table
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        table_info = cursor.execute("PRAGMA table_info(doctor_profiles)").fetchall()
+        column_names = [column[1] for column in table_info]
+        
+        # Add email column if it doesn't exist
+        if "email" not in column_names:
+            print("Adding email column to doctor_profiles table...")
+            conn.execute("ALTER TABLE doctor_profiles ADD COLUMN email TEXT")
+            conn.commit()
+        
+        # Add phone column if it doesn't exist
+        if "phone" not in column_names:
+            print("Adding phone column to doctor_profiles table...")
+            conn.execute("ALTER TABLE doctor_profiles ADD COLUMN phone TEXT")
+            conn.commit()
+        
+        # Add location column if it doesn't exist
+        if "location" not in column_names:
+            print("Adding location column to doctor_profiles table...")
+            conn.execute("ALTER TABLE doctor_profiles ADD COLUMN location TEXT")
             conn.commit()
 
 create_tables()
@@ -270,6 +376,33 @@ def delete_appointment(appointment_id):
     with get_db_connection() as conn:
         conn.execute("DELETE FROM appointment WHERE id = ?", (int(appointment_id),))
         conn.commit()
+
+def insert_doctor_profile(conn, user_id, name, bio, specialization, experience_years):
+    conn.execute(
+        """INSERT INTO doctor_profiles 
+        (user_id, name, bio, specialization, experience_years)
+        VALUES (?, ?, ?, ?, ?)""",
+        (user_id, name, bio, specialization, experience_years)
+    )
+
+def get_doctor_profile(user_id):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        profile = cursor.execute(
+            "SELECT id, user_id, name, bio, specialization, experience_years FROM doctor_profiles WHERE user_id = ?", 
+            (user_id,)
+        ).fetchone()
+        return profile if profile else None
+
+def get_all_doctors():
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        return cursor.execute("""
+            SELECT u.username, dp.* 
+            FROM users u 
+            JOIN doctor_profiles dp ON u.id = dp.user_id 
+            WHERE u.is_doctor = 1
+        """).fetchall()
 
 # -----------------------------------------------------------------------------
 # AI Helper Functions
@@ -768,15 +901,453 @@ def register():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
-        if not username or not password:
-            return render_template("register.html", error="Username and password are required.")
+        is_doctor = request.form.get("is_doctor") == "1"
+        name = request.form.get("name")
+        email = request.form.get("email")
+        age = request.form.get("age")
+        
+        if not username or not password or not name:
+            return render_template("register.html", error="Username, password, and name are required.")
         if get_user(username):
             return render_template("register.html", error="Username already exists.")
         
         hashed_password = generate_password_hash(password)
-        insert_user(username, hashed_password)
-        return redirect(url_for("login"))
+        with get_db_connection() as conn:
+            try:
+                conn.execute("BEGIN TRANSACTION")
+                cursor = conn.cursor()
+                cursor.execute("INSERT INTO users (username, password, is_doctor) VALUES (?, ?, ?)",
+                            (username, hashed_password, 1 if is_doctor else 0))
+                user_id = cursor.lastrowid
+                
+                if is_doctor:
+                    bio = request.form.get("bio")
+                    specialization = request.form.get("specialization")
+                    experience_years = request.form.get("experience_years")
+                    
+                    if not all([bio, specialization, experience_years]):
+                        return render_template("register.html", error="All doctor profile fields are required.")
+                    
+                    insert_doctor_profile(conn, user_id, name, bio, specialization, int(experience_years))
+                    
+                    # Set session variables for the new doctor
+                    session["user_id"] = user_id
+                    session["username"] = username
+                    
+                    conn.commit()
+                    return redirect(url_for("doctor_dashboard"))
+                
+                conn.commit()
+                return redirect(url_for("login"))
+            except Exception as e:
+                conn.rollback()
+                return render_template("register.html", error=f"Registration failed: {str(e)}")
+            
     return render_template("register.html")
+
+@app.route("/doctor_dashboard")
+def doctor_dashboard():
+    if "username" not in session:
+        return redirect(url_for("login"))
+    
+    user = get_user(session["username"])
+    if not user or not user["is_doctor"]:
+        return redirect(url_for("index"))
+    
+    doctor_profile = get_doctor_profile(user["id"])
+    if not doctor_profile:
+        # If the doctor profile doesn't exist, redirect to a profile creation page
+        return redirect(url_for("create_doctor_profile"))
+    
+    # Get all appointments for this doctor
+    appointments = find_appointments(session["username"])
+    
+    # Get patients for this doctor
+    patients = get_doctor_patients(user["id"])
+    
+    # Get prescriptions for this doctor
+    prescriptions = get_doctor_prescriptions(user["id"])
+    
+    # Get skin analyses for this doctor
+    analyses = get_doctor_skin_analyses(user["id"])
+    
+    return render_template("doctors/dashboard.html", 
+                          doctor=doctor_profile,
+                          appointments=appointments,
+                          patients=patients,
+                          prescriptions=prescriptions,
+                          analyses=analyses,
+                          active_page="dashboard")
+
+@app.route("/create_doctor_profile", methods=["GET", "POST"])
+def create_doctor_profile():
+    if "username" not in session:
+        return redirect(url_for("login"))
+    
+    user = get_user(session["username"])
+    if not user or not user["is_doctor"]:
+        return redirect(url_for("index"))
+    
+    if request.method == "POST":
+        name = request.form.get("name")
+        bio = request.form.get("bio")
+        specialization = request.form.get("specialization")
+        experience_years = request.form.get("experience_years")
+        
+        if not all([name, bio, specialization, experience_years]):
+            return render_template("doctors/profile_setup.html", error="All fields are required")
+        
+        with get_db_connection() as conn:
+            try:
+                insert_doctor_profile(conn, user["id"], name, bio, specialization, int(experience_years))
+                return redirect(url_for("doctor_dashboard"))
+            except Exception as e:
+                return render_template("doctors/profile_setup.html", error=f"Error: {str(e)}")
+    
+    return render_template("doctors/profile_setup.html")
+
+@app.route("/doctor/patients", methods=["GET", "POST"])
+def doctor_patients():
+    if "username" not in session:
+        return redirect(url_for("login"))
+    
+    user = get_user(session["username"])
+    if not user or not user["is_doctor"]:
+        return redirect(url_for("index"))
+    
+    if request.method == "POST":
+        name = request.form.get("name")
+        email = request.form.get("email")
+        age = request.form.get("age")
+        gender = request.form.get("gender")
+        phone = request.form.get("phone")
+        skin_type = request.form.get("skin_type")
+        medical_history = request.form.get("medical_history")
+        allergies = request.form.get("allergies")
+        current_medications = request.form.get("current_medications")
+        
+        if not all([name, email, age, gender]):
+            return jsonify({"error": "Required fields missing"}), 400
+        
+        try:
+            patient_id = add_patient(
+                user["id"], name, email, age, gender, phone, skin_type,
+                medical_history, allergies, current_medications
+            )
+            return jsonify({"success": True, "patient_id": patient_id})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    
+    # If GET request, return all patients for this doctor
+    patients = get_doctor_patients(user["id"])
+    
+    # Check if the client accepts JSON (API request)
+    if request.headers.get('Accept') == 'application/json':
+        return jsonify({"patients": [dict(patient) for patient in patients]})
+    
+    # Otherwise render the HTML template (browser request)
+    doctor_profile = get_doctor_profile(user["id"])
+    return render_template("doctors/patients.html", 
+                        doctor=doctor_profile,
+                        patients=patients,
+                        active_page="patients")
+
+@app.route("/doctor/patient/<int:patient_id>", methods=["GET"])
+def get_patient_details(patient_id):
+    if "username" not in session:
+        return redirect(url_for("login"))
+    
+    user = get_user(session["username"])
+    if not user or not user["is_doctor"]:
+        return redirect(url_for("index"))
+    
+    patient = get_patient(patient_id)
+    if not patient or patient["doctor_id"] != user["id"]:
+        return jsonify({"error": "Patient not found or access denied"}), 404
+    
+    return jsonify({"patient": dict(patient)})
+
+@app.route("/doctor/prescriptions", methods=["GET", "POST"])
+def doctor_prescriptions():
+    if "username" not in session:
+        return redirect(url_for("login"))
+    
+    user = get_user(session["username"])
+    if not user or not user["is_doctor"]:
+        return redirect(url_for("index"))
+    
+    if request.method == "POST":
+        patient_id = request.form.get("patient_id")
+        diagnosis = request.form.get("diagnosis")
+        medications = request.form.get("medications")
+        instructions = request.form.get("instructions")
+        duration = request.form.get("duration")
+        
+        if not all([patient_id, diagnosis, medications, instructions]):
+            return jsonify({"error": "Required fields missing"}), 400
+        
+        try:
+            prescription_id = create_prescription(
+                user["id"], patient_id, diagnosis, medications, instructions, duration
+            )
+            return jsonify({"success": True, "prescription_id": prescription_id})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+    
+    # If GET request, return all prescriptions for this doctor
+    prescriptions = get_doctor_prescriptions(user["id"])
+    
+    # Check if the client accepts JSON (API request)
+    if request.headers.get('Accept') == 'application/json':
+        return jsonify({"prescriptions": [dict(rx) for rx in prescriptions]})
+    
+    # Otherwise render the HTML template (browser request)
+    doctor_profile = get_doctor_profile(user["id"])
+    patients = get_doctor_patients(user["id"])
+    
+    return render_template("doctors/prescriptions.html", 
+                          doctor=doctor_profile,
+                          prescriptions=prescriptions,
+                          patients=patients,
+                          active_page="prescriptions")
+
+@app.route("/doctor/skin-analysis", methods=["POST"])
+def doctor_skin_analysis():
+    if "username" not in session:
+        return redirect(url_for("login"))
+    
+    user = get_user(session["username"])
+    if not user or not user["is_doctor"]:
+        return redirect(url_for("index"))
+    
+    if "image" not in request.files:
+        return jsonify({"error": "No image uploaded"}), 400
+    
+    patient_id = request.form.get("patient_id")
+    doctor_notes = request.form.get("notes")
+    
+    if not patient_id:
+        return jsonify({"error": "Patient ID is required"}), 400
+    
+    image_file = request.files["image"]
+    if image_file.filename == "":
+        return jsonify({"error": "No selected file"}), 400
+    
+    # Save the image
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    image_filename = secure_filename(f"doctor_{user['id']}_{patient_id}_{uuid.uuid4()}.jpg")
+    image_path = os.path.join(UPLOAD_FOLDER, image_filename)
+    image_file.save(image_path)
+    
+    # Process with the model (reusing existing predict function)
+    try:
+        # Call the existing prediction API
+        with app.test_client() as client:
+            with open(image_path, 'rb') as f:
+                response = client.post(
+                    '/predict',
+                    data={
+                        'image': (f, image_filename)
+                    },
+                    content_type='multipart/form-data'
+                )
+        
+        # Parse the response
+        if response.status_code == 200:
+            result = response.get_json()
+            # Save the analysis to database
+            analysis_id = save_skin_analysis(
+                user["id"], patient_id, image_path, str(result), doctor_notes
+            )
+            result["analysis_id"] = analysis_id
+            return jsonify(result)
+        else:
+            return jsonify({"error": "Analysis failed"}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/doctor/appointment/<int:appointment_id>", methods=["GET", "PUT"])
+def doctor_appointment(appointment_id):
+    if "username" not in session:
+        return redirect(url_for("login"))
+    
+    user = get_user(session["username"])
+    if not user or not user["is_doctor"]:
+        return redirect(url_for("index"))
+    
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        appointment = cursor.execute("SELECT * FROM appointment WHERE id = ?", (appointment_id,)).fetchone()
+        
+        if not appointment:
+            return jsonify({"error": "Appointment not found"}), 404
+        
+        if request.method == "PUT":
+            data = request.get_json()
+            
+            # Update appointment status
+            if "status" in data:
+                update_appointment_status(appointment_id, data["status"])
+            
+            # Update doctor notes
+            if "notes" in data:
+                update_appointment_notes(appointment_id, data["notes"])
+                
+            return jsonify({"success": True})
+        
+        # For GET request
+        return jsonify({"appointment": dict(appointment)})
+
+@app.route("/doctor/appointments", methods=["GET"])
+def doctor_appointments():
+    if "username" not in session:
+        return redirect(url_for("login"))
+    
+    user = get_user(session["username"])
+    if not user or not user["is_doctor"]:
+        return redirect(url_for("index"))
+    
+    doctor_profile = get_doctor_profile(user["id"])
+    if not doctor_profile:
+        return redirect(url_for("create_doctor_profile"))
+    
+    # Get all appointments for this doctor
+    appointments = find_appointments(session["username"])
+    
+    return render_template("doctors/appointments.html", 
+                          doctor=doctor_profile,
+                          appointments=appointments,
+                          active_page="appointments")
+
+@app.route("/doctor/patients_view", methods=["GET"])
+def doctor_patients_view():
+    if "username" not in session:
+        return redirect(url_for("login"))
+    
+    user = get_user(session["username"])
+    if not user or not user["is_doctor"]:
+        return redirect(url_for("index"))
+    
+    doctor_profile = get_doctor_profile(user["id"])
+    if not doctor_profile:
+        return redirect(url_for("create_doctor_profile"))
+    
+    # Get patients for this doctor
+    patients = get_doctor_patients(user["id"])
+    
+    return render_template("doctors/patients.html", 
+                          doctor=doctor_profile,
+                          patients=patients,
+                          active_page="patients")
+
+@app.route("/doctor/skin_analysis_view", methods=["GET"])
+def doctor_skin_analysis_view():
+    if "username" not in session:
+        return redirect(url_for("login"))
+    
+    user = get_user(session["username"])
+    if not user or not user["is_doctor"]:
+        return redirect(url_for("index"))
+    
+    doctor_profile = get_doctor_profile(user["id"])
+    if not doctor_profile:
+        return redirect(url_for("create_doctor_profile"))
+    
+    # Get patients for patient selection
+    patients = get_doctor_patients(user["id"])
+    
+    # Get existing analyses
+    analyses = get_doctor_skin_analyses(user["id"])
+    
+    return render_template("doctors/skin_analysis.html", 
+                          doctor=doctor_profile,
+                          patients=patients,
+                          analyses=analyses,
+                          active_page="skin_analysis")
+
+@app.route("/doctor/profile", methods=["GET", "POST"])
+def doctor_profile():
+    if "username" not in session:
+        return redirect(url_for("login"))
+    
+    user = get_user(session["username"])
+    if not user or not user["is_doctor"]:
+        return redirect(url_for("index"))
+    
+    doctor_profile = get_doctor_profile(user["id"])
+    if not doctor_profile:
+        return redirect(url_for("create_doctor_profile"))
+    
+    if request.method == "POST":
+        name = request.form.get("name")
+        bio = request.form.get("bio")
+        specialization = request.form.get("specialization")
+        experience_years = request.form.get("experience_years")
+        email = request.form.get("email")
+        phone = request.form.get("phone")
+        location = request.form.get("location")
+        
+        if not all([name, bio, specialization, experience_years]):
+            return render_template("doctors/profile.html", 
+                                  doctor=doctor_profile,
+                                  error="Name, bio, specialization and years of experience are required",
+                                  active_page="profile",
+                                  username=session["username"])
+        
+        with get_db_connection() as conn:
+            try:
+                # Check which columns exist in the table
+                cursor = conn.cursor()
+                table_info = cursor.execute("PRAGMA table_info(doctor_profiles)").fetchall()
+                column_names = [column[1] for column in table_info]
+                
+                if all(col in column_names for col in ["email", "phone", "location"]):
+                    # If all columns exist, update with all fields
+                    conn.execute("""
+                        UPDATE doctor_profiles 
+                        SET name = ?, bio = ?, specialization = ?, experience_years = ?, 
+                            email = ?, phone = ?, location = ?
+                        WHERE user_id = ?
+                    """, (name, bio, specialization, int(experience_years), 
+                         email, phone, location, user["id"]))
+                else:
+                    # Otherwise just update the basic fields
+                    conn.execute("""
+                        UPDATE doctor_profiles 
+                        SET name = ?, bio = ?, specialization = ?, experience_years = ?
+                        WHERE user_id = ?
+                    """, (name, bio, specialization, int(experience_years), user["id"]))
+                
+                conn.commit()
+                
+                # Refresh profile data
+                doctor_profile = get_doctor_profile(user["id"])
+                return render_template("doctors/profile.html", 
+                                      doctor=doctor_profile,
+                                      success="Profile updated successfully",
+                                      active_page="profile",
+                                      username=session["username"])
+            except Exception as e:
+                return render_template("doctors/profile.html", 
+                                      doctor=doctor_profile,
+                                      error=f"Error: {str(e)}",
+                                      active_page="profile",
+                                      username=session["username"])
+    
+    # Get statistics counts
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        patient_count = cursor.execute("SELECT COUNT(*) FROM patients WHERE doctor_id = ?", (user["id"],)).fetchone()[0]
+        appointment_count = cursor.execute("SELECT COUNT(*) FROM appointment WHERE username = ?", (session["username"],)).fetchone()[0]
+        analysis_count = cursor.execute("SELECT COUNT(*) FROM skin_analyses WHERE doctor_id = ?", (user["id"],)).fetchone()[0]
+    
+    return render_template("doctors/profile.html", 
+                          doctor=doctor_profile,
+                          active_page="profile",
+                          username=session["username"],
+                          patient_count=patient_count,
+                          appointment_count=appointment_count,
+                          analysis_count=analysis_count)
 
 @app.route("/login.html")
 def login_html_redirect():
@@ -793,6 +1364,9 @@ def login():
         
         session["user_id"] = user["id"]
         session["username"] = username
+        
+        if user["is_doctor"]:
+            return redirect(url_for("doctor_dashboard"))
         return redirect(url_for("index"))
     return render_template("login.html")
 
@@ -1155,5 +1729,130 @@ def skin_predict():
         return redirect(url_for("skin_disease_prediction"), code=307)  # 307 preserves POST data
     return redirect(url_for("skin_disease_prediction"))
 
+def get_doctor_patients(doctor_id):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        return cursor.execute(
+            "SELECT * FROM patients WHERE doctor_id = ? ORDER BY name",
+            (doctor_id,)
+        ).fetchall()
+
+def add_patient(doctor_id, name, email, age, gender, phone=None, skin_type=None, 
+                medical_history=None, allergies=None, current_medications=None):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """INSERT INTO patients 
+            (doctor_id, name, email, age, gender, phone, skin_type, medical_history, allergies, current_medications)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (doctor_id, name, email, age, gender, phone, skin_type, medical_history, allergies, current_medications)
+        )
+        conn.commit()
+        return cursor.lastrowid
+
+def get_patient(patient_id):
+    with get_db_connection() as conn:
+        return conn.execute(
+            "SELECT * FROM patients WHERE id = ?", 
+            (patient_id,)
+        ).fetchone()
+
+def create_prescription(doctor_id, patient_id, diagnosis, medications, instructions, duration=None):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """INSERT INTO prescriptions 
+            (doctor_id, patient_id, diagnosis, medications, instructions, duration)
+            VALUES (?, ?, ?, ?, ?, ?)""",
+            (doctor_id, patient_id, diagnosis, medications, instructions, duration)
+        )
+        conn.commit()
+        return cursor.lastrowid
+
+def get_doctor_prescriptions(doctor_id):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        return cursor.execute(
+            """SELECT p.*, pt.name as patient_name 
+            FROM prescriptions p 
+            JOIN patients pt ON p.patient_id = pt.id
+            WHERE p.doctor_id = ? 
+            ORDER BY p.created_at DESC""",
+            (doctor_id,)
+        ).fetchall()
+
+def save_skin_analysis(doctor_id, patient_id, image_path, analysis_result, doctor_notes=None):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """INSERT INTO skin_analyses 
+            (doctor_id, patient_id, image_path, analysis_result, doctor_notes)
+            VALUES (?, ?, ?, ?, ?)""",
+            (doctor_id, patient_id, image_path, analysis_result, doctor_notes)
+        )
+        conn.commit()
+        return cursor.lastrowid
+
+def get_doctor_skin_analyses(doctor_id):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        return cursor.execute(
+            """SELECT sa.*, pt.name as patient_name 
+            FROM skin_analyses sa 
+            JOIN patients pt ON sa.patient_id = pt.id
+            WHERE sa.doctor_id = ? 
+            ORDER BY sa.created_at DESC""",
+            (doctor_id,)
+        ).fetchall()
+
+def update_appointment_notes(appointment_id, notes):
+    with get_db_connection() as conn:
+        conn.execute(
+            """UPDATE appointment 
+            SET doctor_notes = ?, last_updated = CURRENT_TIMESTAMP 
+            WHERE id = ?""", 
+            (notes, appointment_id)
+        )
+        conn.commit()
+
+@app.route("/doctor/skin-analysis/<int:analysis_id>", methods=["GET"])
+def get_skin_analysis(analysis_id):
+    if "username" not in session:
+        return redirect(url_for("login"))
+    
+    user = get_user(session["username"])
+    if not user or not user["is_doctor"]:
+        return redirect(url_for("index"))
+    
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        # Join with patients table to get patient information
+        analysis = cursor.execute("""
+            SELECT sa.*, p.name as patient_name, p.age as patient_age, p.skin_type as patient_skin
+            FROM skin_analyses sa
+            JOIN patients p ON sa.patient_id = p.id
+            WHERE sa.id = ? AND sa.doctor_id = ?
+        """, (analysis_id, user["id"])).fetchone()
+        
+        if not analysis:
+            return jsonify({"error": "Analysis not found or access denied"}), 404
+        
+        # Convert to dictionary and add additional info
+        analysis_dict = dict(analysis)
+        
+        # Parse stored JSON data
+        try:
+            result_data = json.loads(analysis_dict["analysis_result"])
+            analysis_dict["classes"] = result_data.get("classes", [])
+            analysis_dict["recommendations"] = result_data.get("recommendations", [])
+        except:
+            # If not valid JSON, just use as is
+            analysis_dict["classes"] = [analysis_dict["analysis_result"]]
+            analysis_dict["recommendations"] = []
+        
+        return jsonify({"analysis": analysis_dict})
+
 if __name__ == "__main__":
+    create_tables()  # Create tables if they don't exist
+    ensure_database_compatibility()  # Add any missing columns
     app.run(host="0.0.0.0", port=5000, debug=os.getenv("FLASK_DEBUG", "false").lower() == "true")

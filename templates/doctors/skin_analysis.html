@@ -1,0 +1,750 @@
+{% extends "doctors/layout.html" %}
+
+{% block title %}Skin Analysis - Doctor Portal{% endblock %}
+
+{% block extra_css %}
+.analysis-card {
+    border-radius: 1rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.analysis-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 1rem 2rem rgba(0,0,0,0.1);
+}
+
+.upload-area {
+    border: 2px dashed #e0e0e0;
+    border-radius: 1rem;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background-color: #f8f9fa;
+}
+
+.upload-area:hover {
+    border-color: var(--primary-color);
+    background-color: #fff9f5;
+}
+
+.upload-icon {
+    font-size: 3rem;
+    color: #adb5bd;
+    margin-bottom: 1rem;
+}
+
+.upload-text {
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+
+.upload-area.dragover {
+    border-color: var(--primary-color);
+    background-color: #fff9f5;
+}
+
+.image-preview {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.result-card {
+    border-radius: 1rem;
+    overflow: hidden;
+    height: 100%;
+}
+
+.result-image {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+}
+
+.condition-badge {
+    background-color: #e9ecef;
+    color: #495057;
+    border-radius: 2rem;
+    padding: 0.5rem 1rem;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.analysis-table th {
+    font-weight: 600;
+    color: #495057;
+}
+
+.analysis-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.analysis-image:hover {
+    transform: scale(1.1);
+}
+
+.patient-select {
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e0e0e0;
+}
+
+.patient-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(255, 159, 90, 0.25);
+}
+
+.analysis-progress {
+    height: 0.5rem;
+    border-radius: 1rem;
+    margin-top: 1rem;
+}
+
+.analysis-progress .progress-bar {
+    background-color: var(--primary-color);
+}
+
+.recommendation-card {
+    border-left: 4px solid var(--primary-color);
+    background-color: #fff9f5;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.recommendation-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+.recommendation-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-bottom: 0;
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: #495057;
+    display: flex;
+    align-items: center;
+}
+
+.section-title i {
+    margin-right: 0.5rem;
+    color: var(--primary-color);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    color: #adb5bd;
+    margin-bottom: 1rem;
+}
+
+.empty-text {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Skin Analysis</h2>
+        <p class="text-muted mb-0">Analyze patient skin conditions and provide recommendations</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card analysis-card">
+            <div class="card-header">
+                <h5 class="mb-0">New Skin Analysis</h5>
+            </div>
+            <div class="card-body">
+                <form id="skin-analysis-form" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label for="patient-select" class="form-label">Select Patient</label>
+                        <select class="form-select patient-select" id="patient-select" name="patient_id" required>
+                            <option value="" selected disabled>Choose a patient</option>
+                            {% for patient in patients %}
+                            <option value="{{ patient.id }}">{{ patient.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Upload Skin Image</label>
+                        <div class="upload-area" id="upload-area">
+                            <input type="file" class="d-none" id="image-upload" name="image" accept="image/*" required>
+                            <div class="upload-icon">
+                                <i class="bi bi-camera"></i>
+                            </div>
+                            <div class="upload-text">Drag & drop your image here or click to browse</div>
+                            <button type="button" class="btn btn-outline-primary" id="browse-btn">
+                                <i class="bi bi-folder me-2"></i>Browse Files
+                            </button>
+                        </div>
+                        <div id="image-preview-container" class="mt-3 d-none">
+                            <img src="/placeholder.svg" id="image-preview" class="image-preview">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-muted" id="file-name">filename.jpg</div>
+                                <button type="button" class="btn btn-sm btn-outline-danger" id="remove-image-btn">
+                                    <i class="bi bi-trash me-1"></i>Remove
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="notes" class="form-label">Doctor's Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="4" placeholder="Add any observations or notes about the skin condition"></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100" id="analyze-btn">
+                        <i class="bi bi-search me-2"></i>Analyze Skin
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card result-card">
+            <div class="card-header">
+                <h5 class="mb-0">Analysis Results</h5>
+            </div>
+            <div class="card-body" id="analysis-results">
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="bi bi-camera"></i>
+                    </div>
+                    <div class="empty-text">Upload a skin image to see analysis results here</div>
+                    <button class="btn btn-outline-primary" disabled>
+                        <i class="bi bi-search me-2"></i>Results will appear here
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Previous Analyses</h5>
+            <div class="input-group" style="width: 300px;">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" id="analysis-search" placeholder="Search analyses...">
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover analysis-table" id="analyses-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Patient</th>
+                        <th>Image</th>
+                        <th>Conditions</th>
+                        <th>Notes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if analyses %}
+                        {% for analysis in analyses %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-calendar-event me-2 text-muted"></i>
+                                    {{ analysis.created_at }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="patient-avatar me-2" style="width: 30px; height: 30px; background-color: #e9ecef; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;">
+                                        {{ analysis.patient_name[0] }}
+                                    </div>
+                                    <div>{{ analysis.patient_name }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <img src="{{ analysis.image_path }}" alt="Skin Image" class="analysis-image view-image" data-image="{{ analysis.image_path }}">
+                            </td>
+                            <td>
+                                <span class="condition-badge">{{ analysis.analysis_result }}</span>
+                            </td>
+                            <td>
+                                <span class="text-truncate d-inline-block" style="max-width: 200px;" title="{{ analysis.doctor_notes or 'N/A' }}">
+                                    {{ analysis.doctor_notes or "N/A" }}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-primary view-analysis" data-id="{{ analysis.id }}">
+                                    <i class="bi bi-eye me-1"></i>View
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4">
+                                <div class="text-muted">
+                                    <i class="bi bi-camera-video-off fs-1 d-block mb-3"></i>
+                                    <p>No previous analyses found</p>
+                                    <p class="small">Upload a skin image to perform your first analysis</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Skin Image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img src="/placeholder.svg" id="modal-image" class="img-fluid" alt="Skin Analysis Image">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="download-image" class="btn btn-primary" download>
+                    <i class="bi bi-download me-1"></i>Download Image
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analysis Details Modal -->
+<div class="modal fade" id="analysisDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Analysis Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="section-title">
+                            <i class="bi bi-image"></i>
+                            Analyzed Image
+                        </div>
+                        <img src="/placeholder.svg" id="detail-image" class="img-fluid rounded" alt="Analyzed Skin Image">
+                    </div>
+                    <div class="col-md-6">
+                        <div class="section-title">
+                            <i class="bi bi-person"></i>
+                            Patient Information
+                        </div>
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="patient-avatar me-3" style="width: 50px; height: 50px; background-color: #e9ecef; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;" id="detail-patient-avatar">A</div>
+                                    <div>
+                                        <h6 class="mb-1" id="detail-patient-name">-</h6>
+                                        <p class="mb-0 text-muted" id="detail-patient-info">-</p>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <div class="d-flex">
+                                        <div class="text-muted" style="width: 100px;">Date:</div>
+                                        <div id="detail-date">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-title">
+                            <i class="bi bi-clipboard-data"></i>
+                            Analysis Results
+                        </div>
+                        <div id="detail-conditions" class="mb-3">
+                            <!-- Conditions will be loaded here -->
+                        </div>
+                        
+                        <div class="section-title">
+                            <i class="bi bi-journal-text"></i>
+                            Doctor's Notes
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <p id="detail-notes">-</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="section-title">
+                    <i class="bi bi-lightbulb"></i>
+                    Recommendations
+                </div>
+                <div id="detail-recommendations">
+                    <!-- Recommendations will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="generate-report-btn">
+                    <i class="bi bi-file-earmark-text me-1"></i>Generate Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // File upload handling
+    const uploadArea = document.getElementById('upload-area');
+    const imageUpload = document.getElementById('image-upload');
+    const browseBtn = document.getElementById('browse-btn');
+    const imagePreview = document.getElementById('image-preview');
+    const imagePreviewContainer = document.getElementById('image-preview-container');
+    const fileName = document.getElementById('file-name');
+    const removeImageBtn = document.getElementById('remove-image-btn');
+    
+    // Handle browse button click
+    browseBtn.addEventListener('click', function() {
+        imageUpload.click();
+    });
+    
+    // Handle upload area click
+    uploadArea.addEventListener('click', function() {
+        imageUpload.click();
+    });
+    
+    // Handle drag and drop
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', function() {
+        uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        
+        if (e.dataTransfer.files.length) {
+            imageUpload.files = e.dataTransfer.files;
+            handleFileSelect();
+        }
+    });
+    
+    // Handle file selection
+    imageUpload.addEventListener('change', handleFileSelect);
+    
+    function handleFileSelect() {
+        if (imageUpload.files && imageUpload.files[0]) {
+            const file = imageUpload.files[0];
+            
+            // Check if file is an image
+            if (!file.type.match('image.*')) {
+                alert('Please select an image file');
+                return;
+            }
+            
+            // Display file name
+            fileName.textContent = file.name;
+            
+            // Create preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                uploadArea.classList.add('d-none');
+                imagePreviewContainer.classList.remove('d-none');
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+    
+    // Handle remove image button
+    removeImageBtn.addEventListener('click', function() {
+        imageUpload.value = '';
+        imagePreview.src = '';
+        imagePreviewContainer.classList.add('d-none');
+        uploadArea.classList.remove('d-none');
+    });
+    
+    // Handle form submission
+    const skinAnalysisForm = document.getElementById('skin-analysis-form');
+    const analysisResults = document.getElementById('analysis-results');
+    const analyzeBtn = document.getElementById('analyze-btn');
+    
+    skinAnalysisForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!imageUpload.files || !imageUpload.files[0]) {
+            alert('Please select an image to analyze');
+            return;
+        }
+        
+        // Show loading state
+        analyzeBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Analyzing...';
+        analyzeBtn.disabled = true;
+        
+        analysisResults.innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3">Analyzing skin image...</p>
+                <div class="progress analysis-progress">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                </div>
+            </div>
+        `;
+        
+        // Simulate progress
+        let progress = 0;
+        const progressBar = document.querySelector('.analysis-progress .progress-bar');
+        const progressInterval = setInterval(() => {
+            progress += 5;
+            progressBar.style.width = `${progress}%`;
+            
+            if (progress >= 100) {
+                clearInterval(progressInterval);
+            }
+        }, 200);
+        
+        const formData = new FormData(this);
+        
+        // Send the image for analysis
+        fetch('/doctor/skin-analysis', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            clearInterval(progressInterval);
+            
+            if (data.error) {
+                analysisResults.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>Error:</strong> ${data.error}
+                    </div>
+                `;
+                analyzeBtn.innerHTML = '<i class="bi bi-search me-2"></i>Analyze Skin';
+                analyzeBtn.disabled = false;
+                return;
+            }
+            
+            // Display the results
+            let conditionsHtml = '';
+            if (data.classes && data.classes.length > 0) {
+                conditionsHtml = `
+                    <div class="section-title">
+                        <i class="bi bi-tag"></i>
+                        Detected Conditions
+                    </div>
+                    <div class="mb-4">
+                        ${data.classes.map(c => `<span class="condition-badge">${c}</span>`).join('')}
+                    </div>
+                `;
+            }
+            
+            let recommendationsHtml = '';
+            if (data.recommendations && data.recommendations.length > 0) {
+                recommendationsHtml = `
+                    <div class="section-title">
+                        <i class="bi bi-lightbulb"></i>
+                        Recommendations
+                    </div>
+                    <div class="mb-4">
+                        ${data.recommendations.map(r => `
+                            <div class="recommendation-card">
+                                <div class="recommendation-title">${r.title || 'Recommendation'}</div>
+                                <div class="recommendation-text">${r.text || r}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+            
+            analysisResults.innerHTML = `
+                <div class="text-center mb-4">
+                    <img src="${data.annotated_image || imagePreview.src}" class="result-image mb-3" alt="Analyzed Skin">
+                </div>
+                <div class="analysis-details">
+                    ${conditionsHtml}
+                    ${recommendationsHtml}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        Analysis saved successfully! ID: ${data.analysis_id}
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between mt-3">
+                    <button class="btn btn-outline-primary" id="download-result-btn">
+                        <i class="bi bi-download me-2"></i>Download Results
+                    </button>
+                    <button class="btn btn-primary" id="view-details-btn">
+                        <i class="bi bi-eye me-2"></i>View Full Details
+                    </button>
+                </div>
+            `;
+            
+            // Reset form state
+            analyzeBtn.innerHTML = '<i class="bi bi-search me-2"></i>Analyze Skin';
+            analyzeBtn.disabled = false;
+            
+            // Refresh the page after 5 seconds to show the new analysis in the table
+            setTimeout(() => {
+                window.location.reload();
+            }, 5000);
+        })
+        .catch(error => {
+            clearInterval(progressInterval);
+            
+            analysisResults.innerHTML = `
+                <div class="alert alert-danger">
+                    <strong>Error:</strong> Failed to process the request. Please try again.
+                </div>
+            `;
+            
+            analyzeBtn.innerHTML = '<i class="bi bi-search me-2"></i>Analyze Skin';
+            analyzeBtn.disabled = false;
+            
+            console.error('Error:', error);
+        });
+    });
+    
+    // Initialize DataTable for analyses
+    const analysesTable = $('#analyses-table').DataTable({
+        responsive: true,
+        order: [[0, 'desc']], // Sort by date, newest first
+        language: {
+            search: "",
+            lengthMenu: "Show _MENU_ analyses",
+            info: "Showing _START_ to _END_ of _TOTAL_ analyses"
+        },
+        dom: '<"top"fl>rt<"bottom"ip>',
+        pageLength: 10
+    });
+    
+    // Custom search box
+    $('#analysis-search').on('keyup', function() {
+        analysesTable.search(this.value).draw();
+    });
+    
+    // Image modal functionality
+    document.querySelectorAll('.view-image').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const imagePath = this.getAttribute('data-image');
+            document.getElementById('modal-image').src = imagePath;
+            document.getElementById('download-image').href = imagePath;
+            new bootstrap.Modal(document.getElementById('imageModal')).show();
+        });
+    });
+    
+    // View analysis details
+    document.querySelectorAll('.view-analysis').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const analysisId = this.getAttribute('data-id');
+            
+            // Show loading state
+            const modal = new bootstrap.Modal(document.getElementById('analysisDetailsModal'));
+            modal.show();
+            
+            document.getElementById('detail-image').src = '';
+            document.getElementById('detail-patient-name').textContent = 'Loading...';
+            document.getElementById('detail-patient-info').textContent = '';
+            document.getElementById('detail-date').textContent = '';
+            document.getElementById('detail-conditions').innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div>';
+            document.getElementById('detail-notes').textContent = '';
+            document.getElementById('detail-recommendations').innerHTML = '<div class="spinner-border spinner-border-sm" role="status"></div>';
+            
+            // Fetch analysis details
+            fetch('/doctor/skin-analysis/' + analysisId)
+                .then(response => response.json())
+                .then(data => {
+                    const analysis = data.analysis;
+                    
+                    // Set image
+                    document.getElementById('detail-image').src = analysis.image_path;
+                    
+                    // Set patient info
+                    document.getElementById('detail-patient-avatar').textContent = analysis.patient_name[0];
+                    document.getElementById('detail-patient-name').textContent = analysis.patient_name;
+                    document.getElementById('detail-patient-info').textContent = `Age: ${analysis.patient_age || 'N/A'} • Skin Type: ${analysis.patient_skin || 'N/A'}`;
+                    
+                    // Set date
+                    document.getElementById('detail-date').textContent = analysis.created_at;
+                    
+                    // Set conditions
+                    if (analysis.classes && analysis.classes.length > 0) {
+                        document.getElementById('detail-conditions').innerHTML = analysis.classes.map(c => 
+                            `<span class="condition-badge">${c}</span>`
+                        ).join('');
+                    } else {
+                        document.getElementById('detail-conditions').innerHTML = '<div class="text-muted">No specific conditions detected</div>';
+                    }
+                    
+                    // Set notes
+                    document.getElementById('detail-notes').textContent = analysis.doctor_notes || 'No notes available';
+                    
+                    // Set recommendations
+                    if (analysis.recommendations && analysis.recommendations.length > 0) {
+                        document.getElementById('detail-recommendations').innerHTML = analysis.recommendations.map(r => `
+                            <div class="recommendation-card">
+                                <div class="recommendation-title">${r.title || 'Recommendation'}</div>
+                                <div class="recommendation-text">${r.text || r}</div>
+                            </div>
+                        `).join('');
+                    } else {
+                        document.getElementById('detail-recommendations').innerHTML = '<div class="text-muted">No recommendations available</div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to load analysis details. Please try again.');
+                });
+        });
+    });
+    
+    // Generate report button
+    document.getElementById('generate-report-btn').addEventListener('click', function() {
+        alert('This feature would generate a PDF report of the analysis results that can be shared with the patient or saved to their records.');
+    });
+});
+</script>
+{% endblock %}

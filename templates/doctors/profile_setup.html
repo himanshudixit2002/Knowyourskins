@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Doctor Profile - KnowYourSkins</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #FF9F5A;
+            --primary-dark: #e88a47;
+            --secondary-color: #2c3e50;
+            --accent-color: #4ECDC4;
+            --light-bg: #f8f9fa;
+            --dark-bg: #1E232D;
+            --text-light: #f8f9fa;
+            --text-dark: #333;
+            --border-radius: 0.5rem;
+            --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+        
+        body {
+            background-color: #f5f8fa;
+            color: var(--text-dark);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        
+        .profile-form-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0;
+        }
+        
+        .profile-form {
+            border-radius: 1rem;
+            box-shadow: 0 1rem 3rem rgba(0,0,0,0.1);
+            background-color: #fff;
+            overflow: hidden;
+        }
+        
+        .form-header {
+            background: linear-gradient(45deg, var(--primary-color), #ffb980);
+            color: white;
+            padding: 2.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .form-header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 200%;
+            background: rgba(255,255,255,0.1);
+            transform: rotate(30deg);
+        }
+        
+        .form-header img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 2;
+            background-color: white;
+            padding: 1rem;
+            border-radius: 1rem;
+        }
+        
+        .form-header h2 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .form-header p {
+            opacity: 0.9;
+            margin-bottom: 0;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .form-body {
+            padding: 2.5rem;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #495057;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e0e0e0;
+            transition: var(--transition);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(255, 159, 90, 0.25);
+        }
+        
+        .form-text {
+            color: #6c757d;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(255, 159, 90, 0.3);
+        }
+        
+        .alert {
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .alert-danger {
+            background-color: #ffe5e5;
+            border-color: #ffcccc;
+            color: #cc0000;
+        }
+        
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            flex: 1;
+            max-width: 120px;
+        }
+        
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            height: 2px;
+            background-color: #e0e0e0;
+            left: 60%;
+            z-index: -1;
+        }
+        
+        .step.active:not(:last-child)::after {
+            background-color: var(--primary-color);
+        }
+        
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .step.active .step-circle {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .step-label {
+            font-size: 0.75rem;
+            color: #6c757d;
+            text-align: center;
+        }
+        
+        .step.active .step-label {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="profile-form-container">
+            <div class="profile-form">
+                <div class="form-header">
+                    <img src="/static/logo.png" alt="KnowYourSkins Logo" onerror="this.src='https://via.placeholder.com/100?text=KYS'">
+                    <h2>Complete Your Doctor Profile</h2>
+                    <p>Please provide your professional information to set up your doctor account</p>
+                </div>
+                
+                <div class="form-body">
+                    <div class="step-indicator">
+                        <div class="step active">
+                            <div class="step-circle">1</div>
+                            <div class="step-label">Account Created</div>
+                        </div>
+                        <div class="step active">
+                            <div class="step-circle">2</div>
+                            <div class="step-label">Profile Setup</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-circle">3</div>
+                            <div class="step-label">Ready to Go</div>
+                        </div>
+                    </div>
+                    
+                    {% if error %}
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        {{ error }}
+                    </div>
+                    {% endif %}
+                    
+                    <form method="POST" action="{{ url_for('create_doctor_profile') }}">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Full Name</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                                <div class="form-text">Enter your full name as it should appear to patients</div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="specialization" class="form-label">Specialization</label>
+                                <select class="form-select" id="specialization" name="specialization" required>
+                                    <option value="" selected disabled>Select your specialization</option>
+                                    <option value="Dermatologist">Dermatologist</option>
+                                    <option value="Cosmetic Dermatologist">Cosmetic Dermatologist</option>
+                                    <option value="Pediatric Dermatologist">Pediatric Dermatologist</option>
+                                    <option value="Dermatopathologist">Dermatopathologist</option>
+                                    <option value="Cosmetic Surgeon">Cosmetic Surgeon</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="experience_years" class="form-label">Years of Experience</label>
+                                <input type="number" class="form-control" id="experience_years" name="experience_years" min="0" required>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" name="email">
+                                <div class="form-text">This will be used for professional communications</div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" name="phone">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="location" class="form-label">Clinic/Hospital</label>
+                                <input type="text" class="form-control" id="location" name="location">
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="bio" class="form-label">Professional Bio</label>
+                                <textarea class="form-control" id="bio" name="bio" rows="5" required></textarea>
+                                <div class="form-text">Write a brief professional bio highlighting your education, experience, and areas of expertise</div>
+                            </div>
+                            
+                            <div class="col-12 mt-4">
+                                <div class="d-grid">
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="bi bi-check-circle me-2"></i>Complete Profile
+                                    </button>
+                                </div>
+                                <p class="text-center text-muted mt-3">
+                                    <small>By completing your profile, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></small>
+                                </p>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

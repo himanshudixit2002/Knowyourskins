@@ -1,0 +1,758 @@
+{% extends "doctors/layout.html" %}
+
+{% block title %}Dashboard - Doctor Portal{% endblock %}
+
+{% block extra_css %}
+.stat-card {
+    border-radius: 1rem;
+    box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.05);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 1rem 2rem rgba(0,0,0,0.1);
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, rgba(255,255,255,0.15), rgba(255,255,255,0));
+    z-index: 1;
+}
+
+.stat-card .icon {
+    font-size: 2.5rem;
+    opacity: 0.8;
+    position: relative;
+    z-index: 2;
+}
+
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
+    position: relative;
+    z-index: 2;
+}
+
+.stat-card .stat-label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    opacity: 0.8;
+    position: relative;
+    z-index: 2;
+}
+
+.stat-card.primary {
+    background: linear-gradient(45deg, #4361ee, #3f37c9);
+    color: white;
+}
+
+.stat-card.success {
+    background: linear-gradient(45deg, #4CAF50, #2E7D32);
+    color: white;
+}
+
+.stat-card.warning {
+    background: linear-gradient(45deg, #FF9800, #EF6C00);
+    color: white;
+}
+
+.stat-card.danger {
+    background: linear-gradient(45deg, #F44336, #C62828);
+    color: white;
+}
+
+.appointment-item {
+    border-radius: 0.75rem;
+    transition: all 0.3s ease;
+    margin-bottom: 0.75rem;
+    border-left: 4px solid transparent;
+}
+
+.appointment-item:hover {
+    background-color: #f8f9fa;
+    transform: translateX(5px);
+}
+
+.appointment-item.confirmed {
+    border-left-color: #4CAF50;
+}
+
+.appointment-item.pending {
+    border-left-color: #FF9800;
+}
+
+.appointment-item.completed {
+    border-left-color: #2196F3;
+}
+
+.appointment-item.cancelled {
+    border-left-color: #F44336;
+}
+
+.appointment-time {
+    font-size: 0.8rem;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+}
+
+.appointment-time i {
+    margin-right: 0.25rem;
+}
+
+.appointment-patient {
+    font-weight: 600;
+}
+
+.activity-timeline {
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.activity-timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0.5rem;
+    width: 2px;
+    background-color: #e9ecef;
+}
+
+.activity-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+
+.activity-item:last-child {
+    padding-bottom: 0;
+}
+
+.activity-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -1.5rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background-color: white;
+    border: 2px solid #6c757d;
+}
+
+.activity-item.appointment::before {
+    border-color: #4CAF50;
+}
+
+.activity-item.prescription::before {
+    border-color: #2196F3;
+}
+
+.activity-item.completed::before {
+    border-color: #9C27B0;
+}
+
+.activity-item.analysis::before {
+    border-color: #FF9800;
+}
+
+.activity-time {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.activity-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.activity-desc {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.welcome-card {
+    background: linear-gradient(45deg, var(--primary-color), #ffb980);
+    color: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.welcome-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 200%;
+    background: rgba(255,255,255,0.1);
+    transform: rotate(30deg);
+}
+
+.welcome-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 2;
+}
+
+.welcome-subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 2;
+}
+
+.welcome-action {
+    position: relative;
+    z-index: 2;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+}
+
+.section-title i {
+    margin-right: 0.5rem;
+    color: var(--primary-color);
+}
+
+.section-action {
+    font-size: 0.875rem;
+    color: var(--primary-color);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+}
+
+.section-action i {
+    margin-left: 0.25rem;
+}
+
+.section-action:hover {
+    text-decoration: underline;
+}
+{% endblock %}
+
+{% block content %}
+<div class="welcome-card">
+    <div class="welcome-title">Welcome back, Dr. {{ doctor.name if doctor else 'Doctor' }}!</div>
+    <div class="welcome-subtitle">Here's what's happening with your patients today</div>
+    <div class="welcome-action">
+        <a href="{{ url_for('doctor_appointments') }}" class="btn btn-light">
+            <i class="bi bi-calendar-plus me-2"></i>Create Appointment
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="stat-card primary">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Total Patients</div>
+                    <div class="stat-value">{{ patients|length if patients else 0 }}</div>
+                </div>
+                <div class="icon">
+                    <i class="bi bi-people"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card success">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Appointments</div>
+                    <div class="stat-value">{{ appointments|length }}</div>
+                </div>
+                <div class="icon">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card warning">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Today's Cases</div>
+                    <div class="stat-value">{{ today_appointments|length if today_appointments else 0 }}</div>
+                </div>
+                <div class="icon">
+                    <i class="bi bi-clipboard-check"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card danger">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stat-label">Pending</div>
+                    <div class="stat-value">{{ pending_appointments|length if pending_appointments else 0 }}</div>
+                </div>
+                <div class="icon">
+                    <i class="bi bi-hourglass-split"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header">
+                <div class="section-header">
+                    <h5 class="section-title">
+                        <i class="bi bi-calendar-week"></i>
+                        Upcoming Appointments
+                    </h5>
+                    <a href="{{ url_for('doctor_appointments') }}" class="section-action">
+                        View All <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if appointments %}
+                    <div class="list-group list-group-flush">
+                        {% for appointment in appointments[:5] %}
+                        <div class="list-group-item appointment-item {{ 'confirmed' if appointment.status == 1 else 'pending' if appointment.status == 0 else 'completed' if appointment.status == 2 else 'cancelled' }}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="appointment-time">
+                                        <i class="bi bi-clock"></i>
+                                        {{ appointment.date }}
+                                    </div>
+                                    <div class="appointment-patient">{{ appointment.name }}</div>
+                                    <div class="text-muted small">{{ appointment.address|truncate(50) }}</div>
+                                </div>
+                                <div>
+                                    <span class="badge {{ 'bg-success' if appointment.status == 1 else 'bg-warning' if appointment.status == 0 else 'bg-info' if appointment.status == 2 else 'bg-danger' }}">
+                                        {{ "Confirmed" if appointment.status == 1 else "Pending" if appointment.status == 0 else "Completed" if appointment.status == 2 else "Cancelled" }}
+                                    </span>
+                                    <button class="btn btn-sm btn-outline-primary ms-2" data-bs-toggle="modal" data-bs-target="#viewAppointmentModal" data-id="{{ appointment.id }}">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <div class="display-6 text-muted">
+                            <i class="bi bi-calendar-x"></i>
+                        </div>
+                        <p class="mt-3 text-muted">No upcoming appointments</p>
+                        <a href="{{ url_for('doctor_appointments') }}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-plus-circle me-1"></i>Create Appointment
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <div class="section-header">
+                    <h5 class="section-title">
+                        <i class="bi bi-graph-up"></i>
+                        Patient Statistics
+                    </h5>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="patientStatsChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header">
+                <div class="section-header">
+                    <h5 class="section-title">
+                        <i class="bi bi-activity"></i>
+                        Recent Activities
+                    </h5>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="activity-timeline">
+                    <div class="activity-item appointment">
+                        <div class="activity-time">3 hours ago</div>
+                        <div class="activity-title">New appointment request</div>
+                        <div class="activity-desc">Sarah Johnson requested an appointment for skin consultation.</div>
+                    </div>
+                    <div class="activity-item prescription">
+                        <div class="activity-time">Yesterday</div>
+                        <div class="activity-title">Prescription created</div>
+                        <div class="activity-desc">You created a prescription for John Doe for acne treatment.</div>
+                    </div>
+                    <div class="activity-item completed">
+                        <div class="activity-time">2 days ago</div>
+                        <div class="activity-title">Appointment completed</div>
+                        <div class="activity-desc">Completed follow-up appointment with Michael Brown.</div>
+                    </div>
+                    <div class="activity-item analysis">
+                        <div class="activity-time">3 days ago</div>
+                        <div class="activity-title">Skin analysis performed</div>
+                        <div class="activity-desc">You performed skin analysis for Elizabeth Wilson and provided recommendations.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <div class="section-header">
+                    <h5 class="section-title">
+                        <i class="bi bi-check2-circle"></i>
+                        Quick Tasks
+                    </h5>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="{{ url_for('doctor_appointments') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <div class="me-3 text-primary">
+                            <i class="bi bi-calendar-plus fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold">Schedule Appointment</div>
+                            <div class="small text-muted">Create a new appointment for a patient</div>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('doctor_patients_view') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <div class="me-3 text-success">
+                            <i class="bi bi-person-plus fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold">Add New Patient</div>
+                            <div class="small text-muted">Register a new patient to your practice</div>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('doctor_skin_analysis_view') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <div class="me-3 text-warning">
+                            <i class="bi bi-camera fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold">Perform Skin Analysis</div>
+                            <div class="small text-muted">Analyze patient skin conditions</div>
+                        </div>
+                    </a>
+                    <a href="{{ url_for('doctor_prescriptions') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <div class="me-3 text-info">
+                            <i class="bi bi-file-medical fs-4"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold">Create Prescription</div>
+                            <div class="small text-muted">Write a new prescription for a patient</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- View Appointment Modal -->
+<div class="modal fade" id="viewAppointmentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title d-flex align-items-center">
+                    <i class="bi bi-calendar-check me-2 text-primary"></i>
+                    Appointment Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="section-title">
+                            <i class="bi bi-person"></i>
+                            Patient Information
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="patient-avatar me-3" style="width: 60px; height: 60px; font-size: 1.5rem; background-color: #e9ecef; border-radius: 50%; display: flex; align-items: center; justify-content: center;" id="modal-patient-avatar">A</div>
+                                    <div>
+                                        <h5 class="mb-1" id="modal-patient-name">-</h5>
+                                        <p class="mb-0 text-muted" id="modal-patient-age">Age: -</p>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <div class="d-flex">
+                                        <div class="text-muted" style="width: 100px;">Email:</div>
+                                        <div id="modal-patient-email">-</div>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <div class="d-flex">
+                                        <div class="text-muted" style="width: 100px;">Phone:</div>
+                                        <div id="modal-patient-phone">-</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="d-flex">
+                                        <div class="text-muted" style="width: 100px;">Skin Type:</div>
+                                        <div id="modal-patient-skin">-</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="section-title">
+                            <i class="bi bi-info-circle"></i>
+                            Appointment Details
+                        </div>
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-calendar-event me-2 text-primary"></i>
+                                        <strong>Date & Time:</strong>
+                                    </div>
+                                    <div class="ps-4" id="modal-appointment-date">-</div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-chat-left-text me-2 text-primary"></i>
+                                        <strong>Concern:</strong>
+                                    </div>
+                                    <div class="ps-4" id="modal-appointment-concern">-</div>
+                                </div>
+                                <div>
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-tag me-2 text-primary"></i>
+                                        <strong>Status:</strong>
+                                    </div>
+                                    <div class="ps-4" id="modal-appointment-status">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="section-title">
+                    <i class="bi bi-journal-text"></i>
+                    Doctor's Notes
+                </div>
+                <textarea class="form-control" id="appointment-notes" rows="4" placeholder="Add notes about this appointment"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success save-notes-btn">
+                    <i class="bi bi-save me-1"></i>Save Notes
+                </button>
+                <button type="button" class="btn btn-primary update-status-btn">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Update Status
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    $(document).ready(function() {
+        // Handle appointment view modal
+        $('#viewAppointmentModal').on('show.bs.modal', function (event) {
+            var button = $(event.relatedTarget);
+            var appointmentId = button.data('id');
+            
+            // Show loading state
+            var modal = $(this);
+            
+            // Fetch appointment data via AJAX
+            $.ajax({
+                url: '/doctor/appointment/' + appointmentId,
+                type: 'GET',
+                success: function(data) {
+                    var appointment = data.appointment;
+                    
+                    // Set patient avatar initial
+                    modal.find('#modal-patient-avatar').text(appointment.name[0]);
+                    
+                    // Populate patient information
+                    modal.find('#modal-patient-name').text(appointment.name);
+                    modal.find('#modal-patient-email').text(appointment.email);
+                    modal.find('#modal-patient-phone').text(appointment.phone || 'N/A');
+                    modal.find('#modal-patient-age').text('Age: ' + appointment.age);
+                    modal.find('#modal-patient-skin').text(appointment.skin);
+                    
+                    // Populate appointment details
+                    modal.find('#modal-appointment-date').text(appointment.date);
+                    modal.find('#modal-appointment-concern').text(appointment.address);
+                    
+                    // Set status with appropriate styling
+                    var statusText = 'Pending';
+                    var statusClass = 'bg-warning';
+                    
+                    if (appointment.status == 1) {
+                        statusText = 'Confirmed';
+                        statusClass = 'bg-success';
+                    } else if (appointment.status == 2) {
+                        statusText = 'Completed';
+                        statusClass = 'bg-info';
+                    } else if (appointment.status == 3) {
+                        statusText = 'Cancelled';
+                        statusClass = 'bg-danger';
+                    }
+                    
+                    modal.find('#modal-appointment-status').html('<span class="badge ' + statusClass + '">' + statusText + '</span>');
+                    
+                    // Set notes
+                    modal.find('#appointment-notes').val(appointment.doctor_notes || '');
+                    
+                    // Store appointment ID for further actions
+                    modal.data('appointment-id', appointmentId);
+                },
+                error: function() {
+                    alert('Failed to load appointment details. Please try again.');
+                }
+            });
+        });
+        
+        // Handle save notes button
+        $('.save-notes-btn').click(function() {
+            var modal = $('#viewAppointmentModal');
+            var appointmentId = modal.data('appointment-id');
+            var notes = modal.find('#appointment-notes').val();
+            
+            $.ajax({
+                url: '/doctor/appointment/' + appointmentId,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    notes: notes
+                }),
+                success: function() {
+                    alert('Notes saved successfully!');
+                    modal.modal('hide');
+                },
+                error: function() {
+                    alert('Failed to save notes. Please try again.');
+                }
+            });
+        });
+        
+        // Handle update status button
+        $('.update-status-btn').click(function() {
+            var modal = $('#viewAppointmentModal');
+            var appointmentId = modal.data('appointment-id');
+            
+            // For simplicity, just toggle between pending (0) and confirmed (1)
+            var currentStatus = modal.find('#modal-appointment-status .badge').hasClass('bg-success') ? 1 : 0;
+            var newStatus = currentStatus == 0 ? 1 : 2; // Toggle between pending, confirmed, and completed
+            
+            $.ajax({
+                url: '/doctor/appointment/' + appointmentId,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    status: newStatus
+                }),
+                success: function() {
+                    alert('Status updated successfully!');
+                    modal.modal('hide');
+                    // Reload the page to reflect the changes
+                    location.reload();
+                },
+                error: function() {
+                    alert('Failed to update status. Please try again.');
+                }
+            });
+        });
+        
+        // Initialize patient statistics chart
+        var ctx = document.getElementById('patientStatsChart').getContext('2d');
+        var patientStatsChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'New Patients',
+                    data: [5, 8, 12, 10, 15, 20],
+                    borderColor: '#4361ee',
+                    backgroundColor: 'rgba(67, 97, 238, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }, {
+                    label: 'Appointments',
+                    data: [10, 15, 20, 25, 22, 30],
+                    borderColor: '#FF9F5A',
+                    backgroundColor: 'rgba(255, 159, 90, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            drawBorder: false,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
