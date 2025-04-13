@@ -220,6 +220,10 @@ def create_tables():
         )
         ''')
         
+        conn.execute('''
+        CREATE TABLE IF NOT EXISTS chatbot_feedback (id INTEGER PRIMARY KEY, user_id INTEGER, message TEXT, feedback_type TEXT, timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+        ''')
+        
         conn.commit()
 
 def ensure_database_compatibility():
@@ -554,27 +558,70 @@ def save_conversation_message(user_id, role, message):
         return False
 
 def get_conversation_history(user_id, limit=20):
-    try:
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            conversation = cursor.execute(
-                "SELECT role, message FROM conversations WHERE user_id = ? ORDER BY timestamp ASC LIMIT ?",
+    with get_db_connection() as conn:
+        try:
+            messages = conn.execute(
+                "SELECT role, message as text FROM conversation WHERE user_id = ? ORDER BY timestamp ASC LIMIT ?",
                 (user_id, limit)
             ).fetchall()
-            return [{"role": row["role"], "text": row["message"]} for row in conversation]
-    except Exception as e:
-        print(f"Error retrieving conversation history: {e}")
-        return []
+            
+            return [dict(message) for message in messages]
+        except Exception as e:
+            print("Error retrieving conversation history:", e)
+            return []
 
 def clear_conversation_history(user_id):
-    try:
-        with get_db_connection() as conn:
-            conn.execute("DELETE FROM conversations WHERE user_id = ?", (user_id,))
+    with get_db_connection() as conn:
+        try:
+            conn.execute("DELETE FROM conversation WHERE user_id = ?", (user_id,))
             conn.commit()
-        return True
-    except Exception as e:
-        print(f"Error clearing conversation history: {e}")
-        return False
+            return True
+        except Exception as e:
+            print("Error clearing conversation history:", e)
+            return False
+
+def save_feedback(user_id, message, feedback_type):
+    """
+    Save user feedback on chatbot responses
+    """
+    with get_db_connection() as conn:
+        try:
+            conn.execute(
+                "INSERT INTO chatbot_feedback (user_id, message, feedback_type) VALUES (?, ?, ?)",
+                (user_id, message, feedback_type)
+            )
+            conn.commit()
+            return True
+        except Exception as e:
+            print("Error saving feedback:", e)
+            return False
+
+@app.route("/chatbot_feedback", methods=["POST"])
+def chatbot_feedback():
+    """
+    Handle feedback for chatbot responses
+    """
+    data = request.get_json()
+    message = data.get("message")
+    feedback = data.get("feedback")
+    
+    if not message or not feedback:
+        return jsonify({"error": "Missing message or feedback"}), 400
+    
+    # Get user ID if logged in
+    user_id = None
+    if "username" in session:
+        user = get_user(session.get("username"))
+        if user:
+            user_id = user["id"]
+    
+    # Save feedback to database
+    success = save_feedback(user_id, message, feedback)
+    
+    if success:
+        return jsonify({"status": "success"}), 200
+    else:
+        return jsonify({"error": "Failed to save feedback"}), 500
 
 @app.route("/chatbot", methods=["POST"])
 def chatbot():
