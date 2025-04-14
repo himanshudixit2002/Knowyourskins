@@ -646,6 +646,759 @@
   .hidden {
     display: none;
   }
+
+  /* New Styles for Probability Table */
+  .probability-table {
+    width: 100%;
+    margin-top: 1rem;
+  }
+
+  .probability-table table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .probability-table th {
+    text-align: left;
+    padding: 0.75rem;
+    font-weight: 600;
+    color: var(--text-light);
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .probability-table td {
+    padding: 0.75rem;
+    border-top: 1px solid var(--border-light);
+    color: var(--text-muted);
+  }
+
+  .probability-table tr:hover td {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  /* Analysis Section Styles */
+  .analysis-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .analysis-section h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--text-light);
+  }
+
+  .analysis-section ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+    color: var(--text-muted);
+  }
+
+  .analysis-section li {
+    margin-bottom: 0.5rem;
+    line-height: 1.6;
+  }
+
+  .analysis-section p {
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  /* Formatted Analysis (for string-based AI analysis) */
+  .formatted-analysis {
+    color: var(--text-muted);
+    line-height: 1.6;
+    white-space: pre-line; /* Preserve newlines */
+  }
+
+  .formatted-analysis strong,
+  .formatted-analysis b {
+    color: var(--text-light);
+    font-weight: 600;
+  }
+
+  .formatted-analysis h1,
+  .formatted-analysis h2,
+  .formatted-analysis h3,
+  .formatted-analysis h4 {
+    color: var(--text-light);
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .formatted-analysis ul,
+  .formatted-analysis ol {
+    padding-left: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .formatted-analysis li {
+    margin-bottom: 0.5rem;
+  }
+
+  .formatted-analysis p {
+    margin-bottom: 1rem;
+  }
+
+  .disclaimer-box {
+    display: flex;
+    gap: 1rem;
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+
+  .disclaimer-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #f87171;
+    font-size: 1.5rem;
+  }
+
+  .disclaimer-content p {
+    margin: 0;
+    color: var(--text-muted);
+  }
+
+  /* Zoom Modal */
+  .zoom-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 2rem;
+  }
+
+  .zoom-modal-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+  }
+
+  .zoomed-image {
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: 8px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .zoom-close {
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+  }
+
+  .zoom-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* Collapsible Elements */
+  .card-body.collapsed {
+    max-height: 120px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .card-body.collapsed::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    background: linear-gradient(transparent, var(--bg-dark));
+    pointer-events: none;
+  }
+
+  /* Action Buttons */
+  .action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .print-btn {
+    background: linear-gradient(135deg, #34d399, #10b981);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  }
+
+  .print-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, #10b981, #059669);
+  }
+
+  /* Print Mode Styles */
+  body.print-mode {
+    background: white !important;
+  }
+  
+  body.print-mode .container-main {
+    background: white !important;
+    min-height: auto !important;
+  }
+  
+  body.print-mode .tab-navigation,
+  body.print-mode .action-buttons,
+  body.print-mode .image-overlay {
+    visibility: hidden;
+  }
+  
+  body.print-mode .print-footer {
+    display: block;
+    color: #333 !important;
+    border-top: 1px solid #ddd;
+  }
+  
+  body.print-mode .results-dashboard {
+    background: white !important;
+  }
+
+  /* Print Styles */
+  @media print {
+    @page {
+      size: portrait;
+      margin: 1cm;
+    }
+    
+    html, body {
+      width: 100%;
+      height: auto;
+      margin: 0;
+      padding: 0;
+      background: white !important;
+      color: black !important;
+      font-size: 12pt;
+    }
+    
+    /* Hide non-essential elements */
+    .tab-navigation, 
+    .action-buttons,
+    .card-actions,
+    .image-overlay,
+    .animated-background,
+    .gradient-bg,
+    .glow-effect,
+    .decorative-circle {
+      display: none !important;
+    }
+    
+    /* Main container */
+    .container-main {
+      padding: 0 !important;
+      display: block !important;
+      min-height: auto !important;
+      background: white !important;
+      box-shadow: none !important;
+      overflow: visible !important;
+    }
+    
+    .content-container {
+      width: 100% !important;
+      max-width: none !important;
+    }
+    
+    /* Header styles */
+    .content-header {
+      text-align: center;
+      margin-bottom: 20px !important;
+      padding: 0 !important;
+    }
+    
+    .content-header h1 {
+      color: #333 !important;
+      font-size: 24pt !important;
+      margin: 0 0 5px 0 !important;
+    }
+    
+    .content-header p {
+      color: #666 !important;
+      font-size: 14pt !important;
+      margin: 0 !important;
+    }
+    
+    /* Dashboard layout */
+    .results-dashboard {
+      width: 100% !important;
+      max-width: none !important;
+    }
+    
+    .dashboard-grid {
+      display: block !important;
+      page-break-inside: avoid;
+    }
+    
+    .dashboard-col {
+      display: block !important;
+      margin-bottom: 20px !important;
+    }
+    
+    /* Cards */
+    .dashboard-card {
+      break-inside: avoid !important;
+      page-break-inside: avoid !important;
+      margin-bottom: 20px !important;
+      border: 1px solid #ddd !important;
+      border-radius: 8px !important;
+      box-shadow: none !important;
+      transform: none !important;
+      background: white !important;
+      overflow: visible !important;
+    }
+    
+    .card-header {
+      background: #f5f5f5 !important;
+      color: black !important;
+      border-bottom: 1px solid #ddd !important;
+      padding: 10px 15px !important;
+    }
+    
+    .card-title {
+      color: #333 !important;
+      font-size: 16pt !important;
+      margin: 0 !important;
+    }
+    
+    .card-title i {
+      color: #FF7A00 !important;
+    }
+    
+    .card-body {
+      padding: 15px !important;
+    }
+    
+    /* Image */
+    .result-image-container {
+      max-width: 400px !important;
+      margin: 0 auto 20px !important;
+      box-shadow: none !important;
+    }
+    
+    .result-image {
+      max-width: 100% !important;
+      height: auto !important;
+      border: 1px solid #ddd !important;
+    }
+    
+    /* Text elements */
+    .prediction-text {
+      color: #FF7A00 !important;
+      font-size: 18pt !important;
+      margin-bottom: 10px !important;
+    }
+    
+    p, li {
+      color: #333 !important;
+    }
+    
+    /* Analysis sections */
+    .analysis-grid {
+      display: block !important;
+    }
+    
+    .analysis-section {
+      margin-bottom: 15px !important;
+      background: white !important;
+      border: 1px solid #ddd !important;
+      border-radius: 8px !important;
+    }
+    
+    .section-header {
+      background: #f5f5f5 !important;
+      padding: 8px 12px !important;
+    }
+    
+    .section-header h4 {
+      color: #333 !important;
+      font-size: 14pt !important;
+      margin: 0 !important;
+    }
+    
+    .section-header h4 i {
+      color: #FF7A00 !important;
+    }
+    
+    .section-content {
+      padding: 12px !important;
+    }
+    
+    /* Probability table */
+    .probability-table table {
+      width: 100% !important;
+      border-collapse: collapse !important;
+    }
+    
+    .probability-table th,
+    .probability-table td {
+      border: 1px solid #ddd !important;
+      padding: 8px !important;
+      text-align: left !important;
+      color: #333 !important;
+    }
+    
+    .probability-table th {
+      background: #f5f5f5 !important;
+      font-weight: bold !important;
+    }
+    
+    .probability-bar {
+      height: 8px !important;
+      background: #FF9F5A !important;
+      border: none !important;
+    }
+    
+    .probability-text {
+      color: #333 !important;
+      font-weight: normal !important;
+    }
+    
+    tr.highest-prob td {
+      font-weight: bold !important;
+      color: #FF7A00 !important;
+    }
+    
+    /* Footer */
+    .print-footer {
+      display: block !important;
+      margin-top: 30px !important;
+      padding-top: 10px !important;
+      border-top: 1px solid #ddd !important;
+      text-align: center !important;
+      font-size: 10pt !important;
+      color: #666 !important;
+    }
+  }
+
+  /* Utility Classes */
+  .mb-1 {
+    margin-bottom: 0.25rem;
+  }
+
+  .mb-2 {
+    margin-bottom: 0.5rem;
+  }
+
+  .mb-4 {
+    margin-bottom: 1rem;
+  }
+
+  .mt-4 {
+    margin-top: 1rem;
+  }
+
+  .w-full {
+    width: 100%;
+  }
+
+  .text-left {
+    text-align: left;
+  }
+
+  .text-right {
+    text-align: right;
+  }
+
+  .p-2 {
+    padding: 0.5rem;
+  }
+
+  .p-3 {
+    padding: 0.75rem;
+  }
+
+  .rounded-lg {
+    border-radius: 0.5rem;
+  }
+
+  /* Results Dashboard Layout */
+  .results-dashboard {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .dashboard-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .dashboard-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-light);
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .card-title {
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .card-title i {
+    color: var(--primary-color);
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .card-action-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .card-action-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+  }
+
+  .card-body {
+    padding: 1.5rem;
+  }
+
+  /* Full width card */
+  .full-width {
+    grid-column: 1 / -1;
+  }
+
+  /* Primary Diagnosis */
+  .diagnosis-content {
+    text-align: center;
+  }
+
+  .confidence-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .confidence-value {
+    font-weight: 600;
+    color: var(--text-light);
+  }
+
+  .confidence-info {
+    text-align: right;
+    margin-top: 0.5rem;
+  }
+
+  /* Probability Bars */
+  .probability-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .probability-bar {
+    height: 8px;
+    background: linear-gradient(90deg, var(--primary-dark), var(--primary-color));
+    border-radius: 4px;
+    min-width: 5px;
+  }
+
+  .probability-text {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    min-width: 60px;
+    text-align: right;
+  }
+
+  /* Highlight the highest probability */
+  .probability-table tr.highest-prob td {
+    color: var(--primary-color);
+    font-weight: 600;
+  }
+
+  /* Image Overlay */
+  .image-overlay {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .zoom-btn {
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .zoom-btn:hover {
+    background: rgba(255, 159, 90, 0.7);
+  }
+
+  /* Analysis Sections */
+  .analysis-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .analysis-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .description-section {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .analysis-section {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+  }
+
+  .section-header {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .section-header h4 {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .section-header h4 i {
+    color: var(--primary-color);
+  }
+
+  .section-content {
+    padding: 1rem;
+  }
+
+  .section-content p {
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  /* Feature List */
+  .feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .feature-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .feature-list li:last-child {
+    border-bottom: none;
+  }
+
+  .feature-list li i {
+    color: var(--primary-color);
+    margin-top: 0.25rem;
+  }
+
+  /* Print Footer */
+  .print-footer {
+    display: none;
+  }
+
+  /* Action Buttons */
 </style>
 
 <div class="container-main">
@@ -731,54 +1484,201 @@
     <!-- Results Tab -->
     <div id="results-tab" class="tab-content {% if prediction is defined %}active{% endif %}">
       {% if prediction is defined %}
-        <!-- Image Preview -->
-        <div class="result-image-container">
-          <img src="{{ image_url }}" alt="Skin Image" class="result-image">
-        </div>
-        
-        <!-- Diagnosis Card -->
-        <div class="analysis-card">
-          <h3 class="card-title">
-            <i class="fas fa-stethoscope"></i> Diagnosis Result
-          </h3>
-          <p class="prediction-text">{{ prediction }}</p>
-        </div>
-        
-        <!-- Probability Metrics -->
-        <div class="analysis-card">
-          <h3 class="card-title">
-            <i class="fas fa-chart-bar"></i> Confidence Scores
-          </h3>
-          <pre>{{ probabilities }}</pre>
-        </div>
-        
-        <!-- AI Analysis -->
-        <div class="analysis-card">
-          <h3 class="card-title">
-            <i class="fas fa-robot"></i> AI Analysis & Recommendation
-          </h3>
-          <div class="ai-analysis-text">
-            {{ ai_analysis | safe }}
-            
-            {% if confidence_score is defined and confidence_score %}
-            <div class="confidence-meter">
-              <span class="confidence-label">Confidence:</span>
-              <div class="confidence-bar">
-                <div class="confidence-level" id="confidence-level-bar" data-confidence="{{ confidence_score }}"></div>
+        <div class="results-dashboard">
+          <div class="dashboard-grid">
+            <!-- Left column: Image and primary diagnosis -->
+            <div class="dashboard-col">
+              <!-- Image Preview Card -->
+              <div class="dashboard-card result-image-card">
+                <div class="card-header">
+                  <h3 class="card-title"><i class="fas fa-camera-retro"></i> Analyzed Image</h3>
+                </div>
+                <div class="card-body">
+                  <div class="result-image-container">
+                    <img src="{{ image_url }}" alt="Skin Image" class="result-image">
+                    <div class="image-overlay">
+                      <button class="zoom-btn" title="Zoom Image">
+                        <i class="fas fa-search-plus"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <span class="confidence-label">{{ confidence_score }}%</span>
+
+              <!-- Primary Diagnosis Card -->
+              <div class="dashboard-card primary-diagnosis-card">
+                <div class="card-header">
+                  <h3 class="card-title"><i class="fas fa-stethoscope"></i> Primary Diagnosis</h3>
+                </div>
+                <div class="card-body">
+                  <div class="diagnosis-content">
+                    <p class="prediction-text">{{ prediction }}</p>
+                    {% if confidence_score is defined and confidence_score %}
+                    <div class="confidence-meter mt-4">
+                      <div class="confidence-header">
+                        <span class="confidence-label">AI Confidence Level:</span>
+                        <span class="confidence-value">{{ confidence_score }}%</span>
+                      </div>
+                      <div class="confidence-bar">
+                        <div class="confidence-level" id="confidence-level-bar" data-confidence="{{ confidence_score }}"></div>
+                      </div>
+                      <div class="confidence-info">
+                        <span class="info-icon tooltip">
+                          <i class="fas fa-info-circle"></i>
+                          <span class="tooltip-text">This indicates the AI's confidence level in its diagnosis. Higher percentages suggest greater certainty, but all results should be confirmed by a medical professional.</span>
+                        </span>
+                      </div>
+                    </div>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
             </div>
-            <p class="text-sm text-gray-400 tooltip">What does this mean?
-              <span class="tooltip-text">This indicates the AI's confidence level in its diagnosis. Higher percentages suggest greater certainty, but all results should be confirmed by a medical professional.</span>
-            </p>
-            {% endif %}
+
+            <!-- Right column: Detailed analysis -->
+            <div class="dashboard-col">
+              <!-- Probability Metrics Card -->
+              <div class="dashboard-card probabilities-card">
+                <div class="card-header">
+                  <h3 class="card-title"><i class="fas fa-chart-bar"></i> Differential Diagnosis</h3>
+                  <div class="card-actions">
+                    <span class="info-icon tooltip">
+                      <i class="fas fa-info-circle"></i>
+                      <span class="tooltip-text">Shows alternative possible conditions ordered by probability.</span>
+                    </span>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="probability-results">
+                    {% if probabilities is string %}
+                      <pre>{{ probabilities }}</pre>
+                    {% elif probabilities is mapping %}
+                      <div class="probability-table">
+                        <table class="w-full">
+                          <thead>
+                            <tr>
+                              <th class="text-left p-2">Condition</th>
+                              <th class="text-right p-2">Probability</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {% for condition, prob in probabilities.items() %}
+                            <tr class="border-t border-opacity-10">
+                              <td class="text-left p-2">{{ condition }}</td>
+                              <td class="text-right p-2">
+                                {% if prob is number %}
+                                  <div class="probability-bar-container">
+                                    <div class="probability-bar" data-width="{{ prob * 100 }}"></div>
+                                    <span class="probability-text">{{ "%.2f"|format(prob * 100) }}%</span>
+                                  </div>
+                                {% else %}
+                                  {{ prob }}
+                                {% endif %}
+                              </td>
+                            </tr>
+                            {% endfor %}
+                          </tbody>
+                        </table>
+                      </div>
+                    {% else %}
+                      <p>No detailed probability information available.</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Full width AI Analysis Card -->
+          <div class="dashboard-card analysis-card full-width">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-robot"></i> AI Analysis & Recommendation</h3>
+              <div class="card-actions">
+                <button class="card-action-btn" id="toggle-analysis" title="Expand/Collapse">
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+              </div>
+            </div>
+            <div class="card-body" id="analysis-body">
+              <div class="ai-analysis-text">
+                {% if ai_analysis is defined and ai_analysis %}
+                  {% if ai_analysis is string %}
+                    <div class="formatted-analysis">
+                      {{ ai_analysis | safe }}
+                    </div>
+                  {% elif ai_analysis is mapping %}
+                    <div class="analysis-grid">
+                      <!-- Description Section -->
+                      <div class="analysis-section description-section">
+                        <div class="section-header">
+                          <h4><i class="fas fa-info-circle"></i> Description</h4>
+                        </div>
+                        <div class="section-content">
+                          <p>{{ ai_analysis.description | default('') }}</p>
+                        </div>
+                      </div>
+                      
+                      <!-- Symptoms Section -->
+                      {% if ai_analysis.symptoms is defined and ai_analysis.symptoms %}
+                      <div class="analysis-section symptoms-section">
+                        <div class="section-header">
+                          <h4><i class="fas fa-clipboard-list"></i> Common Symptoms</h4>
+                        </div>
+                        <div class="section-content">
+                          <ul class="feature-list">
+                            {% for symptom in ai_analysis.symptoms %}
+                              <li><i class="fas fa-check"></i> {{ symptom }}</li>
+                            {% endfor %}
+                          </ul>
+                        </div>
+                      </div>
+                      {% endif %}
+                      
+                      <!-- Recommendations Section -->
+                      {% if ai_analysis.recommendations is defined and ai_analysis.recommendations %}
+                      <div class="analysis-section recommendations-section">
+                        <div class="section-header">
+                          <h4><i class="fas fa-hand-holding-medical"></i> Recommendations</h4>
+                        </div>
+                        <div class="section-content">
+                          <ul class="feature-list">
+                            {% for rec in ai_analysis.recommendations %}
+                              <li><i class="fas fa-check"></i> {{ rec }}</li>
+                            {% endfor %}
+                          </ul>
+                        </div>
+                      </div>
+                      {% endif %}
+                    </div>
+                    
+                    <!-- Disclaimer -->
+                    {% if ai_analysis.disclaimer is defined and ai_analysis.disclaimer %}
+                    <div class="disclaimer-box">
+                      <div class="disclaimer-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                      </div>
+                      <div class="disclaimer-content">
+                        <p><strong>Medical Disclaimer:</strong> {{ ai_analysis.disclaimer }}</p>
+                      </div>
+                    </div>
+                    {% endif %}
+                  {% else %}
+                    <p>No detailed analysis available.</p>
+                  {% endif %}
+                {% else %}
+                  <p>No analysis information available.</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Action Buttons -->
+          <div class="action-buttons">
+            <button class="back-btn" id="analyze-another-btn" type="button">
+              <i class="fas fa-arrow-left"></i> Analyze Another Image
+            </button>
           </div>
         </div>
-        
-        <!-- Back Button -->
-        <button class="back-btn" id="analyze-another-btn" type="button">
-          <i class="fas fa-arrow-left"></i> Analyze Another Image
-        </button>
       {% else %}
         <div class="text-center p-6">
           <h3 class="text-white text-xl mb-4">No Analysis Results Yet</h3>
@@ -826,6 +1726,114 @@ document.addEventListener('DOMContentLoaded', function() {
       switchTab(tabId);
     });
   });
+  
+  // Handle toggle for analysis section
+  const toggleAnalysisBtn = document.getElementById('toggle-analysis');
+  if (toggleAnalysisBtn) {
+    toggleAnalysisBtn.addEventListener('click', () => {
+      const analysisBody = document.getElementById('analysis-body');
+      if (analysisBody) {
+        analysisBody.classList.toggle('collapsed');
+        toggleAnalysisBtn.querySelector('i').classList.toggle('fa-chevron-down');
+        toggleAnalysisBtn.querySelector('i').classList.toggle('fa-chevron-up');
+      }
+    });
+  }
+  
+  // Handle image zoom
+  const zoomBtn = document.querySelector('.zoom-btn');
+  if (zoomBtn) {
+    zoomBtn.addEventListener('click', () => {
+      const imageUrl = document.querySelector('.result-image').src;
+      
+      // Create modal for zoomed image
+      const modal = document.createElement('div');
+      modal.className = 'zoom-modal';
+      modal.innerHTML = `
+        <div class="zoom-modal-content">
+          <span class="zoom-close">&times;</span>
+          <img src="${imageUrl}" alt="Zoomed skin image" class="zoomed-image">
+        </div>
+      `;
+      document.body.appendChild(modal);
+      
+      // Handle close button
+      modal.querySelector('.zoom-close').addEventListener('click', () => {
+        document.body.removeChild(modal);
+      });
+      
+      // Close on click outside the image
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          document.body.removeChild(modal);
+        }
+      });
+    });
+  }
+  
+  // Highlight the highest probability in the table
+  const probabilityTable = document.querySelector('.probability-table table');
+  if (probabilityTable) {
+    let highestProb = 0;
+    let highestRow = null;
+    
+    // Find the row with the highest probability
+    const rows = probabilityTable.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+      const probCell = row.querySelector('td:last-child');
+      if (probCell) {
+        // Extract the numeric value by removing the % sign and converting to float
+        const probText = probCell.textContent.trim();
+        let probValue = 0;
+        
+        // Try to extract a numeric value from the text
+        if (probText.endsWith('%')) {
+          probValue = parseFloat(probText.replace('%', ''));
+        } else {
+          const numericMatch = probText.match(/([0-9]*[.])?[0-9]+/);
+          if (numericMatch) {
+            probValue = parseFloat(numericMatch[0]);
+          }
+        }
+        
+        if (!isNaN(probValue) && probValue > highestProb) {
+          highestProb = probValue;
+          highestRow = row;
+        }
+      }
+    });
+    
+    // Add highlighting class to the highest probability row
+    if (highestRow) {
+      highestRow.classList.add('highest-prob');
+    }
+  }
+  
+  // Set width for probability bars
+  document.querySelectorAll('.probability-bar').forEach(bar => {
+    const width = bar.getAttribute('data-width');
+    if (width) {
+      bar.style.width = width + '%';
+    }
+  });
+  
+  // Initialize the confidence level bar if it exists
+  const confidenceLevelBar = document.getElementById('confidence-level-bar');
+  if (confidenceLevelBar) {
+    const confidenceScore = confidenceLevelBar.dataset.confidence;
+    if (confidenceScore) {
+      confidenceLevelBar.style.width = confidenceScore + '%';
+      
+      // Add color based on confidence level
+      if (confidenceScore >= 80) {
+        confidenceLevelBar.style.background = 'linear-gradient(90deg, #10b981, #34d399)';  // Green for high confidence
+      } else if (confidenceScore >= 50) {
+        confidenceLevelBar.style.background = 'linear-gradient(90deg, #f59e0b, #fbbf24)';  // Yellow for medium confidence
+      } else {
+        confidenceLevelBar.style.background = 'linear-gradient(90deg, #ef4444, #f87171)';  // Red for low confidence
+      }
+    }
+  }
   
   // File upload handling
   const uploadArea = document.getElementById('upload-area');
@@ -993,15 +2001,6 @@ document.addEventListener('DOMContentLoaded', function() {
       resetFileInput();
       switchTab('upload');
     });
-  }
-  
-  // Initialize confidence level bar if it exists
-  const confidenceLevelBar = document.getElementById('confidence-level-bar');
-  if (confidenceLevelBar) {
-    const confidenceScore = confidenceLevelBar.dataset.confidence;
-    if (confidenceScore) {
-      confidenceLevelBar.style.width = confidenceScore + '%';
-    }
   }
   
   // Initialize the correct tab based on if results exist
