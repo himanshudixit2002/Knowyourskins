@@ -375,17 +375,41 @@
       cursor: pointer;
       padding: 0.5rem;
       border-radius: 8px;
-      transition: all 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.19, 1, 0.22, 1);
       min-width: 44px;
       min-height: 44px;
       align-items: center;
       justify-content: center;
+      position: relative;
+      overflow: hidden;
     }
     
-    .mobile-menu-btn:hover {
+    .mobile-menu-btn:hover, .mobile-menu-btn:focus {
       background: rgba(255, 138, 0, 0.15);
       color: var(--primary);
       transform: translateY(-2px);
+      outline: none;
+    }
+    
+    .mobile-menu-btn::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: radial-gradient(circle, rgba(255, 138, 0, 0.3), transparent 70%);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: width 0.3s ease, height 0.3s ease, opacity 0.3s ease;
+    }
+    
+    .mobile-menu-btn:active::after {
+      width: 100px;
+      height: 100px;
+      opacity: 1;
+      transition: width 0.3s ease, height 0.3s ease, opacity 0.3s ease;
     }
     
     /* Mobile Dropdown Menu */
@@ -401,17 +425,25 @@
       -webkit-backdrop-filter: blur(12px);
       border-bottom: 1px solid rgba(255, 138, 0, 0.2);
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-      transition: max-height 0.4s ease-in-out, padding 0.3s ease;
+      transition: max-height 0.4s cubic-bezier(0.19, 1, 0.22, 1), 
+                  padding 0.3s cubic-bezier(0.19, 1, 0.22, 1),
+                  opacity 0.3s ease;
       z-index: 90;
       padding: 0 1.5rem;
       display: flex;
       flex-direction: column;
+      opacity: 0;
+      transform: translateY(-10px);
+      pointer-events: none;
     }
     
     .mobile-dropdown.active {
       max-height: calc(100vh - 70px);
       overflow-y: auto;
       padding: 1.5rem;
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
     }
     
     /* Mobile Menu Styling */
@@ -1093,16 +1125,21 @@
   </footer>
 
   <script>
-    // Mobile menu toggle with improved animations
+    // Improved mobile menu toggle with better animations and reliability
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
     const mobileDropdown = document.getElementById('mobile-dropdown');
+    const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+    let isMenuOpen = false;
     
-    mobileMenuBtn.addEventListener('click', function() {
-      mobileDropdown.classList.toggle('active');
+    // Function to toggle the menu state
+    function toggleMenu(open) {
+      isMenuOpen = open !== undefined ? open : !isMenuOpen;
+      
+      mobileDropdown.classList.toggle('active', isMenuOpen);
       
       // Change icon based on menu state
       const icon = mobileMenuBtn.querySelector('i');
-      if (mobileDropdown.classList.contains('active')) {
+      if (isMenuOpen) {
         icon.classList.remove('bi-list');
         icon.classList.add('bi-x-lg');
         mobileMenuBtn.style.background = 'rgba(255, 138, 0, 0.15)';
@@ -1113,17 +1150,31 @@
         mobileMenuBtn.style.background = 'transparent';
         mobileMenuBtn.style.color = 'var(--text-light)';
       }
+    }
+    
+    mobileMenuBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      toggleMenu();
     });
     
-    // Close mobile menu when clicking outside with smooth animations
+    // Close menu when clicking on navigation items
+    mobileNavItems.forEach(item => {
+      item.addEventListener('click', function() {
+        toggleMenu(false);
+      });
+    });
+    
+    // Close mobile menu when clicking outside
     document.addEventListener('click', function(event) {
-      if (!mobileMenuBtn.contains(event.target) && !mobileDropdown.contains(event.target) && mobileDropdown.classList.contains('active')) {
-        mobileDropdown.classList.remove('active');
-        const icon = mobileMenuBtn.querySelector('i');
-        icon.classList.remove('bi-x-lg');
-        icon.classList.add('bi-list');
-        mobileMenuBtn.style.background = 'transparent';
-        mobileMenuBtn.style.color = 'var(--text-light)';
+      if (isMenuOpen && !mobileMenuBtn.contains(event.target) && !mobileDropdown.contains(event.target)) {
+        toggleMenu(false);
+      }
+    });
+    
+    // Close menu on window resize (if switching to desktop)
+    window.addEventListener('resize', function() {
+      if (window.innerWidth > 768 && isMenuOpen) {
+        toggleMenu(false);
       }
     });
     
