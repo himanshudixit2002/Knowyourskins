@@ -1638,8 +1638,8 @@ def chatbot():
         detected_language = detect_language(user_input)
         
         # Handle language change request
-        if re.search(r'(?:speak|talk|switch to|change to|use) (english|spanish|french|german|italian|portuguese|russian|chinese|japanese|korean|arabic)', user_input, re.IGNORECASE):
-            language_match = re.search(r'(?:speak|talk|switch to|change to|use) (english|spanish|french|german|italian|portuguese|russian|chinese|japanese|korean|arabic)', user_input, re.IGNORECASE)
+        if re.search(r'(?:speak|talk|switch to|change to|use) (english|spanish|french|german|italian|portuguese|russian|chinese|japanese|korean|arabic|hindi)', user_input, re.IGNORECASE):
+            language_match = re.search(r'(?:speak|talk|switch to|change to|use) (english|spanish|french|german|italian|portuguese|russian|chinese|japanese|korean|arabic|hindi)', user_input, re.IGNORECASE)
             if language_match:
                 requested_language = language_match.group(1).lower()
                 language_code = {
@@ -1653,7 +1653,8 @@ def chatbot():
                     "chinese": "zh-cn",
                     "japanese": "ja",
                     "korean": "ko",
-                    "arabic": "ar"
+                    "arabic": "ar",
+                    "hindi": "hi"
                 }.get(requested_language, "en")
                 
                 if user_id:
@@ -2077,7 +2078,8 @@ def chatbot_page():
         {"code": "zh-cn", "name": "中文"},
         {"code": "ja", "name": "日本語"},
         {"code": "ko", "name": "한국어"},
-        {"code": "ar", "name": "العربية"}
+        {"code": "ar", "name": "العربية"},
+        {"code": "hi", "name": "हिंदी"}
     ]
     
     return render_template(
