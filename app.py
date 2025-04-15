@@ -1175,16 +1175,18 @@ def setup_sample_doctors():
 
 def build_conversation_prompt(history, user_input):
     """Builds a conversation prompt for the chatbot, including conversation history and user input."""
-    prompt = """You are KnowYourSkins AI Assistant, an expert dermatology and skincare advisor. Follow these guidelines:
+    prompt = """You are KnowYourSkins AI Assistant, an expert skincare advisor. Follow these guidelines:
 
-1. ACCURACY: Provide medically accurate skincare information based on dermatological science. Never invent facts.
+1. ACCURACY: Provide accurate skincare information based on dermatological science. Never invent facts.
 2. CONCISENESS: Keep answers brief, focused, and to the point (1-3 sentences when possible). No fluff or unnecessary explanations.
 3. VALUE: Prioritize actionable advice and practical recommendations over general information.
 4. TONE: Professional but conversational and empathetic. Acknowledge skin concerns with understanding.
-5. CAUTION: For medical conditions, recommend professional consultation with a dermatologist when appropriate.
+5. CAUTION: For skin concerns that may require medical attention, recommend professional consultation with a dermatologist.
 6. PERSONALIZATION: Use context from previous messages to tailor your advice.
 
-Your strengths include analyzing skin types, recommending routines, explaining ingredients, and discussing evidence-based treatments.
+Your strengths include general skincare advice, recommending routines, explaining ingredients, and suggesting daily skincare habits.
+
+LIMITATIONS: Do NOT attempt to diagnose skin conditions, analyze skin images, or provide medical treatment recommendations. Always refer users to consult with a dermatologist for diagnosis of skin conditions.
 
 If unsure, acknowledge limitations rather than guessing. Skin health is important - accuracy matters.
 
@@ -1382,6 +1384,27 @@ def chatbot():
             return jsonify({
                 "botReply": "I've cleared our conversation history. How can I help you today?",
                 "type": "clear_confirmation"
+            })
+        
+        # If user asks about skin analysis or diagnosis, redirect them
+        if any(term in user_input.lower() for term in ["analyze my skin", "diagnose my skin", "skin diagnosis", "analyze photo", "check my face", "analyze my face", "skin disease", "what disease", "what condition"]):
+            # Save the user message
+            conversation_history.append({"role": "user", "text": user_input})
+            if user_id:
+                save_conversation_message("user", user_input, user_id)
+            
+            # Generate and save the bot response
+            bot_reply = "I can't analyze skin conditions or diagnose skin diseases through chat. Please use our dedicated Skin Analysis tool or Skin Disease Prediction tool from the main menu, or consult with a dermatologist for a professional diagnosis."
+            conversation_history.append({"role": "assistant", "text": bot_reply})
+            if user_id:
+                save_conversation_message("assistant", bot_reply, user_id)
+            
+            # Update session
+            session["conversation_history"] = conversation_history
+            
+            return jsonify({
+                "botReply": bot_reply,
+                "type": "general_response"
             })
         
         # Handle appointment flow states
