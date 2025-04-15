@@ -1343,57 +1343,48 @@ def clear_conversation_history(user_id=None):
 
 @app.route("/chatbot", methods=["POST"])
 def chatbot():
-    """Handles chatbot interactions."""
     try:
         data = request.json
         user_input = data.get("userInput", "").strip()
+        print("Chatbot endpoint hit. Received user input:", user_input)
         
         if not user_input:
+            print("No userInput provided.")
             return jsonify({"botReply": "I didn't receive a message. Could you please try again?"})
         
-        # Get user ID if logged in, otherwise use session ID
-        user_id = session.get('user_id')
+        # Save user message for conversation history
+        save_conversation_message('user', user_input, session.get('user_id'))
         
-        # Save user message to conversation history
-        save_conversation_message('user', user_input, user_id)
-        
-        # Get conversation history
-        history = get_conversation_history(user_id)[-8:]  # Get only the last 8 messages for context
-        
-        # Build prompt for Gemini
+        # Retrieve conversation history and build the prompt
+        history = get_conversation_history(session.get('user_id'))[-8:]
         prompt = build_conversation_prompt(history, user_input)
+        print("Built prompt for Gemini API:\n", prompt)
         
-        # Call Gemini API for response
+        # Call the Gemini API
         headers = {"Content-Type": "application/json"}
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
-        response = requests.post(url, headers=headers, json={"contents": [{"parts": [{"text": prompt}]}]})
+        response = requests.post(url, headers=headers, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=15)
+        print("Gemini API status:", response.status_code)
         
         if response.status_code == 200:
             data = response.json()
             bot_reply = (data.get("candidates", [{}])[0]
-                          .get("content", {})
-                          .get("parts", [{}])[0]
-                          .get("text", ""))
-            
-            # Check if answer is complete
+                         .get("content", {})
+                         .get("parts", [{}])[0]
+                         .get("text", ""))
             bot_reply = complete_answer_if_incomplete(bot_reply.strip())
-            
-            # Refine the response to make it more valuable and concise
             bot_reply = refine_response(bot_reply)
-            
-            # Save bot message to conversation history
-            save_conversation_message('assistant', bot_reply, user_id)
-            
+            print("Bot reply:", bot_reply)
+            save_conversation_message('assistant', bot_reply, session.get('user_id'))
             return jsonify({"botReply": bot_reply})
         else:
-            # Log error details
             print(f"Error from Gemini API: {response.status_code} - {response.text}")
             return jsonify({"botReply": "I'm having trouble processing your request right now. Please try again later."})
-            
     except Exception as e:
-        print(f"Chatbot error: {str(e)}")
+        print("Chatbot error:", str(e))
         traceback.print_exc()
         return jsonify({"botReply": "I encountered an error while processing your message. Please try again."})
+
 
 @app.route("/get_conversation_history", methods=["GET"])
 def get_conversation_history_route():
