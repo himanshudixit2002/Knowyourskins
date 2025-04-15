@@ -28,6 +28,7 @@ import h5py
 import gdown
 import json
 import jinja2
+import random
 
 # -----------------------------------------------------------------------------
 # Load Environment Variables and App Configuration
@@ -201,16 +202,6 @@ def create_tables():
         ''')
         
         conn.execute('''
-        CREATE TABLE IF NOT EXISTS conversation (
-            id INTEGER PRIMARY KEY,
-            user_id INTEGER,
-            role TEXT,
-            message TEXT,
-            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-        ''')
-        
-        conn.execute('''
         CREATE TABLE IF NOT EXISTS skincare_routines (
             id INTEGER PRIMARY KEY,
             user_id INTEGER UNIQUE,
@@ -221,7 +212,15 @@ def create_tables():
         ''')
         
         conn.execute('''
-        CREATE TABLE IF NOT EXISTS chatbot_feedback (id INTEGER PRIMARY KEY, user_id INTEGER, message TEXT, feedback_type TEXT, timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)
+        CREATE TABLE IF NOT EXISTS doctor_profiles (
+            id INTEGER PRIMARY KEY,
+            user_id INTEGER UNIQUE NOT NULL,
+            name TEXT,
+            bio TEXT,
+            specialization TEXT,
+            experience_years INTEGER,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
         ''')
         
         conn.commit()
@@ -480,369 +479,6 @@ def get_skincare_routine(user_id):
 # -----------------------------------------------------------------------------
 # Flask Routes
 # -----------------------------------------------------------------------------
-def build_conversation_prompt(history, user_input):
-    prompt = (
-        "You are a professional, knowledgeable skincare assistant for KNOWYOURSKINS. Your responses should be concise, engaging, "
-        "informative, and formatted in Markdown with emojis where appropriate.\n\n"
-        "IMPORTANT: Always provide COMPLETE answers that fully address the user's question. Never end your response abruptly.\n\n"
-        "Guidelines:\n"
-        "- Always introduce yourself as KNOWYOURSKINS Assistant when starting a new conversation\n"
-        "- Make your responses helpful and educational about skincare topics\n"
-        "- Keep responses focused and to the point (between 50-150 words)\n"
-        "- Use medical terms when appropriate, but explain them simply\n"
-        "- When you don't know something, admit it and suggest consulting a dermatologist\n"
-        "- ALWAYS end your responses with a conclusive statement or helpful tip\n"
-        "- Make sure your answers are self-contained and don't require follow-up to be useful\n\n"
-        "Conversation so far:\n"
-    )
-    for msg in history:
-        role = msg.get("role")
-        text = msg.get("text")
-        prompt += f"{role.capitalize()}: {text}\n"
-    prompt += f"User: {user_input}\nAssistant:"
-    return prompt
-
-def complete_answer_if_incomplete(answer):
-    answer = answer.strip()
-    if not answer:
-        return "I apologize, but I couldn't generate a response. Could you please rephrase your question?"
-    
-    # Check if the answer appears incomplete (no ending punctuation or seems cut off)
-    if answer[-1] not in ".!?" or len(answer.split()) < 10:
-        continuation_prompt = (
-            "It appears that your previous response to the user was incomplete or cut off. "
-            "Please provide a complete, coherent response that maintains the professional skincare assistant persona. "
-            "Ensure the response has a proper beginning, middle, and conclusion. "
-            "Here is the incomplete answer so far:\n\n"
-            f"{answer}\n\n"
-            "Please rewrite a complete response:"
-        )
-        
-        try:
-            headers = {"Content-Type": "application/json"}
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
-            response = requests.post(url, headers=headers, json={"contents": [{"parts": [{"text": continuation_prompt}]}]})
-            
-            if response.status_code == 200:
-                data = response.json()
-                full_response = (data.get("candidates", [{}])[0]
-                                .get("content", {})
-                                .get("parts", [{}])[0]
-                                .get("text", ""))
-                
-                if full_response and len(full_response) > len(answer):
-                    return full_response.strip()
-                else:
-                    return answer + " I hope this helps! Let me know if you have any other questions."
-            else:
-                # If API call fails, at least make sure the response ends properly
-                return answer + " I hope this helps with your question. Is there anything else you'd like to know?"
-        except Exception as e:
-            print(f"Error completing answer: {e}")
-            return answer + " I hope this helps! Let me know if you need further assistance."
-    else:
-        return answer
-
-# New helper functions for conversation persistence
-def save_conversation_message(user_id, role, message):
-    try:
-        with get_db_connection() as conn:
-            conn.execute(
-                "INSERT INTO conversations (user_id, role, message) VALUES (?, ?, ?)",
-                (user_id, role, message)
-            )
-            conn.commit()
-        return True
-    except Exception as e:
-        print(f"Error saving conversation message: {e}")
-        return False
-
-def get_conversation_history(user_id, limit=20):
-    with get_db_connection() as conn:
-        try:
-            messages = conn.execute(
-                "SELECT role, message as text FROM conversation WHERE user_id = ? ORDER BY timestamp ASC LIMIT ?",
-                (user_id, limit)
-            ).fetchall()
-            
-            return [dict(message) for message in messages]
-        except Exception as e:
-            print("Error retrieving conversation history:", e)
-            return []
-
-def clear_conversation_history(user_id):
-    with get_db_connection() as conn:
-        try:
-            conn.execute("DELETE FROM conversation WHERE user_id = ?", (user_id,))
-            conn.commit()
-            return True
-        except Exception as e:
-            print("Error clearing conversation history:", e)
-            return False
-
-def save_feedback(user_id, message, feedback_type):
-    """
-    Save user feedback on chatbot responses
-    """
-    with get_db_connection() as conn:
-        try:
-            conn.execute(
-                "INSERT INTO chatbot_feedback (user_id, message, feedback_type) VALUES (?, ?, ?)",
-                (user_id, message, feedback_type)
-            )
-            conn.commit()
-            return True
-        except Exception as e:
-            print("Error saving feedback:", e)
-            return False
-
-@app.route("/chatbot_feedback", methods=["POST"])
-def chatbot_feedback():
-    """
-    Handle feedback for chatbot responses
-    """
-    data = request.get_json()
-    message = data.get("message")
-    feedback = data.get("feedback")
-    
-    if not message or not feedback:
-        return jsonify({"error": "Missing message or feedback"}), 400
-    
-    # Get user ID if logged in
-    user_id = None
-    if "username" in session:
-        user = get_user(session.get("username"))
-        if user:
-            user_id = user["id"]
-    
-    # Save feedback to database
-    success = save_feedback(user_id, message, feedback)
-    
-    if success:
-        return jsonify({"status": "success"}), 200
-    else:
-        return jsonify({"error": "Failed to save feedback"}), 500
-
-@app.route("/chatbot", methods=["POST"])
-def chatbot():
-    data = request.get_json()
-    user_input = data.get("userInput")
-    
-    if not user_input:
-        return jsonify({"error": "No user input provided."}), 400
-    
-    # Get user ID for persistent storage
-    user_id = None
-    if "username" in session:
-        user = get_user(session.get("username"))
-        if user:
-            user_id = user["id"]
-    
-    # Initialize session variables if they don't exist
-    if "conversation_state" not in session:
-        session["conversation_state"] = {}
-    conversation_state = session["conversation_state"]
-    
-    # Load conversation history from database if available, otherwise use session
-    conversation_history = []
-    if user_id:
-        conversation_history = get_conversation_history(user_id)
-    elif "conversation_history" in session:
-        conversation_history = session["conversation_history"]
-    
-    # Handle special case: clear chat request
-    if user_input.lower() in ["clear chat", "start new chat", "reset chat"]:
-        if user_id:
-            clear_conversation_history(user_id)
-        session["conversation_history"] = []
-        session["conversation_state"] = {}
-        session.modified = True
-        return jsonify({
-            "botReply": "I've cleared our conversation history. How can I help you today?",
-            "type": "clear_confirmation"
-        })
-    
-    # Handle appointment flow states
-    if conversation_state.get("awaiting_date"):
-        parsed_date = dateparser.parse(user_input)
-        if parsed_date:
-            conversation_state["date"] = parsed_date.strftime("%Y-%m-%d %H:%M")
-            conversation_state["awaiting_date"] = False
-            conversation_state["awaiting_reason"] = True
-            session.modified = True
-            
-            # Save the user message
-            conversation_history.append({"role": "user", "text": user_input})
-            if user_id:
-                save_conversation_message(user_id, "user", user_input)
-            
-            # Generate and save the bot response
-            bot_reply = f"Great! Your appointment is set for {conversation_state['date']}. Now, please describe the reason for your appointment."
-            conversation_history.append({"role": "assistant", "text": bot_reply})
-            if user_id:
-                save_conversation_message(user_id, "assistant", bot_reply)
-            
-            # Update session if needed
-            session["conversation_history"] = conversation_history
-            
-            return jsonify({
-                "botReply": bot_reply,
-                "type": "appointment_flow"
-            })
-        else:
-            return jsonify({
-                "botReply": "I couldn't understand that date format. Please try again with a valid date (e.g., 'Next Monday at 3 PM').",
-                "type": "error"
-            })
-            
-    if conversation_state.get("awaiting_reason"):
-        reason = user_input
-        user = get_user(session.get("username"))
-        
-        if not user:
-            return jsonify({"botReply": "Please log in to schedule an appointment.", "type": "error"})
-        
-        survey_data = get_survey_response(user["id"])
-        if not survey_data:
-            return jsonify({"botReply": "Please complete your profile survey first.", "type": "error"})
-        
-        survey_data = dict(survey_data)
-        appointment_id = insert_appointment_data(
-            name=survey_data["name"],
-            email=user["username"],
-            date=conversation_state["date"],
-            skin=survey_data["skin_type"],
-            phone=survey_data.get("phone", ""),
-            age=survey_data["age"],
-            address=reason,
-            status=False,
-            username=user["username"]
-        )
-        
-        # Save the user message
-        conversation_history.append({"role": "user", "text": user_input})
-        if user_id:
-            save_conversation_message(user_id, "user", user_input)
-        
-        # Generate and save the bot response
-        bot_reply = f"Your appointment has been successfully scheduled for {conversation_state['date']} with the reason: {reason}. Your reference ID is APPT-{appointment_id}."
-        conversation_history.append({"role": "assistant", "text": bot_reply})
-        if user_id:
-            save_conversation_message(user_id, "assistant", bot_reply)
-        
-        # Reset conversation state
-        session["conversation_history"] = conversation_history
-        session["conversation_state"] = {}
-        session.modified = True
-        
-        return jsonify({
-            "botReply": bot_reply,
-            "type": "appointment_confirmation",
-            "appointmentId": appointment_id
-        })
-        
-    # Handle appointment request
-    if "make an appointment" in user_input.lower():
-        conversation_state["awaiting_date"] = True
-        session.modified = True
-        
-        # Save the user message
-        conversation_history.append({"role": "user", "text": user_input})
-        if user_id:
-            save_conversation_message(user_id, "user", user_input)
-        
-        # Generate and save the bot response
-        bot_reply = "When would you like to schedule your appointment? (e.g., 'March 10 at 3 PM')"
-        conversation_history.append({"role": "assistant", "text": bot_reply})
-        if user_id:
-            save_conversation_message(user_id, "assistant", bot_reply)
-        
-        # Update session
-        session["conversation_history"] = conversation_history
-        
-        return jsonify({
-            "botReply": bot_reply,
-            "type": "appointment_flow"
-        })
-    
-    # Handle general conversation
-    # Save the user message first
-    conversation_history.append({"role": "user", "text": user_input})
-    if user_id:
-        save_conversation_message(user_id, "user", user_input)
-    
-    # Generate response
-    prompt = build_conversation_prompt(conversation_history, user_input)
-    try:
-        response = genai.GenerativeModel("gemini-1.5-flash").generate_content(prompt)
-        bot_reply = response.text
-        
-        # Process the reply only if we got something back
-        if bot_reply:
-            # Avoid overprocessing if the response is already good
-            if len(bot_reply.split()) < 30 or bot_reply[-1] not in ".!?":
-                bot_reply = langchain_summarize(bot_reply, max_length=100, min_length=40)
-            
-            # Ensure the reply is complete
-            bot_reply = complete_answer_if_incomplete(bot_reply)
-        else:
-            bot_reply = "I apologize, but I couldn't generate a response. Could you please rephrase your question?"
-        
-        # Save the bot response
-        conversation_history.append({"role": "assistant", "text": bot_reply})
-        if user_id:
-            save_conversation_message(user_id, "assistant", bot_reply)
-        
-        # Update session
-        session["conversation_history"] = conversation_history
-        
-        return jsonify({"botReply": bot_reply, "type": "general_response"})
-    except Exception as e:
-        print("Generative AI error:", e)
-        error_message = "I'm having trouble processing your request right now. Could you try again in a moment?"
-        
-        # Still save the error response for continuity
-        conversation_history.append({"role": "assistant", "text": error_message})
-        if user_id:
-            save_conversation_message(user_id, "assistant", error_message)
-        
-        # Update session
-        session["conversation_history"] = conversation_history
-        
-        return jsonify({"botReply": error_message, "type": "error"})
-
-# New route to fetch conversation history on page load
-@app.route("/get_conversation_history", methods=["GET"])
-def get_chat_history():
-    if "username" not in session:
-        return jsonify({"error": "Not logged in"}), 401
-    
-    user = get_user(session.get("username"))
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-    
-    conversation_history = get_conversation_history(user["id"])
-    return jsonify({"history": conversation_history})
-
-# New route to clear conversation history
-@app.route("/clear_conversation", methods=["POST"])
-def clear_conversation():
-    if "username" not in session:
-        return jsonify({"error": "Not logged in"}), 401
-    
-    user = get_user(session.get("username"))
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-    
-    success = clear_conversation_history(user["id"])
-    session["conversation_history"] = []
-    session["conversation_state"] = {}
-    session.modified = True
-    
-    if success:
-        return jsonify({"message": "Conversation history cleared successfully"})
-    else:
-        return jsonify({"error": "Failed to clear conversation history"}), 500
 
 @app.route("/generate_routine", methods=["POST"])
 def generate_routine():
@@ -1001,12 +637,28 @@ def documentation():
 
 @app.route("/appointment/<int:appointment_id>")
 def appointment_detail(appointment_id):
+    if "username" not in session:
+        return redirect(url_for("login"))
+    
+    username = session.get("username")
+    
+    # Get the appointment details
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        appointment = cursor.execute("SELECT * FROM appointment WHERE id = ?", (appointment_id,)).fetchone()
-        if not appointment:
-            abort(404)
-        appointment = dict(appointment)  # Convert Row to dict
+        appointment = cursor.execute(
+            "SELECT * FROM appointment WHERE id = ? AND username = ?", 
+            (appointment_id, username)
+        ).fetchone()
+    
+    if not appointment:
+        return render_template("error.html", message="Appointment not found")
+    
+    # Convert appointment to dictionary for easier access
+    appointment = dict(appointment)
+    
+    # Set concerns/notes from address field for compatibility
+    appointment['concerns'] = appointment['address']
+    
     return render_template("appointment_detail.html", appointment=appointment)
 
 @app.route("/update_appointment", methods=["POST"])
@@ -1034,39 +686,134 @@ def update_appointment():
 def delete_appointment_route():
     if "username" not in session:
         return redirect(url_for("login"))
-    user = get_user(session["username"])
-    appointment_id = request.form.get("appointment_id")
     
-    if not user:
-        return redirect(url_for("login"))
+    # Check if this is an AJAX request
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.is_json
     
-    delete_appointment(appointment_id)
-    return redirect(url_for("profile"))
+    if is_ajax:
+        data = request.get_json()
+        appointment_id = data.get("id")
+    else:
+        appointment_id = request.form.get("appointment_id")
+    
+    if not appointment_id:
+        if is_ajax:
+            return jsonify({"error": "No appointment ID provided"}), 400
+        else:
+            return redirect(url_for("userappoint"))
+    
+    try:
+        delete_appointment(appointment_id)
+        
+        if is_ajax:
+            return jsonify({"message": "Appointment deleted successfully"})
+        else:
+            return redirect(url_for("userappoint"))
+    except Exception as e:
+        app.logger.error(f"Error deleting appointment: {e}")
+        if is_ajax:
+            return jsonify({"error": str(e)}), 500
+        else:
+            return redirect(url_for("userappoint"))
 
 @app.route("/bookappointment")
 def bookappointment():
-    # Redirect to the chatbot page instead
-    return redirect(url_for('chatbot_page'))
-
-@app.route("/chatbot_page")
-def chatbot_page():
-    return render_template('chatbot.html')
+    # Get list of specialists (doctors)
+    specialists = []
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            # First ensure the doctor_profiles table exists
+            create_tables()
+            
+            try:
+                doctors = cursor.execute("""
+                    SELECT u.id, u.username, dp.name, dp.specialization 
+                    FROM users u 
+                    LEFT JOIN doctor_profiles dp ON u.id = dp.user_id 
+                    WHERE u.is_doctor = 1
+                """).fetchall()
+                
+                for doctor in doctors:
+                    specialists.append({
+                        "id": doctor["id"],
+                        "name": doctor["name"] if doctor["name"] else doctor["username"],
+                        "specialization": doctor["specialization"] if doctor["specialization"] else "General Dermatologist"
+                    })
+            except sqlite3.OperationalError as e:
+                # If the error is about the table not existing, we've already run create_tables()
+                # so this is likely due to a race condition or other issue
+                app.logger.error(f"Database error in bookappointment: {str(e)}")
+                # Continue with empty specialists list
+    except Exception as e:
+        app.logger.error(f"Error fetching doctors: {str(e)}")
+        # Continue with empty specialists list, will add default below
+    
+    # If no specialists are found, add a default one
+    if not specialists:
+        specialists.append({
+            "id": 1,
+            "name": "Dr. Smith",
+            "specialization": "General Dermatologist"
+        })
+    
+    # Define skin types
+    skin_types = ["Normal", "Dry", "Oily", "Combination", "Sensitive"]
+    
+    # Define time slots
+    time_slots = [
+        {"value": "09:00", "label": "9:00 AM"},
+        {"value": "10:00", "label": "10:00 AM"},
+        {"value": "11:00", "label": "11:00 AM"},
+        {"value": "12:00", "label": "12:00 PM"},
+        {"value": "14:00", "label": "2:00 PM"},
+        {"value": "15:00", "label": "3:00 PM"},
+        {"value": "16:00", "label": "4:00 PM"},
+        {"value": "17:00", "label": "5:00 PM"}
+    ]
+    
+    # Render the bookappointment.html template with necessary data
+    return render_template(
+        "bookappointment.html",
+        specialists=specialists,
+        skin_types=skin_types,
+        time_slots=time_slots,
+        csrf_token=lambda: ""  # Empty function for compatibility with the template
+    )
 
 @app.route("/appointment", methods=["POST"])
 def appointment():
     if "username" not in session:
         return jsonify({"error": "Unauthorized"}), 401
+    
+    # Get form data
     name = request.form.get("name")
     email = request.form.get("email")
     date = request.form.get("date")
+    time = request.form.get("time", "")  # Get time from form
+    specialist_id = request.form.get("specialist", "")  # Get specialist ID from form
     skin = request.form.get("skin")
     phone = request.form.get("phone")
     age = request.form.get("age")
-    address = request.form.get("reason")
+    concerns = request.form.get("concerns", "")  # Get concerns field from form
     username = session["username"]
-    status = False
-    appointment_id = insert_appointment_data(name, email, date, skin, phone, age, address, status, username)
-    return jsonify({"message": "Appointment successfully booked", "appointmentId": appointment_id})
+    status = "pending"
+    
+    # Combine date and time for better display
+    appointment_date = f"{date} {time}" if time else date
+    
+    # Use concerns field for address (for backward compatibility)
+    address = concerns
+    
+    # Insert appointment data
+    appointment_id = insert_appointment_data(name, email, appointment_date, skin, phone, age, address, status, username)
+    
+    # Check if this is an AJAX request
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest" or request.is_json:
+        return jsonify({"message": "Appointment successfully booked", "appointmentId": appointment_id})
+    else:
+        # If it's a regular form submission, redirect to userappointment page with success parameter
+        return redirect(url_for("userappoint", success="booked"))
 
 @app.route("/userappointment", methods=["GET"])
 def userappoint():
@@ -1364,6 +1111,57 @@ def handle_jinja_undefined_error(e):
 def handle_server_error(e):
     app.logger.error(f"Server error: {str(e)}")
     return render_template("error.html", error="An internal server error occurred. Please try again later."), 500
+
+@app.route("/setup_sample_doctors", methods=["GET"])
+def setup_sample_doctors():
+    setup_key = request.args.get('key')
+    if not setup_key or setup_key != os.getenv("SETUP_KEY", "skincare_setup"):
+        return jsonify({"error": "Unauthorized access"}), 403
+    
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Check if we already have doctor users
+            doctor_users = cursor.execute("SELECT * FROM users WHERE is_doctor = 1").fetchall()
+            
+            if not doctor_users or len(doctor_users) == 0:
+                # Create sample doctor users first
+                sample_doctors = [
+                    {"username": "dr.smith", "password": generate_password_hash("password123"), "is_doctor": 1},
+                    {"username": "dr.jones", "password": generate_password_hash("password123"), "is_doctor": 1},
+                    {"username": "dr.patel", "password": generate_password_hash("password123"), "is_doctor": 1}
+                ]
+                
+                for doctor in sample_doctors:
+                    cursor.execute("""
+                        INSERT INTO users (username, password, is_doctor)
+                        VALUES (?, ?, ?)
+                    """, (doctor["username"], doctor["password"], doctor["is_doctor"]))
+                    
+                    # Get the ID of the newly created user
+                    user_id = cursor.lastrowid
+                    
+                    # Create doctor profile
+                    cursor.execute("""
+                        INSERT INTO doctor_profiles (user_id, name, bio, specialization, experience_years)
+                        VALUES (?, ?, ?, ?, ?)
+                    """, (
+                        user_id,
+                        f"Dr. {doctor['username'].split('.')[1].capitalize()}",
+                        f"Experienced dermatologist specializing in skin conditions.",
+                        ["General Dermatology", "Cosmetic Dermatology", "Pediatric Dermatology"][random.randint(0, 2)],
+                        random.randint(5, 20)
+                    ))
+                
+                conn.commit()
+                return jsonify({"success": "Sample doctors have been added to the database."})
+            else:
+                return jsonify({"info": "Doctor users already exist in the database."})
+    
+    except Exception as e:
+        app.logger.error(f"Error setting up sample doctors: {str(e)}")
+        return jsonify({"error": f"Error setting up sample doctors: {str(e)}"}), 500
 
 if __name__ == "__main__":
     create_tables()  # Create tables if they don't exist

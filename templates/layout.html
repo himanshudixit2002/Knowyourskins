@@ -27,6 +27,7 @@
       --bg-darker: #0a0a0a;
       --bg-light: #1e1e1e;
       --border-color: rgba(255, 138, 0, 0.3);
+      --primary-rgb: 255, 138, 0;
     }
     
     body {
@@ -269,24 +270,23 @@
       to { transform: translate(-50%, -50%) rotate(360deg); }
     }
 
-    /* Header & Navigation */
+    /* Header and Navigation Styling */
     .main-header {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       z-index: 100;
-      background: rgba(10, 10, 10, 0.95);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px); /* For Safari */
-      border-bottom: 1px solid var(--border-color);
+      background: linear-gradient(135deg, rgba(18, 18, 18, 0.95), rgba(10, 10, 10, 0.98));
+      border-bottom: 1px solid rgba(255, 138, 0, 0.2);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
     
     .nav-container {
       max-width: 1280px;
       margin: 0 auto;
-      padding: 0 1rem;
-      width: 100%;
+      padding: 0 1.5rem;
     }
     
     .nav-content {
@@ -294,6 +294,7 @@
       align-items: center;
       justify-content: space-between;
       height: 70px;
+      position: relative;
     }
     
     /* Logo Styling */
@@ -303,97 +304,65 @@
     }
     
     .logo-img {
-      height: 50px;
-      width: auto;
+      height: 42px;
       max-width: 120px;
-      transition: all 0.3s ease;
+      transition: transform 0.3s ease;
     }
     
     .logo-text {
-      font-size: 1.5rem;
+      font-size: 1.25rem;
       font-weight: 700;
-      margin-left: 1rem;
-      color: var(--primary);
-      transition: all 0.3s ease;
+      margin-left: 0.75rem;
+      color: var(--text-light);
       text-decoration: none;
+      background: linear-gradient(90deg, var(--primary), var(--primary-light));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
     }
     
-    /* Navigation Menu */
+    /* Full Navigation System */
     .nav-menu {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 1rem;
     }
     
+    /* Improved text contrast and visibility */
     .nav-item {
       position: relative;
-      padding: 0.5rem 1rem;
-      color: var(--text-light);
-      font-size: 0.875rem;
+      padding: 0.75rem 1.25rem;
+      color: #f5f5f5; /* Improved text visibility */
+      font-size: 0.9rem;
       font-weight: 500;
       text-decoration: none;
-      border-radius: 6px;
-      transition: all 0.2s ease;
+      border-radius: 8px;
+      transition: all 0.3s ease;
       display: flex;
       align-items: center;
     }
     
     .nav-item:hover {
-      background: rgba(255, 138, 0, 0.1);
+      background: rgba(255, 138, 0, 0.15);
       color: var(--primary);
+      transform: translateY(-2px);
     }
     
     .nav-item.active {
-      background: linear-gradient(to right, var(--primary), var(--primary-light));
-      color: var(--bg-darker);
+      background: rgba(255, 138, 0, 0.2);
+      color: var(--primary);
       font-weight: 600;
-    }
-    
-    .nav-item.active:hover {
-      background: linear-gradient(to right, var(--primary-light), var(--primary));
+      box-shadow: 0 2px 8px rgba(255, 138, 0, 0.15);
     }
     
     .nav-item i {
       margin-right: 0.5rem;
+      color: var(--primary); /* Make icons more visible */
+      transition: transform 0.3s ease;
     }
     
-    /* Special Nav Item */
-    .nav-item-special {
-      position: relative;
-      padding: 0.5rem 1.25rem;
-      color: var(--text-light);
-      font-size: 0.875rem;
-      font-weight: 600;
-      text-decoration: none;
-      border-radius: 20px;
-      background: linear-gradient(45deg, var(--primary-dark), var(--primary));
-      overflow: hidden;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-left: 0.5rem;
-    }
-    
-    .nav-item-special:hover {
-      background: linear-gradient(45deg, var(--primary), var(--primary-dark));
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(255, 138, 0, 0.3);
-    }
-    
-    .nav-item-special::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: all 0.5s ease;
-    }
-    
-    .nav-item-special:hover::before {
-      left: 100%;
+    .nav-item:hover i {
+      transform: translateY(-1px);
     }
     
     /* Mobile Menu Button */
@@ -405,8 +374,8 @@
       font-size: 1.5rem;
       cursor: pointer;
       padding: 0.5rem;
-      border-radius: 4px;
-      transition: all 0.2s ease;
+      border-radius: 8px;
+      transition: all 0.3s ease;
       min-width: 44px;
       min-height: 44px;
       align-items: center;
@@ -414,59 +383,68 @@
     }
     
     .mobile-menu-btn:hover {
-      background: rgba(255, 138, 0, 0.1);
+      background: rgba(255, 138, 0, 0.15);
       color: var(--primary);
+      transform: translateY(-2px);
     }
     
     /* Mobile Dropdown Menu */
     .mobile-dropdown {
-      position: absolute;
+      position: fixed;
       top: 70px;
       left: 0;
       width: 100%;
-      background: rgba(10, 10, 10, 0.95);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px); /* For Safari */
-      border-bottom: 1px solid var(--border-color);
-      padding: 1rem;
-      display: none;
-      z-index: 99;
-      max-height: calc(100vh - 70px);
-      overflow-y: auto;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      max-height: 0;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(18, 18, 18, 0.97), rgba(10, 10, 10, 0.99));
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 138, 0, 0.2);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      transition: max-height 0.4s ease-in-out, padding 0.3s ease;
+      z-index: 90;
+      padding: 0 1.5rem;
+      display: flex;
+      flex-direction: column;
     }
     
     .mobile-dropdown.active {
-      display: block;
+      max-height: calc(100vh - 70px);
+      overflow-y: auto;
+      padding: 1.5rem;
     }
     
+    /* Mobile Menu Styling */
     .mobile-nav-item {
-      display: flex;
-      align-items: center;
+      margin-bottom: 0.5rem;
+      position: relative;
       padding: 0.75rem 1rem;
       color: var(--text-light);
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 500;
       text-decoration: none;
       border-radius: 8px;
-      margin-bottom: 0.75rem;
       transition: all 0.2s ease;
-      min-height: 52px; /* Better touch target */
-    }
-    
-    .mobile-nav-item:hover {
-      background: rgba(255, 138, 0, 0.1);
-      color: var(--primary);
-    }
-    
-    .mobile-nav-item.active {
-      background: linear-gradient(to right, var(--primary), var(--primary-light));
-      color: var(--bg-darker);
-      font-weight: 600;
+      display: flex;
+      align-items: center;
     }
     
     .mobile-nav-item i {
       margin-right: 0.75rem;
+      color: var(--primary);
+    }
+    
+    .mobile-nav-item:hover {
+      color: var(--primary-light);
+      background: linear-gradient(135deg, rgba(255, 138, 0, 0.15), rgba(0, 0, 0, 0.2));
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(255, 138, 0, 0.2);
+    }
+    
+    .mobile-nav-item.active {
+      color: var(--primary-light);
+      font-weight: 600;
+      background: linear-gradient(135deg, rgba(255, 138, 0, 0.2), rgba(0, 0, 0, 0.3));
     }
     
     /* Main Content */
@@ -831,6 +809,80 @@
         min-height: 44px;
       }
     }
+
+    /* Update mobile nav item spacing for better symmetry */
+    .mobile-nav-item {
+      margin-bottom: 0.5rem;
+      position: relative;
+      padding: 0.75rem 1rem;
+      color: var(--text-light);
+      font-size: 0.95rem;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+    }
+    
+    .mobile-nav-item i {
+      margin-right: 0.75rem;
+      color: var(--primary);
+    }
+    
+    .mobile-nav-item:hover {
+      color: var(--primary-light);
+      background: linear-gradient(135deg, rgba(255, 138, 0, 0.15), rgba(0, 0, 0, 0.2));
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(255, 138, 0, 0.2);
+    }
+    
+    .mobile-nav-item.active {
+      color: var(--primary-light);
+      font-weight: 600;
+      background: linear-gradient(135deg, rgba(255, 138, 0, 0.2), rgba(0, 0, 0, 0.3));
+    }
+
+    .nav-items {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;  /* Increased spacing between nav items */
+    }
+    
+    .nav-item {
+      position: relative;
+      padding: 0.25rem 0.5rem;
+      color: var(--text-light);
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+    
+    .nav-item:hover {
+      color: var(--primary-light);
+      background: linear-gradient(135deg, rgba(255, 138, 0, 0.15), rgba(0, 0, 0, 0.2));
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(255, 138, 0, 0.2);
+    }
+    
+    .nav-item.active {
+      color: var(--primary-light);
+      font-weight: 600;
+      background: linear-gradient(135deg, rgba(255, 138, 0, 0.2), rgba(0, 0, 0, 0.3));
+    }
+    
+    .nav-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+      border-radius: 1px;
+    }
   </style>
 </head>
 <body>
@@ -876,8 +928,8 @@
           <a href="{{ url_for('profile') }}" class="nav-item {% if request.endpoint == 'profile' %}active{% endif %}">
             <i class="fas fa-user-circle"></i>Profile
           </a>
-          <a href="{{ url_for('bookappointment') }}" class="nav-item-special">
-            <i class="fas fa-robot"></i>BOT
+          <a href="{{ url_for('bookappointment') }}" class="nav-item {% if request.endpoint == 'bookappointment' or request.endpoint == 'consultation' %}active{% endif %}">
+            <i class="fas fa-calendar-plus"></i>Book Appointment
           </a>
           
           {% if session.get('username') %}
@@ -911,8 +963,8 @@
     
     <!-- Mobile Dropdown Menu -->
     <div id="mobile-dropdown" class="mobile-dropdown">
-      <a href="{{ url_for('bookappointment') }}" class="mobile-nav-item {% if request.endpoint == 'bookappointment' %}active{% endif %}">
-        <i class="fas fa-robot"></i>AI Skin Assistant
+      <a href="{{ url_for('bookappointment') }}" class="mobile-nav-item {% if request.endpoint == 'bookappointment' or request.endpoint == 'consultation' %}active{% endif %}">
+        <i class="fas fa-calendar-plus"></i>Book Appointment
       </a>
       <a href="{{ url_for('predict') }}" class="mobile-nav-item {% if request.endpoint == 'predict' %}active{% endif %}">
         <i class="fas fa-camera-retro"></i>Face Analysis
@@ -1002,7 +1054,7 @@
             </a>
             <a href="{{ url_for('bookappointment') }}" class="footer-link">
               <i class="fas fa-calendar-plus"></i>
-              Consultation
+              Book Appointment
             </a>
             <a href="{{ url_for('profile') }}" class="footer-link">
               <i class="fas fa-user-circle"></i>
@@ -1041,7 +1093,7 @@
   </footer>
 
   <script>
-    // Mobile menu toggle
+    // Mobile menu toggle with improved animations
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
     const mobileDropdown = document.getElementById('mobile-dropdown');
     
@@ -1053,48 +1105,73 @@
       if (mobileDropdown.classList.contains('active')) {
         icon.classList.remove('bi-list');
         icon.classList.add('bi-x-lg');
+        mobileMenuBtn.style.background = 'rgba(255, 138, 0, 0.15)';
+        mobileMenuBtn.style.color = 'var(--primary)';
       } else {
         icon.classList.remove('bi-x-lg');
         icon.classList.add('bi-list');
+        mobileMenuBtn.style.background = 'transparent';
+        mobileMenuBtn.style.color = 'var(--text-light)';
       }
     });
     
-    // Close mobile menu when clicking outside
+    // Close mobile menu when clicking outside with smooth animations
     document.addEventListener('click', function(event) {
-      if (!mobileMenuBtn.contains(event.target) && !mobileDropdown.contains(event.target)) {
+      if (!mobileMenuBtn.contains(event.target) && !mobileDropdown.contains(event.target) && mobileDropdown.classList.contains('active')) {
         mobileDropdown.classList.remove('active');
         const icon = mobileMenuBtn.querySelector('i');
         icon.classList.remove('bi-x-lg');
         icon.classList.add('bi-list');
+        mobileMenuBtn.style.background = 'transparent';
+        mobileMenuBtn.style.color = 'var(--text-light)';
       }
     });
     
-    // Interactive button effects
+    // Enhanced interactive button effects
     document.querySelectorAll('.interactive-btn').forEach(button => {
       button.addEventListener('mouseenter', function() {
-        this.style.transform = 'translateY(-2px)';
+        this.style.transform = 'translateY(-3px)';
+        this.style.boxShadow = '0 6px 15px rgba(255, 138, 0, 0.3)';
       });
       
       button.addEventListener('mouseleave', function() {
         this.style.transform = 'translateY(0)';
+        this.style.boxShadow = '';
       });
     });
     
-    // Add active class to current page nav item
+    // Add active class to current page nav items with proper handling for special routes
     document.addEventListener('DOMContentLoaded', function() {
       const currentPath = window.location.pathname;
       
+      // Handle special case for consultation route which should highlight Book Appointment
+      const isConsultation = currentPath.includes('/consultation');
+      
       // Desktop menu
-      document.querySelectorAll('.nav-item, .nav-item-special').forEach(item => {
+      document.querySelectorAll('.nav-item').forEach(item => {
         const href = item.getAttribute('href');
+        
+        // Handle the special case for book appointment / consultation
+        if (item.textContent.trim().includes('Book Appointment') && isConsultation) {
+          item.classList.add('active');
+          return;
+        }
+        
         if (href === currentPath) {
           item.classList.add('active');
         }
       });
       
-      // Mobile menu
+      // Mobile menu with the same special case handling
       document.querySelectorAll('.mobile-nav-item').forEach(item => {
         const href = item.getAttribute('href');
+        
+        // Handle the special case for book appointment / consultation
+        if (item.textContent.trim().includes('Book Appointment') && isConsultation) {
+          item.classList.add('active');
+          return;
+        }
+        
         if (href === currentPath) {
           item.classList.add('active');
         }
