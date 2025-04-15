@@ -1036,6 +1036,452 @@
     background: #FF7A00;
     transform: translateY(-2px);
   }
+
+  /* Product Card */
+  .product-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 0.8rem;
+    margin: 0.5rem 0;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.3s ease;
+  }
+
+  .product-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .product-title {
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    color: rgba(255, 255, 255, 0.95);
+  }
+
+  .product-detail {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0.2rem;
+  }
+
+  .product-ingredients {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  /* Image Upload */
+  .image-upload-container {
+    display: none;
+    margin-top: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px dashed rgba(255, 138, 0, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  .image-upload-container.visible {
+    display: block;
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+
+  .image-upload-btn {
+    background: rgba(255, 138, 0, 0.7);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    width: 100%;
+    text-align: center;
+  }
+
+  .image-upload-btn:hover {
+    background: rgba(255, 138, 0, 0.9);
+    transform: translateY(-2px);
+  }
+
+  .image-preview {
+    width: 100%;
+    max-height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-top: 0.5rem;
+    display: none;
+  }
+
+  /* Action Buttons */
+  .action-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .action-btn {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    font-size: 0.85rem;
+  }
+
+  .action-btn:hover {
+    background: rgba(255, 138, 0, 0.2);
+    transform: translateY(-2px);
+  }
+
+  .action-btn i {
+    margin-right: 0.3rem;
+  }
+
+  /* Skincare Routine Card */
+  .routine-card {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 0.8rem;
+    margin: 0.5rem 0;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .routine-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: rgba(255, 255, 255, 0.95);
+    display: flex;
+    align-items: center;
+  }
+
+  .routine-title i {
+    margin-right: 0.5rem;
+    color: #FF9F5A;
+  }
+
+  .routine-step {
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  /* Analysis Options Container */
+  .analysis-options-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 500px;
+    background: rgba(30, 35, 45, 0.95);
+    backdrop-filter: blur(15px);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 138, 0, 0.2);
+    z-index: 100;
+    animation: fadeInScale 0.3s ease-out forwards;
+  }
+
+  .analysis-header {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  .analysis-options {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .analysis-option {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .analysis-option:hover {
+    background: rgba(255, 138, 0, 0.15);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .option-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 25px;
+    background: rgba(255, 138, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+  }
+
+  .option-icon i {
+    font-size: 1.5rem;
+    color: #FF9F5A;
+  }
+
+  .option-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: white;
+    margin-bottom: 0.5rem;
+  }
+
+  .option-description {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.4;
+  }
+
+  .cancel-btn {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    padding: 0.6rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cancel-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .cancel-btn i {
+    margin-right: 0.5rem;
+  }
+
+  /* Image Upload Styles */
+  .image-upload-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    max-width: 450px;
+    background: rgba(30, 35, 45, 0.95);
+    backdrop-filter: blur(15px);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 138, 0, 0.2);
+    z-index: 100;
+    animation: fadeInScale 0.3s ease-out forwards;
+  }
+
+  .upload-header {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+
+  .upload-description {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+
+  .image-upload-btn {
+    background: rgba(255, 138, 0, 0.7);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .image-upload-btn:hover {
+    background: rgba(255, 138, 0, 0.9);
+    transform: translateY(-2px);
+  }
+
+  .image-preview {
+    width: 100%;
+    max-height: 200px;
+    object-fit: contain;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: none;
+  }
+
+  .medical-disclaimer {
+    background: rgba(255, 70, 70, 0.1);
+    border-left: 3px solid rgba(255, 70, 70, 0.5);
+    padding: 0.7rem;
+    margin-top: 0.8rem;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.85);
+    border-radius: 4px;
+    line-height: 1.4;
+  }
+
+  .medical-disclaimer i {
+    color: rgba(255, 70, 70, 0.8);
+    margin-right: 0.5rem;
+  }
+
+  .analysis-result {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1rem;
+    margin: 0.8rem 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .disease-result {
+    border-left: 3px solid rgba(255, 138, 0, 0.6);
+  }
+
+  .result-item {
+    margin-bottom: 0.6rem;
+    line-height: 1.4;
+  }
+
+  .result-label {
+    font-weight: 600;
+    color: rgba(255, 138, 0, 0.9);
+    margin-right: 0.3rem;
+  }
+
+  .analysis-text {
+    margin-top: 0.8rem;
+  }
+
+  .analyzed-image-container {
+    position: relative;
+    margin: 1rem 0;
+    text-align: center;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  }
+
+  .analyzed-image {
+    width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    display: block;
+  }
+
+  .image-label {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  .recommendations-container {
+    margin: 1rem 0;
+  }
+
+  .recommendations-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: rgba(255, 138, 0, 0.9);
+    margin-bottom: 0.7rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Product Card - Enhanced */
+  .product-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    margin: 0.7rem 0;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .product-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .product-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: rgba(255, 255, 255, 0.95);
+    position: relative;
+    padding-bottom: 0.4rem;
+  }
+
+  .product-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background: rgba(255, 138, 0, 0.5);
+  }
+
+  .product-detail {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 0.4rem;
+  }
+
+  .product-ingredients {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.4;
+  }
 </style>
 
 <div class="container-main">
@@ -1055,6 +1501,9 @@
         </div>
       </div>
       <div class="chat-header-right">
+        <button id="analyzeOptionsBtn" class="header-button tooltip" data-tooltip="Skin Analysis Options">
+          <i class="fas fa-camera"></i>
+        </button>
         <button id="clearChatBtn" class="header-button tooltip" data-tooltip="Clear chat">
           <i class="fas fa-broom"></i>
         </button>
@@ -1082,6 +1531,11 @@
             </button>
           </div>
         </div>
+        <div class="action-buttons">
+          <button class="action-btn" onclick="triggerAction('analysis-options')"><i class="fas fa-camera"></i>Analyze Skin</button>
+          <button class="action-btn" onclick="triggerAction('routine')"><i class="fas fa-list-check"></i>Get Routine</button>
+          <button class="action-btn" onclick="triggerAction('appointment')"><i class="fas fa-calendar"></i>Book Appointment</button>
+        </div>
       </div>
     </div>
 
@@ -1095,6 +1549,54 @@
     <button class="scroll-bottom-btn" id="scrollBottomBtn">
       <i class="fas fa-arrow-down"></i>
     </button>
+
+    <!-- Analysis Options Container -->
+    <div class="analysis-options-container" id="analysisOptionsContainer" style="display: none;">
+      <div class="analysis-header">Choose Analysis Type</div>
+      <div class="analysis-options">
+        <div class="analysis-option" id="faceAnalysisOption">
+          <div class="option-icon"><i class="fas fa-face-smile"></i></div>
+          <div class="option-title">Face Analysis</div>
+          <div class="option-description">Analyze general skin condition, acne, and recommend personalized skincare</div>
+        </div>
+        <div class="analysis-option" id="diseaseAnalysisOption">
+          <div class="option-icon"><i class="fas fa-microscope"></i></div>
+          <div class="option-title">Disease Detection</div>
+          <div class="option-description">Identify potential skin diseases and conditions with our AI model</div>
+        </div>
+      </div>
+      <button class="cancel-btn" id="cancelAnalysisOptions"><i class="fas fa-times"></i> Cancel</button>
+    </div>
+
+    <!-- Face Analysis Upload Container -->
+    <div class="image-upload-container" id="faceAnalysisContainer" style="display: none;">
+      <div class="upload-header">Upload a clear image of your face</div>
+      <div class="upload-description">For best results, use good lighting and capture your entire face</div>
+      <input type="file" id="faceImageInput" accept="image/*" style="display: none;">
+      <button class="image-upload-btn" id="browseFaceImageBtn">
+        <i class="fas fa-upload"></i> Browse Image
+      </button>
+      <img id="faceImagePreview" class="image-preview">
+      <div class="action-buttons">
+        <button class="action-btn" id="cancelFaceUploadBtn"><i class="fas fa-times"></i>Cancel</button>
+        <button class="action-btn" id="submitFaceImageBtn"><i class="fas fa-paper-plane"></i>Analyze</button>
+      </div>
+    </div>
+
+    <!-- Disease Analysis Upload Container -->
+    <div class="image-upload-container" id="diseaseAnalysisContainer" style="display: none;">
+      <div class="upload-header">Upload an image of the affected skin area</div>
+      <div class="upload-description">Focus on the specific area with the skin condition</div>
+      <input type="file" id="diseaseImageInput" accept="image/*" style="display: none;">
+      <button class="image-upload-btn" id="browseDiseaseImageBtn">
+        <i class="fas fa-upload"></i> Browse Image
+      </button>
+      <img id="diseaseImagePreview" class="image-preview">
+      <div class="action-buttons">
+        <button class="action-btn" id="cancelDiseaseUploadBtn"><i class="fas fa-times"></i>Cancel</button>
+        <button class="action-btn" id="submitDiseaseImageBtn"><i class="fas fa-paper-plane"></i>Analyze</button>
+      </div>
+    </div>
 
     <!-- Chat Input Area -->
     <div class="chat-input-container">
@@ -1127,6 +1629,43 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    // Debug mode for development
+    const isDebugMode = false; // Set to true to enable debugging
+    
+    function debugLog(...args) {
+        if (isDebugMode) {
+            console.log(...args);
+        }
+    }
+    
+    // Add debug button if in debug mode
+    if (isDebugMode) {
+        const debugBtn = document.createElement('button');
+        debugBtn.className = 'header-button tooltip';
+        debugBtn.setAttribute('data-tooltip', 'Debug Mode');
+        debugBtn.innerHTML = '<i class="fas fa-bug"></i>';
+        debugBtn.style.background = 'rgba(255, 0, 0, 0.2)';
+        debugBtn.onclick = () => {
+            const lastResponse = localStorage.getItem('lastApiResponse');
+            if (lastResponse) {
+                console.log('Last API Response:', JSON.parse(lastResponse));
+                alert('Last API response logged to console');
+            } else {
+                alert('No API response saved yet');
+            }
+        };
+        document.querySelector('.chat-header-right').prepend(debugBtn);
+    }
+    
+    // Add debug storage for API responses
+    function storeApiResponse(endpoint, data) {
+        if (isDebugMode) {
+            localStorage.setItem('lastApiResponse', JSON.stringify(data));
+            localStorage.setItem('lastApiEndpoint', endpoint);
+            debugLog(`API Response from ${endpoint}:`, data);
+        }
+    }
+    
     const chatMessages = document.getElementById('chatMessages');
     const chatInput = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendBtn');
@@ -1135,6 +1674,342 @@ document.addEventListener('DOMContentLoaded', () => {
     const newMsgAlert = document.getElementById('newMsgAlert');
     const suggestionChips = document.getElementById('suggestionChips');
     const categoryBtns = document.querySelectorAll('.category-btn');
+    
+    // Analysis options elements
+    const analyzeOptionsBtn = document.getElementById('analyzeOptionsBtn');
+    const analysisOptionsContainer = document.getElementById('analysisOptionsContainer');
+    const faceAnalysisOption = document.getElementById('faceAnalysisOption');
+    const diseaseAnalysisOption = document.getElementById('diseaseAnalysisOption');
+    const cancelAnalysisOptions = document.getElementById('cancelAnalysisOptions');
+    
+    // Face analysis elements
+    const faceAnalysisContainer = document.getElementById('faceAnalysisContainer');
+    const faceImageInput = document.getElementById('faceImageInput');
+    const browseFaceImageBtn = document.getElementById('browseFaceImageBtn');
+    const faceImagePreview = document.getElementById('faceImagePreview');
+    const cancelFaceUploadBtn = document.getElementById('cancelFaceUploadBtn');
+    const submitFaceImageBtn = document.getElementById('submitFaceImageBtn');
+    
+    // Disease analysis elements
+    const diseaseAnalysisContainer = document.getElementById('diseaseAnalysisContainer');
+    const diseaseImageInput = document.getElementById('diseaseImageInput');
+    const browseDiseaseImageBtn = document.getElementById('browseDiseaseImageBtn');
+    const diseaseImagePreview = document.getElementById('diseaseImagePreview');
+    const cancelDiseaseUploadBtn = document.getElementById('cancelDiseaseUploadBtn');
+    const submitDiseaseImageBtn = document.getElementById('submitDiseaseImageBtn');
+    
+    // Show analysis options
+    analyzeOptionsBtn.addEventListener('click', () => {
+        analysisOptionsContainer.style.display = 'block';
+    });
+    
+    // Hide analysis options
+    cancelAnalysisOptions.addEventListener('click', () => {
+        analysisOptionsContainer.style.display = 'none';
+    });
+    
+    // Face analysis selection
+    faceAnalysisOption.addEventListener('click', () => {
+        analysisOptionsContainer.style.display = 'none';
+        faceAnalysisContainer.style.display = 'block';
+    });
+    
+    // Disease analysis selection
+    diseaseAnalysisOption.addEventListener('click', () => {
+        analysisOptionsContainer.style.display = 'none';
+        diseaseAnalysisContainer.style.display = 'block';
+    });
+    
+    // Face analysis image handling
+    browseFaceImageBtn.addEventListener('click', () => {
+        faceImageInput.click();
+    });
+    
+    faceImageInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                faceImagePreview.style.display = 'block';
+                faceImagePreview.src = e.target.result;
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
+    
+    cancelFaceUploadBtn.addEventListener('click', () => {
+        faceAnalysisContainer.style.display = 'none';
+        faceImageInput.value = '';
+        faceImagePreview.style.display = 'none';
+        faceImagePreview.src = '';
+    });
+    
+    submitFaceImageBtn.addEventListener('click', async () => {
+        if (!faceImageInput.files || !faceImageInput.files[0]) {
+            alert('Please select an image first');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('image', faceImageInput.files[0]);
+        
+        faceAnalysisContainer.style.display = 'none';
+        appendUserMessage("I'd like to analyze my facial skin condition.");
+        showTypingIndicator();
+        
+        try {
+            debugLog('Sending face analysis request...');
+            const response = await fetch('/face_analysis', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            storeApiResponse('/face_analysis', data);
+            removeTypingIndicator();
+            
+            if (data.error) {
+                appendBotMessage(`I couldn't analyze the facial image: ${data.error}`);
+                return;
+            }
+            
+            // Create HTML content for face analysis results
+            let resultHTML = '<div class="analysis-result">';
+            
+            if (data.acne_level) {
+                resultHTML += `<div class="result-item"><span class="result-label">Acne Level:</span> ${data.acne_level}</div>`;
+            }
+            
+            if (data.skin_type) {
+                resultHTML += `<div class="result-item"><span class="result-label">Skin Type:</span> ${data.skin_type}</div>`;
+            }
+            
+            if (data.concerns && Array.isArray(data.concerns)) {
+                resultHTML += `<div class="result-item"><span class="result-label">Detected Concerns:</span> ${data.concerns.join(', ')}</div>`;
+            } else if (data.concerns) {
+                resultHTML += `<div class="result-item"><span class="result-label">Detected Concerns:</span> ${data.concerns}</div>`;
+            }
+            
+            if (data.analysis) {
+                resultHTML += `<div class="result-item analysis-text"><span class="result-label">Analysis:</span> ${data.analysis}</div>`;
+            }
+            
+            resultHTML += '</div>';
+            
+            // Add analyzed image if available
+            let imageHTML = '';
+            if (data.annotated_image) {
+                imageHTML = `<div class="analyzed-image-container">
+                    <img src="${data.annotated_image}" alt="Analyzed Face" class="analyzed-image">
+                    <div class="image-label">Analysis Results</div>
+                </div>`;
+            } else if (data.image) {
+                imageHTML = `<div class="analyzed-image-container">
+                    <img src="${data.image}" alt="Analyzed Face" class="analyzed-image">
+                    <div class="image-label">Analysis Results</div>
+                </div>`;
+            }
+            
+            // Prepare recommendations if available
+            let recommendationsHTML = '';
+            if (data.recommendations && Array.isArray(data.recommendations) && data.recommendations.length > 0) {
+                recommendationsHTML = '<div class="recommendations-container">';
+                recommendationsHTML += '<div class="recommendations-title">Recommended Products:</div>';
+                
+                data.recommendations.slice(0, 3).forEach(product => {
+                    recommendationsHTML += createProductCard(product);
+                });
+                
+                recommendationsHTML += '</div>';
+            }
+            
+            // Add action buttons for face analysis
+            const actionButtons = `
+                <div class="action-buttons">
+                    <button class="action-btn" onclick="triggerAction('routine')"><i class="fas fa-list-check"></i>Get Routine</button>
+                    <button class="action-btn" onclick="window.location.href='/survey'"><i class="fas fa-clipboard-list"></i>Update Profile</button>
+                </div>
+            `;
+            
+            appendBotMessage(
+                "Here are the results of your facial skin analysis:", 
+                resultHTML + imageHTML + recommendationsHTML + actionButtons
+            );
+            
+            console.log("Face analysis response:", data);
+            
+            // Reset
+            faceImageInput.value = '';
+            faceImagePreview.style.display = 'none';
+            faceImagePreview.src = '';
+            
+        } catch (error) {
+            console.error('Error with face analysis:', error);
+            removeTypingIndicator();
+            appendBotMessage("I'm having trouble analyzing your facial image. Please try again later. Technical details: " + error.message);
+            
+            // Reset
+            faceImageInput.value = '';
+            faceImagePreview.style.display = 'none';
+            faceImagePreview.src = '';
+        }
+    });
+    
+    // Disease analysis image handling
+    browseDiseaseImageBtn.addEventListener('click', () => {
+        diseaseImageInput.click();
+    });
+    
+    diseaseImageInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                diseaseImagePreview.style.display = 'block';
+                diseaseImagePreview.src = e.target.result;
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
+    
+    cancelDiseaseUploadBtn.addEventListener('click', () => {
+        diseaseAnalysisContainer.style.display = 'none';
+        diseaseImageInput.value = '';
+        diseaseImagePreview.style.display = 'none';
+        diseaseImagePreview.src = '';
+    });
+    
+    submitDiseaseImageBtn.addEventListener('click', async () => {
+        if (!diseaseImageInput.files || !diseaseImageInput.files[0]) {
+            alert('Please select an image first');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('image', diseaseImageInput.files[0]);
+        
+        diseaseAnalysisContainer.style.display = 'none';
+        appendUserMessage("I'd like to check for potential skin diseases.");
+        showTypingIndicator();
+        
+        try {
+            debugLog('Sending skin disease analysis request...');
+            const response = await fetch('/skin_predict', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            storeApiResponse('/skin_predict', data);
+            removeTypingIndicator();
+            
+            if (data.error) {
+                appendBotMessage(`I couldn't analyze the skin condition: ${data.error}`);
+                return;
+            }
+            
+            console.log("Skin disease analysis response:", data);
+            
+            // Create HTML content for disease analysis results
+            let resultHTML = '<div class="analysis-result disease-result">';
+            
+            if (data.predicted_disease) {
+                resultHTML += `<div class="result-item"><span class="result-label">Detected Condition:</span> ${data.predicted_disease}</div>`;
+            } else if (data.disease) {
+                resultHTML += `<div class="result-item"><span class="result-label">Detected Condition:</span> ${data.disease}</div>`;
+            }
+            
+            if (data.confidence) {
+                // Format confidence as percentage if it's a number
+                const confidenceValue = typeof data.confidence === 'number' 
+                    ? `${Math.round(data.confidence * 100)}%` 
+                    : data.confidence;
+                resultHTML += `<div class="result-item"><span class="result-label">Confidence:</span> ${confidenceValue}</div>`;
+            }
+            
+            if (data.description) {
+                resultHTML += `<div class="result-item analysis-text"><span class="result-label">Description:</span> ${data.description}</div>`;
+            }
+            
+            if (data.treatment) {
+                resultHTML += `<div class="result-item analysis-text"><span class="result-label">Possible Treatments:</span> ${data.treatment}</div>`;
+            }
+            
+            // Add warning for disease detection
+            resultHTML += `<div class="medical-disclaimer"><i class="fas fa-exclamation-triangle"></i> This is only an AI-based assessment and should not replace professional medical advice. Please consult a dermatologist for proper diagnosis.</div>`;
+            
+            resultHTML += '</div>';
+            
+            // Add analyzed image if available
+            let imageHTML = '';
+            if (data.processed_image) {
+                imageHTML = `<div class="analyzed-image-container">
+                    <img src="${data.processed_image}" alt="Analyzed Skin Condition" class="analyzed-image">
+                    <div class="image-label">Disease Detection Results</div>
+                </div>`;
+            } else if (data.image) {
+                imageHTML = `<div class="analyzed-image-container">
+                    <img src="${data.image}" alt="Analyzed Skin Condition" class="analyzed-image">
+                    <div class="image-label">Disease Detection Results</div>
+                </div>`;
+            }
+            
+            // Add action buttons for disease analysis
+            const actionButtons = `
+                <div class="action-buttons">
+                    <button class="action-btn" onclick="window.location.href='/skin_disease_prediction'"><i class="fas fa-microscope"></i>Detailed Analysis</button>
+                    <button class="action-btn" onclick="triggerAction('appointment')"><i class="fas fa-calendar"></i>Book Appointment</button>
+                </div>
+            `;
+            
+            appendBotMessage(
+                "Here are the results of your skin condition analysis:", 
+                resultHTML + imageHTML + actionButtons
+            );
+            
+            // Reset
+            diseaseImageInput.value = '';
+            diseaseImagePreview.style.display = 'none';
+            diseaseImagePreview.src = '';
+            
+        } catch (error) {
+            console.error('Error with skin disease analysis:', error);
+            removeTypingIndicator();
+            appendBotMessage("I'm having trouble analyzing your skin condition image. Please try again later. Technical details: " + error.message);
+            
+            // Reset
+            diseaseImageInput.value = '';
+            diseaseImagePreview.style.display = 'none';
+            diseaseImagePreview.src = '';
+        }
+    });
+    
+    // Action triggers
+    window.triggerAction = function(action) {
+        switch(action) {
+            case 'analysis-options':
+                analysisOptionsContainer.style.display = 'block';
+                break;
+            case 'face-analysis':
+                faceAnalysisContainer.style.display = 'block';
+                break;
+            case 'disease-analysis':
+                diseaseAnalysisContainer.style.display = 'block';
+                break;
+            case 'routine':
+                sendMessage("I need a personalized skincare routine");
+                break;
+            case 'appointment':
+                sendMessage("Make an appointment");
+                break;
+        }
+    };
     
     // Suggestion categories
     const suggestions = {
@@ -1235,11 +2110,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Append a bot message
-    function appendBotMessage(text) {
+    function appendBotMessage(text, additionalContent = null) {
         const messageGroup = document.createElement('div');
         messageGroup.classList.add('message-group', 'bot');
         
-        messageGroup.innerHTML = `
+        let messageHTML = `
             <div class="message-header">
                 <div class="bot-avatar">
                     <img src="${window.location.origin}/static/assets/bot.png" alt="Bot Avatar">
@@ -1259,9 +2134,56 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         
+        if (additionalContent) {
+            messageHTML += additionalContent;
+        }
+        
+        messageGroup.innerHTML = messageHTML;
         chatMessages.appendChild(messageGroup);
         setupCopyButtons();
         scrollToBottomWithCheck();
+    }
+    
+    // Create product card HTML
+    function createProductCard(product) {
+        // Handle different possible product data structures
+        const brand = product.brand || product.name.split(' ')[0] || '';
+        const name = product.name || 'Product';
+        const price = product.price || '';
+        const ingredients = product.ingredients || product.key_ingredients || '';
+        
+        let priceDisplay = '';
+        if (price) {
+            // Check if price already has a currency symbol
+            const hasCurrency = /^[₹$€£]/.test(price.toString());
+            priceDisplay = hasCurrency ? price : `₹${price}`;
+        }
+        
+        return `
+            <div class="product-card">
+                <div class="product-title">${brand} ${name}</div>
+                ${priceDisplay ? `<div class="product-detail">Price: ${priceDisplay}</div>` : ''}
+                ${ingredients ? `<div class="product-ingredients">Key ingredients: ${ingredients}</div>` : ''}
+            </div>
+        `;
+    }
+    
+    // Create skincare routine HTML
+    function createRoutineHTML(routineType, steps) {
+        const icon = routineType === 'morning' ? 'sun' : 'moon';
+        const title = routineType === 'morning' ? 'Morning Routine' : 'Night Routine';
+        
+        let stepsHTML = '';
+        steps.forEach((step, index) => {
+            stepsHTML += `<div class="routine-step">${index + 1}. ${step}</div>`;
+        });
+        
+        return `
+            <div class="routine-card">
+                <div class="routine-title"><i class="fas fa-${icon}"></i> ${title}</div>
+                ${stepsHTML}
+            </div>
+        `;
     }
 
     // Scroll to bottom of chat
@@ -1363,7 +2285,93 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const data = await response.json();
                     removeTypingIndicator();
-                    appendBotMessage(data.botReply || "I'm here to assist with your skincare needs!");
+                    
+                    // Check if this is a special response type
+                    if (data.type === 'appointment_flow' || data.type === 'appointment_confirmation') {
+                        // Add appointment-specific buttons
+                        const appointmentButtons = `
+                            <div class="action-buttons">
+                                <button class="action-btn" onclick="window.location.href='/userappointment'"><i class="fas fa-calendar-check"></i>View Appointments</button>
+                                <button class="action-btn" onclick="window.location.href='/bookappointment'"><i class="fas fa-calendar-plus"></i>Appointment Page</button>
+                            </div>
+                        `;
+                        appendBotMessage(data.botReply || "I'll help you schedule an appointment.", appointmentButtons);
+                    } 
+                    else if (message.toLowerCase().includes('routine') || message.toLowerCase().includes('regimen')) {
+                        // Create a mock routine for display purposes
+                        // In a real app, this would come from the backend
+                        const morningSteps = [
+                            "Gentle Cleanser",
+                            "Vitamin C Serum",
+                            "Hydrating Moisturizer",
+                            "SPF 30+ Sunscreen"
+                        ];
+                        
+                        const nightSteps = [
+                            "Oil Cleanser",
+                            "Water-based Cleanser",
+                            "Exfoliant (2-3 times weekly)",
+                            "Hydrating Toner",
+                            "Treatment Serum",
+                            "Night Cream"
+                        ];
+                        
+                        const routineHTML = `
+                            ${createRoutineHTML('morning', morningSteps)}
+                            ${createRoutineHTML('night', nightSteps)}
+                        `;
+                        
+                        const routineButtons = `
+                            <div class="action-buttons">
+                                <button class="action-btn" onclick="window.location.href='/profile'"><i class="fas fa-user"></i>View Full Profile</button>
+                                <button class="action-btn" onclick="window.location.href='/survey'"><i class="fas fa-clipboard-list"></i>Update Survey</button>
+                            </div>
+                        `;
+                        
+                        appendBotMessage(data.botReply || "Here's a suggested skincare routine based on your profile:", routineHTML + routineButtons);
+                    }
+                    else if (message.toLowerCase().includes('product') || message.toLowerCase().includes('recommend')) {
+                        // Create mock product recommendations
+                        // In a real app, this would come from the backend
+                        const products = [
+                            {
+                                brand: "CeraVe",
+                                name: "Hydrating Cleanser",
+                                price: "899",
+                                ingredients: "Ceramides, Hyaluronic Acid, Glycerin"
+                            },
+                            {
+                                brand: "The Ordinary",
+                                name: "Niacinamide 10% + Zinc 1%",
+                                price: "750",
+                                ingredients: "Niacinamide, Zinc PCA, Glycerin"
+                            },
+                            {
+                                brand: "Neutrogena",
+                                name: "Hydro Boost Water Gel",
+                                price: "1200",
+                                ingredients: "Hyaluronic Acid, Glycerin, Dimethicone"
+                            }
+                        ];
+                        
+                        let productsHTML = '';
+                        products.forEach(product => {
+                            productsHTML += createProductCard(product);
+                        });
+                        
+                        const productButtons = `
+                            <div class="action-buttons">
+                                <button class="action-btn" onclick="triggerAction('analyze')"><i class="fas fa-camera"></i>Analyze Skin</button>
+                                <button class="action-btn" onclick="window.location.href='/predict'"><i class="fas fa-search"></i>More Products</button>
+                            </div>
+                        `;
+                        
+                        appendBotMessage(data.botReply || "Here are some recommended products based on your skin type:", productsHTML + productButtons);
+                    }
+                    else {
+                        // Regular response
+                        appendBotMessage(data.botReply || "I'm here to assist with your skincare needs!");
+                    }
                 } catch (error) {
                     console.error('Error:', error);
                     removeTypingIndicator();
