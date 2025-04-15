@@ -1344,65 +1344,252 @@ def clear_conversation_history(user_id=None):
 @app.route("/chatbot", methods=["POST"])
 def chatbot():
     try:
-        data = request.json
-        user_input = data.get("userInput", "").strip()
-        print("Chatbot endpoint hit. Received user input:", user_input)
+        data = request.get_json()
+        user_input = data.get("userInput")
         
         if not user_input:
-            print("No userInput provided.")
-            return jsonify({"botReply": "I didn't receive a message. Could you please try again?"})
+            return jsonify({"error": "No user input provided."}), 400
         
-        # Save user message for conversation history
-        save_conversation_message('user', user_input, session.get('user_id'))
+        # Get user ID for persistent storage
+        user_id = None
+        if "username" in session:
+            user = get_user(session.get("username"))
+            if user:
+                user_id = user["id"]
         
-        # Retrieve conversation history and build the prompt
-        history = get_conversation_history(session.get('user_id'))[-8:]
-        prompt = build_conversation_prompt(history, user_input)
-        print("Built prompt for Gemini API:\n", prompt)
+        # Initialize session variables if they don't exist
+        if "conversation_state" not in session:
+            session["conversation_state"] = {}
+        conversation_state = session["conversation_state"]
         
-        # Call the Gemini API
-        headers = {"Content-Type": "application/json"}
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
-        response = requests.post(url, headers=headers, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=15)
-        print("Gemini API status:", response.status_code)
-        
-        if response.status_code == 200:
-            data = response.json()
-            bot_reply = (data.get("candidates", [{}])[0]
-                         .get("content", {})
-                         .get("parts", [{}])[0]
-                         .get("text", ""))
-            bot_reply = complete_answer_if_incomplete(bot_reply.strip())
-            bot_reply = refine_response(bot_reply)
-            print("Bot reply:", bot_reply)
-            save_conversation_message('assistant', bot_reply, session.get('user_id'))
-            return jsonify({"botReply": bot_reply})
+        # Load conversation history from database if available, otherwise use session
+        conversation_history = []
+        if user_id:
+            conversation_history = get_conversation_history(user_id)
+        elif "conversation_history" in session:
+            conversation_history = session["conversation_history"]
         else:
-            print(f"Error from Gemini API: {response.status_code} - {response.text}")
-            return jsonify({"botReply": "I'm having trouble processing your request right now. Please try again later."})
+            session["conversation_history"] = []
+            conversation_history = []
+        
+        # Handle special case: clear chat request
+        if user_input.lower() in ["clear chat", "start new chat", "reset chat"]:
+            if user_id:
+                clear_conversation_history(user_id)
+            session["conversation_history"] = []
+            session["conversation_state"] = {}
+            session.modified = True
+            return jsonify({
+                "botReply": "I've cleared our conversation history. How can I help you today?",
+                "type": "clear_confirmation"
+            })
+        
+        # Handle appointment flow states
+        if conversation_state.get("awaiting_date"):
+            try:
+                parsed_date = dateparser.parse(user_input)
+                if parsed_date:
+                    conversation_state["date"] = parsed_date.strftime("%Y-%m-%d %H:%M")
+                    conversation_state["awaiting_date"] = False
+                    conversation_state["awaiting_reason"] = True
+                    session.modified = True
+                    
+                    # Save the user message
+                    conversation_history.append({"role": "user", "text": user_input})
+                    if user_id:
+                        save_conversation_message("user", user_input, user_id)
+                    
+                    # Generate and save the bot response
+                    bot_reply = f"Great! Your appointment is set for {conversation_state['date']}. Now, please describe the reason for your appointment."
+                    conversation_history.append({"role": "assistant", "text": bot_reply})
+                    if user_id:
+                        save_conversation_message("assistant", bot_reply, user_id)
+                    
+                    # Update session if needed
+                    session["conversation_history"] = conversation_history
+                    
+                    return jsonify({
+                        "botReply": bot_reply,
+                        "type": "appointment_flow"
+                    })
+                else:
+                    return jsonify({
+                        "botReply": "I couldn't understand that date format. Please try again with a valid date (e.g., 'Next Monday at 3 PM').",
+                        "type": "error"
+                    })
+            except Exception as date_error:
+                print(f"Date parsing error: {str(date_error)}")
+                return jsonify({
+                    "botReply": "There was an issue processing the date. Please try again with a different format.",
+                    "type": "error"
+                })
+                
+        if conversation_state.get("awaiting_reason"):
+            try:
+                reason = user_input
+                user = get_user(session.get("username"))
+                
+                if not user:
+                    return jsonify({"botReply": "Please log in to schedule an appointment.", "type": "error"})
+                
+                survey_data = get_survey_response(user["id"])
+                if not survey_data:
+                    return jsonify({"botReply": "Please complete your profile survey first.", "type": "error"})
+                
+                survey_data = dict(survey_data)
+                appointment_id = insert_appointment_data(
+                    name=survey_data["name"],
+                    email=user["username"],
+                    date=conversation_state["date"],
+                    skin=survey_data["skin_type"],
+                    phone=survey_data.get("phone", ""),
+                    age=survey_data["age"],
+                    address=reason,
+                    status=False,
+                    username=user["username"]
+                )
+                
+                # Save the user message
+                conversation_history.append({"role": "user", "text": user_input})
+                if user_id:
+                    save_conversation_message("user", user_input, user_id)
+                
+                # Generate and save the bot response
+                bot_reply = f"Your appointment has been successfully scheduled for {conversation_state['date']} with the reason: {reason}. Your reference ID is APPT-{appointment_id}."
+                conversation_history.append({"role": "assistant", "text": bot_reply})
+                if user_id:
+                    save_conversation_message("assistant", bot_reply, user_id)
+                
+                # Reset conversation state
+                session["conversation_history"] = conversation_history
+                session["conversation_state"] = {}
+                session.modified = True
+                
+                return jsonify({
+                    "botReply": bot_reply,
+                    "type": "appointment_confirmation",
+                    "appointmentId": appointment_id
+                })
+            except Exception as appointment_error:
+                print(f"Appointment creation error: {str(appointment_error)}")
+                return jsonify({
+                    "botReply": "There was an issue scheduling your appointment. Please try again later or contact support.",
+                    "type": "error"
+                })
+            
+        # Handle appointment request
+        if "make an appointment" in user_input.lower():
+            conversation_state["awaiting_date"] = True
+            session.modified = True
+            
+            # Save the user message
+            conversation_history.append({"role": "user", "text": user_input})
+            if user_id:
+                save_conversation_message("user", user_input, user_id)
+            
+            # Generate and save the bot response
+            bot_reply = "When would you like to schedule your appointment? (e.g., 'March 10 at 3 PM')"
+            conversation_history.append({"role": "assistant", "text": bot_reply})
+            if user_id:
+                save_conversation_message("assistant", bot_reply, user_id)
+            
+            # Update session
+            session["conversation_history"] = conversation_history
+            
+            return jsonify({
+                "botReply": bot_reply,
+                "type": "appointment_flow"
+            })
+        
+        # Handle general conversation
+        # Save the user message first
+        conversation_history.append({"role": "user", "text": user_input})
+        if user_id:
+            save_conversation_message("user", user_input, user_id)
+        
+        # Generate response
+        prompt = build_conversation_prompt(conversation_history, user_input)
+        try:
+            # Set a timeout for the API call
+            response = genai.GenerativeModel("gemini-1.5-flash").generate_content(prompt)
+            bot_reply = response.text
+            
+            # Process the reply only if we got something back
+            if bot_reply:
+                try:
+                    # Avoid overprocessing if the response is already good
+                    if len(bot_reply.split()) < 30 or bot_reply[-1] not in ".!?":
+                        bot_reply = langchain_summarize(bot_reply, max_length=100, min_length=40)
+                    
+                    # Ensure the reply is complete
+                    bot_reply = complete_answer_if_incomplete(bot_reply)
+                except Exception as process_error:
+                    print(f"Response processing error: {str(process_error)}")
+                    # If post-processing fails, still return the original response
+                    pass
+            else:
+                bot_reply = "I apologize, but I couldn't generate a response. Could you please rephrase your question?"
+            
+            # Save the bot response
+            conversation_history.append({"role": "assistant", "text": bot_reply})
+            if user_id:
+                save_conversation_message("assistant", bot_reply, user_id)
+            
+            # Update session
+            session["conversation_history"] = conversation_history
+            
+            return jsonify({"botReply": bot_reply, "type": "general_response"})
+        except Exception as gemini_error:
+            print(f"Generative AI error: {str(gemini_error)}")
+            error_message = "I'm having trouble connecting to my knowledge base right now. Could you try again in a moment?"
+            return jsonify({"botReply": error_message, "type": "error"})
+    
     except Exception as e:
-        print("Chatbot error:", str(e))
-        traceback.print_exc()
-        return jsonify({"botReply": "I encountered an error while processing your message. Please try again."})
-
-
-@app.route("/get_conversation_history", methods=["GET"])
-def get_conversation_history_route():
-    """API endpoint to get conversation history."""
-    user_id = session.get('user_id')
-    history = get_conversation_history(user_id)
-    return jsonify(history)
+        import traceback
+        print(f"Chatbot route error: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({"botReply": "I encountered an error while processing your message. Please try again.", "type": "error"}), 500
 
 @app.route("/clear_conversation", methods=["POST"])
 def clear_conversation():
-    """API endpoint to clear conversation history."""
-    user_id = session.get('user_id')
-    clear_conversation_history(user_id)
-    return jsonify({"success": True})
+    try:
+        # Clear conversation in database if user is logged in
+        if "username" in session:
+            user = get_user(session.get("username"))
+            if user:
+                clear_conversation_history(user["id"])
+        
+        # Clear conversation in session
+        session["conversation_history"] = []
+        session["conversation_state"] = {}
+        session.modified = True
+        
+        return jsonify({"success": True})
+    except Exception as e:
+        print("Error clearing conversation:", str(e))
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/get_conversation_history", methods=["GET"])
+def get_conversation_history_route():
+    try:
+        # Get conversation from database if user is logged in
+        if "username" in session:
+            user = get_user(session.get("username"))
+            if user:
+                history = get_conversation_history(user["id"])
+                return jsonify(history)
+        
+        # Otherwise return from session
+        if "conversation_history" in session:
+            return jsonify(session["conversation_history"])
+        
+        return jsonify([])
+    except Exception as e:
+        print("Error fetching conversation history:", str(e))
+        return jsonify([]), 500
 
 @app.route("/chatbot_page")
 def chatbot_page():
-    """Renders the chatbot UI page."""
     return render_template("chatbot.html")
 
 if __name__ == "__main__":
