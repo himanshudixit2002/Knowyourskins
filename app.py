@@ -29,6 +29,11 @@ import gdown
 import json
 import jinja2
 import random
+import time
+import re
+from deep_translator import GoogleTranslator
+from textblob import TextBlob
+from langdetect import detect
 
 # -----------------------------------------------------------------------------
 # Load Environment Variables and App Configuration
@@ -55,6 +60,22 @@ class_mapping = {
     "dry": "dryness",
     "combination": "combination skin",
     "normal": "normal skin"
+}
+
+# Initialize translator for multilingual support
+supported_languages = {
+    "en": "english",
+    "es": "spanish",
+    "fr": "french",
+    "de": "german", 
+    "it": "italian",
+    "pt": "portuguese",
+    "ru": "russian",
+    "zh-cn": "chinese (simplified)",
+    "ja": "japanese",
+    "ko": "korean",
+    "ar": "arabic",
+    "hi": "hindi"
 }
 
 # -----------------------------------------------------------------------------
@@ -230,6 +251,27 @@ def create_tables():
             role TEXT NOT NULL,
             text TEXT NOT NULL,
             timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        conn.execute('''
+        CREATE TABLE IF NOT EXISTS chatbot_feedback (
+            id INTEGER PRIMARY KEY,
+            user_id TEXT,
+            message_id TEXT,
+            rating INTEGER,
+            feedback_text TEXT,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
+        conn.execute('''
+        CREATE TABLE IF NOT EXISTS user_preferences (
+            id INTEGER PRIMARY KEY,
+            user_id INTEGER UNIQUE,
+            language TEXT DEFAULT 'en',
+            notifications_enabled INTEGER DEFAULT 0,
+            preferred_theme TEXT DEFAULT 'light'
         )
         ''')
         
@@ -485,6 +527,401 @@ def get_skincare_routine(user_id):
         if routine:
             return dict(routine)
         return {"morning_routine": "No routine found", "night_routine": "No routine found"}
+
+# -----------------------------------------------------------------------------
+# Chatbot Enhanced Functions
+# -----------------------------------------------------------------------------
+
+def detect_language(text):
+    """Detect the language of the input text"""
+    try:
+        detected = detect(text)
+        return detected
+    except:
+        return "en"  # Default to English on error
+
+def translate_text(text, target_language="en"):
+    """Translate text to the target language using deep_translator"""
+    if target_language == "en" or not text:
+        return text
+    
+    try:
+        source_lang = detect_language(text)
+        if source_lang == target_language:
+            return text
+        
+        # Check if both languages are supported
+        if source_lang in supported_languages and target_language in supported_languages:
+            translator = GoogleTranslator(source=source_lang, target=target_language)
+            translated_text = translator.translate(text)
+            return translated_text
+        else:
+            return text  # Return original if language not supported
+    except Exception as e:
+        print(f"Translation error: {str(e)}")
+        return text  # Return original text on error
+
+def analyze_sentiment(text):
+    """Analyze sentiment of the input text"""
+    try:
+        analysis = TextBlob(text)
+        # Score ranges from -1 (negative) to 1 (positive)
+        score = analysis.sentiment.polarity
+        
+        if score <= -0.5:
+            return "very_negative"
+        elif -0.5 < score <= -0.1:
+            return "negative"
+        elif -0.1 < score < 0.1:
+            return "neutral"
+        elif 0.1 <= score < 0.5:
+            return "positive"
+        else:
+            return "very_positive"
+    except:
+        return "neutral"  # Default to neutral on error
+
+def generate_quick_replies(conversation_history, user_input):
+    """Generate suggested quick replies based on conversation context"""
+    # Default suggestions
+    default_suggestions = [
+        "Tell me about acne treatments",
+        "How to care for dry skin?",
+        "Recommend products for sensitive skin",
+        "Make an appointment"
+    ]
+    
+    # Check for specific contexts to provide relevant suggestions
+    lower_input = user_input.lower()
+    
+    if "acne" in lower_input:
+        return [
+            "What causes acne?",
+            "How to prevent acne?",
+            "Best ingredients for acne",
+            "Is my acne severe?"
+        ]
+    elif "dry" in lower_input and "skin" in lower_input:
+        return [
+            "Moisturizers for dry skin",
+            "Why is my skin so dry?",
+            "Home remedies for dry skin",
+            "When to see a doctor for dry skin"
+        ]
+    elif "oily" in lower_input and "skin" in lower_input:
+        return [
+            "How to reduce oil production",
+            "Best cleansers for oily skin",
+            "Is oily skin genetic?",
+            "Oily skin and acne connection"
+        ]
+    elif "routine" in lower_input or "regimen" in lower_input:
+        return [
+            "Morning skincare routine",
+            "Night skincare routine",
+            "How often to exfoliate?",
+            "Do I need sunscreen daily?"
+        ]
+    elif "ingredient" in lower_input:
+        return [
+            "Benefits of retinol",
+            "What is hyaluronic acid?",
+            "AHA vs BHA",
+            "Is niacinamide good for my skin?"
+        ]
+    elif any(word in lower_input for word in ["appointment", "doctor", "dermatologist", "visit"]):
+        return [
+            "Make an appointment",
+            "What to expect at appointment",
+            "How to prepare for appointment",
+            "Virtual consultation options"
+        ]
+    
+    # Use default suggestions if no specific context is detected
+    return default_suggestions
+
+def create_rich_response(text, conversation_history=None, user_input=None, sentiment=None):
+    """Create a rich response with additional UI elements based on content"""
+    response = {
+        "text": text,
+        "type": "text"
+    }
+    
+    # Add quick replies/suggested responses
+    if conversation_history and user_input:
+        response["suggestions"] = generate_quick_replies(conversation_history, user_input)
+    
+    # Check for product recommendations in the text
+    if re.search(r'recommend|products|try using|consider using', text, re.IGNORECASE):
+        # Extract product names using simple pattern matching
+        # This could be improved with NER or better extraction techniques
+        product_matches = re.findall(r'(?:try|use|consider|recommend)(?:ing)? ([A-Z][A-Za-z\s\']+(?:cleanser|moisturizer|serum|cream|lotion|sunscreen|toner))', text)
+        
+        if product_matches:
+            products = []
+            for match in product_matches[:3]:  # Limit to 3 products
+                # Here you would ideally look up the product in your database
+                # For now, we'll create dummy data
+                products.append({
+                    "name": match.strip(),
+                    "image": "/static/images/product_placeholder.jpg",
+                    "description": f"A skincare product that might help with your concerns.",
+                    "link": "#"
+                })
+            
+            if products:
+                response["products"] = products
+                response["type"] = "product_recommendation"
+    
+    # Check for routine recommendations
+    elif re.search(r'routine|regimen|steps|morning|night', text, re.IGNORECASE):
+        routine_steps = []
+        
+        # Look for numbered steps or bullet points
+        step_matches = re.findall(r'(?:\d+\.\s+|\*\s+)([^\n\.]+)', text)
+        
+        if step_matches:
+            for step in step_matches:
+                routine_steps.append(step.strip())
+            
+            response["routine_steps"] = routine_steps
+            response["type"] = "routine"
+    
+    # Check for educational content about ingredients
+    elif re.search(r'ingredient|benefit|contain|function', text, re.IGNORECASE):
+        # Look for ingredient names
+        ingredients = re.findall(r'(?:ingredient[s]? like|such as|including) ([A-Za-z\s,]+)(?:\.|\sand)', text)
+        
+        if ingredients:
+            response["type"] = "educational"
+            response["ingredients"] = [ing.strip() for ing in ingredients[0].split(',') if ing.strip()]
+    
+    # Add sentiment analysis results for the AI to track user satisfaction
+    if sentiment:
+        response["detected_sentiment"] = sentiment
+    
+    return response
+
+def get_user_language_preference(user_id):
+    """Get user's language preference from database"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        preference = cursor.execute(
+            "SELECT language FROM user_preferences WHERE user_id = ?", 
+            (user_id,)
+        ).fetchone()
+        
+        if preference:
+            return preference["language"]
+    
+    return "en"  # Default to English
+
+def set_user_language_preference(user_id, language_code):
+    """Set user's language preference in database"""
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM user_preferences WHERE user_id = ?", (user_id,))
+        existing = cursor.fetchone()
+        
+        if existing:
+            cursor.execute(
+                "UPDATE user_preferences SET language = ? WHERE user_id = ?",
+                (language_code, user_id)
+            )
+        else:
+            cursor.execute(
+                "INSERT INTO user_preferences (user_id, language) VALUES (?, ?)",
+                (user_id, language_code)
+            )
+        conn.commit()
+
+def save_chatbot_feedback(user_id, message_id, rating, feedback_text=""):
+    """Save user feedback about chatbot responses"""
+    with get_db_connection() as conn:
+        conn.execute(
+            """INSERT INTO chatbot_feedback 
+            (user_id, message_id, rating, feedback_text)
+            VALUES (?, ?, ?, ?)""",
+            (user_id, message_id, rating, feedback_text)
+        )
+        conn.commit()
+
+def refine_response(response):
+    """Post-processes the chatbot response to ensure it's concise, valuable and well-structured."""
+    if not response:
+        return "I'm not sure about that. Please consider consulting with a dermatologist for personalized advice."
+    
+    # Trim any leading/trailing whitespace or common AI-generated fillers
+    response = response.strip()
+    
+    # Remove common verbose AI introductions
+    filler_phrases = [
+        "As an AI assistant, I",
+        "As a skincare assistant, I",
+        "Based on the information provided,",
+        "I'd be happy to help with that.",
+        "Thank you for your question.",
+        "That's a great question.",
+        "I'd like to provide some information about",
+        "I can certainly help with that.",
+        "Let me answer that for you.",
+    ]
+    
+    for phrase in filler_phrases:
+        if response.startswith(phrase):
+            response = response[len(phrase):].strip()
+            # Remove additional connecting words if they exist
+            for connector in [", ", ". ", "! "]:
+                if response.startswith(connector):
+                    response = response[len(connector):].strip()
+    
+    # Capitalize first letter if needed
+    if response and not response[0].isupper():
+        response = response[0].upper() + response[1:]
+    
+    # If response is too long (over 500 chars), try to summarize with the Gemini API
+    if len(response) > 500:
+        try:
+            headers = {"Content-Type": "application/json"}
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+            
+            summarize_prompt = f"Summarize this skincare advice in 2-3 concise, valuable sentences, keeping all important recommendations and warnings: {response}"
+            
+            summary_response = requests.post(
+                url, 
+                headers=headers, 
+                json={"contents": [{"parts": [{"text": summarize_prompt}]}]}
+            )
+            
+            if summary_response.status_code == 200:
+                data = summary_response.json()
+                summary = (data.get("candidates", [{}])[0]
+                           .get("content", {})
+                           .get("parts", [{}])[0]
+                           .get("text", ""))
+                
+                if summary and len(summary) < len(response):
+                    return summary.strip()
+        except Exception:
+            # If summarization fails, return the original but slightly truncated
+            pass
+            
+    return response
+
+def complete_answer_if_incomplete(answer):
+    """Checks if the chatbot's answer is complete and continues it if necessary."""
+    # Check if answer ends with proper punctuation
+    if not answer.rstrip().endswith(('.', '!', '?', ':', ';', '"', ')', ']', '}')):
+        # Answer appears incomplete, so continue it
+        continuation_prompt = f"Continue the following answer: {answer}"
+        
+        headers = {"Content-Type": "application/json"}
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+        response = requests.post(url, headers=headers, json={"contents": [{"parts": [{"text": continuation_prompt}]}]})
+        
+        if response.status_code == 200:
+            data = response.json()
+            continuation = (data.get("candidates", [{}])[0]
+                           .get("content", {})
+                           .get("parts", [{}])[0]
+                           .get("text", ""))
+            return answer + " " + continuation.strip()
+    
+    return answer
+
+def get_conversation_history(user_id=None):
+    """Gets the conversation history for a user or session."""
+    with get_db_connection() as conn:
+        if user_id:
+            history = conn.execute(
+                "SELECT role, text FROM conversations WHERE user_id = ? ORDER BY timestamp", 
+                (user_id,)
+            ).fetchall()
+        else:
+            # For non-logged-in users, use session ID
+            session_id = session.get('session_id')
+            if not session_id:
+                return []
+                
+            history = conn.execute(
+                "SELECT role, text FROM conversations WHERE user_id = ? ORDER BY timestamp", 
+                (session_id,)
+            ).fetchall()
+        
+        return [dict(h) for h in history]
+
+def save_conversation_message(role, text, user_id=None):
+    """Saves a message to the conversation history."""
+    with get_db_connection() as conn:
+        if user_id:
+            conn.execute(
+                "INSERT INTO conversations (user_id, role, text) VALUES (?, ?, ?)",
+                (user_id, role, text)
+            )
+        else:
+            # For non-logged-in users, use session ID
+            session_id = session.get('session_id')
+            if not session_id:
+                session_id = str(uuid.uuid4())
+                session['session_id'] = session_id
+                
+            conn.execute(
+                "INSERT INTO conversations (user_id, role, text) VALUES (?, ?, ?)",
+                (session_id, role, text)
+            )
+        conn.commit()
+
+def clear_conversation_history(user_id=None):
+    """Clears the conversation history for a user or session."""
+    with get_db_connection() as conn:
+        if user_id:
+            conn.execute("DELETE FROM conversations WHERE user_id = ?", (user_id,))
+        else:
+            # For non-logged-in users, use session ID
+            session_id = session.get('session_id')
+            if session_id:
+                conn.execute("DELETE FROM conversations WHERE user_id = ?", (session_id,))
+        conn.commit()
+
+# Updated build_conversation_prompt to support advanced context handling
+def build_conversation_prompt(history, user_input):
+    """Builds a conversation prompt for the chatbot, including conversation history and user input."""
+    prompt = """You are KnowYourSkins AI Assistant, an expert skincare advisor. Follow these guidelines:
+
+1. ACCURACY: Provide accurate skincare information based on dermatological science. Never invent facts.
+2. CONCISENESS: Keep answers brief, focused, and to the point (1-3 sentences when possible). No fluff or unnecessary explanations.
+3. VALUE: Prioritize actionable advice and practical recommendations over general information.
+4. TONE: Professional but conversational and empathetic. Acknowledge skin concerns with understanding.
+5. CAUTION: For skin concerns that may require medical attention, recommend professional consultation with a dermatologist.
+6. PERSONALIZATION: Use context from previous messages to tailor your advice.
+7. RICH CONTENT: When appropriate, include product recommendations, routine steps, or ingredient information that the UI can format as cards.
+
+Your strengths include general skincare advice, recommending routines, explaining ingredients, and suggesting daily skincare habits.
+
+FORMATTING GUIDELINES:
+- For product recommendations, use the format: "I recommend [Product Name] for your concern."
+- For routines, use numbered steps: "1. Cleanse with a gentle cleanser..."
+- For ingredient education, mention "ingredients like [ingredient list]" 
+
+LIMITATIONS: Do NOT attempt to diagnose skin conditions, analyze skin images, or provide medical treatment recommendations. Always refer users to consult with a dermatologist for diagnosis of skin conditions.
+
+If unsure, acknowledge limitations rather than guessing. Skin health is important - accuracy matters.
+
+"""
+    
+    # Add conversation history
+    if history:
+        prompt += "Previous conversation:\n"
+        for msg in history:
+            if msg['role'] == 'user':
+                prompt += f"User: {msg['text']}\n"
+            else:
+                prompt += f"Assistant: {msg['text']}\n"
+    
+    # Add current user input
+    prompt += f"\nCurrent question: {user_input}\n\nYour concise, accurate response:"
+    
+    return prompt
 
 # -----------------------------------------------------------------------------
 # Flask Routes
@@ -1173,176 +1610,6 @@ def setup_sample_doctors():
         app.logger.error(f"Error setting up sample doctors: {str(e)}")
         return jsonify({"error": f"Error setting up sample doctors: {str(e)}"}), 500
 
-def build_conversation_prompt(history, user_input):
-    """Builds a conversation prompt for the chatbot, including conversation history and user input."""
-    prompt = """You are KnowYourSkins AI Assistant, an expert skincare advisor. Follow these guidelines:
-
-1. ACCURACY: Provide accurate skincare information based on dermatological science. Never invent facts.
-2. CONCISENESS: Keep answers brief, focused, and to the point (1-3 sentences when possible). No fluff or unnecessary explanations.
-3. VALUE: Prioritize actionable advice and practical recommendations over general information.
-4. TONE: Professional but conversational and empathetic. Acknowledge skin concerns with understanding.
-5. CAUTION: For skin concerns that may require medical attention, recommend professional consultation with a dermatologist.
-6. PERSONALIZATION: Use context from previous messages to tailor your advice.
-
-Your strengths include general skincare advice, recommending routines, explaining ingredients, and suggesting daily skincare habits.
-
-LIMITATIONS: Do NOT attempt to diagnose skin conditions, analyze skin images, or provide medical treatment recommendations. Always refer users to consult with a dermatologist for diagnosis of skin conditions.
-
-If unsure, acknowledge limitations rather than guessing. Skin health is important - accuracy matters.
-
-"""
-    
-    # Add conversation history
-    if history:
-        prompt += "Previous conversation:\n"
-        for msg in history:
-            if msg['role'] == 'user':
-                prompt += f"User: {msg['text']}\n"
-            else:
-                prompt += f"Assistant: {msg['text']}\n"
-    
-    # Add current user input
-    prompt += f"\nCurrent question: {user_input}\n\nYour concise, accurate response:"
-    
-    return prompt
-
-def refine_response(response):
-    """Post-processes the chatbot response to ensure it's concise, valuable and well-structured."""
-    if not response:
-        return "I'm not sure about that. Please consider consulting with a dermatologist for personalized advice."
-    
-    # Trim any leading/trailing whitespace or common AI-generated fillers
-    response = response.strip()
-    
-    # Remove common verbose AI introductions
-    filler_phrases = [
-        "As an AI assistant, I",
-        "As a skincare assistant, I",
-        "Based on the information provided,",
-        "I'd be happy to help with that.",
-        "Thank you for your question.",
-        "That's a great question.",
-        "I'd like to provide some information about",
-        "I can certainly help with that.",
-        "Let me answer that for you.",
-    ]
-    
-    for phrase in filler_phrases:
-        if response.startswith(phrase):
-            response = response[len(phrase):].strip()
-            # Remove additional connecting words if they exist
-            for connector in [", ", ". ", "! "]:
-                if response.startswith(connector):
-                    response = response[len(connector):].strip()
-    
-    # Capitalize first letter if needed
-    if response and not response[0].isupper():
-        response = response[0].upper() + response[1:]
-    
-    # If response is too long (over 500 chars), try to summarize with the Gemini API
-    if len(response) > 500:
-        try:
-            headers = {"Content-Type": "application/json"}
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
-            
-            summarize_prompt = f"Summarize this skincare advice in 2-3 concise, valuable sentences, keeping all important recommendations and warnings: {response}"
-            
-            summary_response = requests.post(
-                url, 
-                headers=headers, 
-                json={"contents": [{"parts": [{"text": summarize_prompt}]}]}
-            )
-            
-            if summary_response.status_code == 200:
-                data = summary_response.json()
-                summary = (data.get("candidates", [{}])[0]
-                           .get("content", {})
-                           .get("parts", [{}])[0]
-                           .get("text", ""))
-                
-                if summary and len(summary) < len(response):
-                    return summary.strip()
-        except Exception:
-            # If summarization fails, return the original but slightly truncated
-            pass
-            
-    return response
-
-def complete_answer_if_incomplete(answer):
-    """Checks if the chatbot's answer is complete and continues it if necessary."""
-    # Check if answer ends with proper punctuation
-    if not answer.rstrip().endswith(('.', '!', '?', ':', ';', '"', ')', ']', '}')):
-        # Answer appears incomplete, so continue it
-        continuation_prompt = f"Continue the following answer: {answer}"
-        
-        headers = {"Content-Type": "application/json"}
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
-        response = requests.post(url, headers=headers, json={"contents": [{"parts": [{"text": continuation_prompt}]}]})
-        
-        if response.status_code == 200:
-            data = response.json()
-            continuation = (data.get("candidates", [{}])[0]
-                           .get("content", {})
-                           .get("parts", [{}])[0]
-                           .get("text", ""))
-            return answer + " " + continuation.strip()
-    
-    return answer
-
-def get_conversation_history(user_id=None):
-    """Gets the conversation history for a user or session."""
-    with get_db_connection() as conn:
-        if user_id:
-            history = conn.execute(
-                "SELECT role, text FROM conversations WHERE user_id = ? ORDER BY timestamp", 
-                (user_id,)
-            ).fetchall()
-        else:
-            # For non-logged-in users, use session ID
-            session_id = session.get('session_id')
-            if not session_id:
-                return []
-                
-            history = conn.execute(
-                "SELECT role, text FROM conversations WHERE user_id = ? ORDER BY timestamp", 
-                (session_id,)
-            ).fetchall()
-        
-        return [dict(h) for h in history]
-
-def save_conversation_message(role, text, user_id=None):
-    """Saves a message to the conversation history."""
-    with get_db_connection() as conn:
-        if user_id:
-            conn.execute(
-                "INSERT INTO conversations (user_id, role, text) VALUES (?, ?, ?)",
-                (user_id, role, text)
-            )
-        else:
-            # For non-logged-in users, use session ID
-            session_id = session.get('session_id')
-            if not session_id:
-                session_id = str(uuid.uuid4())
-                session['session_id'] = session_id
-                
-            conn.execute(
-                "INSERT INTO conversations (user_id, role, text) VALUES (?, ?, ?)",
-                (session_id, role, text)
-            )
-        conn.commit()
-
-def clear_conversation_history(user_id=None):
-    """Clears the conversation history for a user or session."""
-    with get_db_connection() as conn:
-        if user_id:
-            conn.execute("DELETE FROM conversations WHERE user_id = ?", (user_id,))
-        else:
-            # For non-logged-in users, use session ID
-            session_id = session.get('session_id')
-            if session_id:
-                conn.execute("DELETE FROM conversations WHERE user_id = ?", (session_id,))
-        conn.commit()
-
 @app.route("/chatbot", methods=["POST"])
 def chatbot():
     try:
@@ -1352,12 +1619,59 @@ def chatbot():
         if not user_input:
             return jsonify({"error": "No user input provided."}), 400
         
+        # Track if we need to simulate typing indicator
+        should_simulate_typing = True
+        
         # Get user ID for persistent storage
         user_id = None
         if "username" in session:
             user = get_user(session.get("username"))
             if user:
                 user_id = user["id"]
+        
+        # Check for language preference
+        user_language = "en"  # Default to English
+        if user_id:
+            user_language = get_user_language_preference(user_id)
+        
+        # Detect input language and handle language preference
+        detected_language = detect_language(user_input)
+        
+        # Handle language change request
+        if re.search(r'(?:speak|talk|switch to|change to|use) (english|spanish|french|german|italian|portuguese|russian|chinese|japanese|korean|arabic)', user_input, re.IGNORECASE):
+            language_match = re.search(r'(?:speak|talk|switch to|change to|use) (english|spanish|french|german|italian|portuguese|russian|chinese|japanese|korean|arabic)', user_input, re.IGNORECASE)
+            if language_match:
+                requested_language = language_match.group(1).lower()
+                language_code = {
+                    "english": "en",
+                    "spanish": "es",
+                    "french": "fr",
+                    "german": "de",
+                    "italian": "it",
+                    "portuguese": "pt",
+                    "russian": "ru",
+                    "chinese": "zh-cn",
+                    "japanese": "ja",
+                    "korean": "ko",
+                    "arabic": "ar"
+                }.get(requested_language, "en")
+                
+                if user_id:
+                    set_user_language_preference(user_id, language_code)
+                
+                user_language = language_code
+                response_text = f"I'll now communicate in {requested_language.title()}."
+                
+                # Translate response if not English
+                if language_code != "en":
+                    response_text = translate_text(response_text, language_code)
+                
+                return jsonify({
+                    "botReply": response_text,
+                    "type": "language_change",
+                    "language": language_code,
+                    "needsTypingIndicator": False
+                })
         
         # Initialize session variables if they don't exist
         if "conversation_state" not in session:
@@ -1381,10 +1695,36 @@ def chatbot():
             session["conversation_history"] = []
             session["conversation_state"] = {}
             session.modified = True
+            
+            response_text = "I've cleared our conversation history. How can I help you today?"
+            
+            # Translate response if needed
+            if user_language != "en":
+                response_text = translate_text(response_text, user_language)
+            
             return jsonify({
-                "botReply": "I've cleared our conversation history. How can I help you today?",
-                "type": "clear_confirmation"
+                "botReply": response_text,
+                "type": "clear_confirmation",
+                "needsTypingIndicator": False
             })
+        
+        # Handle feedback submission
+        if user_input.startswith("/feedback"):
+            parts = user_input.split(" ", 3)
+            if len(parts) >= 3:
+                message_id = parts[1]
+                rating = int(parts[2])
+                feedback_text = parts[3] if len(parts) > 3 else ""
+                
+                # Save feedback
+                user_identifier = user_id if user_id else session.get('session_id', str(uuid.uuid4()))
+                save_chatbot_feedback(user_identifier, message_id, rating, feedback_text)
+                
+                return jsonify({
+                    "botReply": "Thank you for your feedback! It helps me improve.",
+                    "type": "feedback_confirmation",
+                    "needsTypingIndicator": False
+                })
         
         # If user asks about skin analysis or diagnosis, redirect them
         if any(term in user_input.lower() for term in ["analyze my skin", "diagnose my skin", "skin diagnosis", "analyze photo", "check my face", "analyze my face", "skin disease", "what disease", "what condition"]):
@@ -1395,6 +1735,11 @@ def chatbot():
             
             # Generate and save the bot response
             bot_reply = "I can't analyze skin conditions or diagnose skin diseases through chat. Please use our dedicated Skin Analysis tool or Skin Disease Prediction tool from the main menu, or consult with a dermatologist for a professional diagnosis."
+            
+            # Translate if needed
+            if user_language != "en":
+                bot_reply = translate_text(bot_reply, user_language)
+                
             conversation_history.append({"role": "assistant", "text": bot_reply})
             if user_id:
                 save_conversation_message("assistant", bot_reply, user_id)
@@ -1404,7 +1749,9 @@ def chatbot():
             
             return jsonify({
                 "botReply": bot_reply,
-                "type": "general_response"
+                "type": "tool_suggestion",
+                "tools": ["skin_analysis", "skin_disease_prediction"],
+                "needsTypingIndicator": should_simulate_typing
             })
         
         # Handle appointment flow states
@@ -1525,13 +1872,24 @@ def chatbot():
             })
         
         # Handle general conversation
+        # Analyze sentiment of user input
+        sentiment = analyze_sentiment(user_input)
+        
+        # Translate user input to English if it's in another language
+        original_input = user_input
+        if detected_language != "en" and detected_language != user_language:
+            # Keep original for response but translate for processing
+            user_input_for_ai = translate_text(user_input, "en")
+        else:
+            user_input_for_ai = user_input
+            
         # Save the user message first
-        conversation_history.append({"role": "user", "text": user_input})
+        conversation_history.append({"role": "user", "text": original_input})
         if user_id:
-            save_conversation_message("user", user_input, user_id)
+            save_conversation_message("user", original_input, user_id)
         
         # Generate response
-        prompt = build_conversation_prompt(conversation_history, user_input)
+        prompt = build_conversation_prompt(conversation_history, user_input_for_ai)
         try:
             # Set a timeout for the API call
             response = genai.GenerativeModel("gemini-1.5-flash").generate_content(prompt)
@@ -1553,6 +1911,11 @@ def chatbot():
             else:
                 bot_reply = "I apologize, but I couldn't generate a response. Could you please rephrase your question?"
             
+            # Translate the response if needed
+            original_reply = bot_reply
+            if user_language != "en":
+                bot_reply = translate_text(bot_reply, user_language)
+                
             # Save the bot response
             conversation_history.append({"role": "assistant", "text": bot_reply})
             if user_id:
@@ -1561,17 +1924,72 @@ def chatbot():
             # Update session
             session["conversation_history"] = conversation_history
             
-            return jsonify({"botReply": bot_reply, "type": "general_response"})
+            # Create message ID for feedback
+            message_id = str(uuid.uuid4())
+            
+            # Create rich response with additional UI elements
+            rich_response = create_rich_response(bot_reply, conversation_history, original_input, sentiment)
+            rich_response["needsTypingIndicator"] = should_simulate_typing
+            rich_response["messageId"] = message_id
+            
+            # Add original English response for debugging
+            if user_language != "en":
+                rich_response["originalEnglishText"] = original_reply
+                
+            return jsonify(rich_response)
         except Exception as gemini_error:
             print(f"Generative AI error: {str(gemini_error)}")
             error_message = "I'm having trouble connecting to my knowledge base right now. Could you try again in a moment?"
-            return jsonify({"botReply": error_message, "type": "error"})
+            
+            # Translate error message if needed
+            if user_language != "en":
+                error_message = translate_text(error_message, user_language)
+                
+            return jsonify({
+                "botReply": error_message, 
+                "type": "error",
+                "needsTypingIndicator": False
+            })
     
     except Exception as e:
         import traceback
         print(f"Chatbot route error: {str(e)}")
         print(traceback.format_exc())
-        return jsonify({"botReply": "I encountered an error while processing your message. Please try again.", "type": "error"}), 500
+        return jsonify({
+            "botReply": "I encountered an error while processing your message. Please try again.", 
+            "type": "error",
+            "needsTypingIndicator": False
+        }), 500
+
+@app.route("/chatbot_feedback", methods=["POST"])
+def submit_chatbot_feedback():
+    try:
+        data = request.get_json()
+        message_id = data.get("messageId")
+        rating = data.get("rating")
+        feedback_text = data.get("feedback", "")
+        
+        if not message_id or rating is None:
+            return jsonify({"error": "Missing required fields"}), 400
+            
+        # Get user ID if logged in, otherwise use session ID
+        user_identifier = None
+        if "username" in session:
+            user = get_user(session.get("username"))
+            if user:
+                user_identifier = user["id"]
+        
+        if not user_identifier:
+            user_identifier = session.get('session_id', str(uuid.uuid4()))
+            session['session_id'] = user_identifier
+            
+        # Save the feedback
+        save_chatbot_feedback(user_identifier, message_id, rating, feedback_text)
+        
+        return jsonify({"success": True})
+    except Exception as e:
+        print(f"Error submitting feedback: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/clear_conversation", methods=["POST"])
 def clear_conversation():
@@ -1611,9 +2029,62 @@ def get_conversation_history_route():
         print("Error fetching conversation history:", str(e))
         return jsonify([]), 500
 
+@app.route("/set_language", methods=["POST"])
+def set_language():
+    try:
+        data = request.get_json()
+        language_code = data.get("language")
+        
+        if not language_code:
+            return jsonify({"error": "Missing language code"}), 400
+            
+        # Save user preference if logged in
+        if "username" in session:
+            user = get_user(session.get("username"))
+            if user:
+                set_user_language_preference(user["id"], language_code)
+        
+        # Store in session for non-logged in users
+        session["preferred_language"] = language_code
+        session.modified = True
+        
+        return jsonify({"success": True})
+    except Exception as e:
+        print(f"Error setting language: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/chatbot_page")
 def chatbot_page():
-    return render_template("chatbot.html")
+    # Get user language preference
+    user_language = "en"  # Default
+    
+    if "username" in session:
+        user = get_user(session.get("username"))
+        if user:
+            user_language = get_user_language_preference(user["id"])
+    elif "preferred_language" in session:
+        user_language = session.get("preferred_language")
+    
+    # Supported languages for the UI
+    supported_languages = [
+        {"code": "en", "name": "English"},
+        {"code": "es", "name": "Español"},
+        {"code": "fr", "name": "Français"},
+        {"code": "de", "name": "Deutsch"},
+        {"code": "it", "name": "Italiano"},
+        {"code": "pt", "name": "Português"},
+        {"code": "ru", "name": "Русский"},
+        {"code": "zh-cn", "name": "中文"},
+        {"code": "ja", "name": "日本語"},
+        {"code": "ko", "name": "한국어"},
+        {"code": "ar", "name": "العربية"}
+    ]
+    
+    return render_template(
+        "chatbot.html", 
+        current_language=user_language,
+        supported_languages=supported_languages
+    )
 
 if __name__ == "__main__":
     create_tables()  # Create tables if they don't exist

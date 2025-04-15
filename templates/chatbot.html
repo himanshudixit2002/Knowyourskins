@@ -1482,6 +1482,142 @@
     color: rgba(255, 255, 255, 0.7);
     line-height: 1.4;
   }
+
+  /* Language dropdown */
+  .language-selector {
+    position: relative;
+    margin-left: 10px;
+    z-index: 10;
+  }
+
+  .language-selector-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    color: white;
+    padding: 5px 10px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .language-selector-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .language-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: rgba(30, 35, 45, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    min-width: 180px;
+    max-height: 300px;
+    overflow-y: auto;
+    display: none;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    margin-top: 5px;
+  }
+
+  .language-dropdown.active {
+    display: block;
+    animation: fadeIn 0.2s ease-out forwards;
+  }
+
+  .language-option {
+    padding: 8px 12px;
+    cursor: pointer;
+    color: white;
+    font-size: 14px;
+    transition: background 0.2s;
+  }
+
+  .language-option:hover {
+    background: rgba(255, 138, 0, 0.2);
+  }
+
+  .language-option.selected {
+    background: rgba(255, 138, 0, 0.3);
+    font-weight: 500;
+  }
+
+  /* Feedback UI */
+  .feedback-ui {
+    display: flex;
+    flex-direction: column;
+    background: rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    border-radius: 10px;
+    margin-top: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+
+  .feedback-question {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 5px;
+  }
+
+  .feedback-buttons {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 8px;
+  }
+
+  .feedback-btn {
+    padding: 5px 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+
+  .feedback-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .feedback-btn.selected {
+    background: rgba(255, 138, 0, 0.4);
+    border-color: rgba(255, 138, 0, 0.6);
+  }
+
+  .feedback-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 8px 10px;
+    border-radius: 5px;
+    font-size: 0.85rem;
+    resize: none;
+    margin-bottom: 5px;
+  }
+
+  .feedback-submit {
+    align-self: flex-end;
+    padding: 5px 10px;
+    background: linear-gradient(135deg, #FF9F5A, #FF7A00);
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+
+  .feedback-submit:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
 </style>
 
 <div class="container-main">
@@ -1501,6 +1637,20 @@
         </div>
       </div>
       <div class="chat-header-right">
+        <!-- Language Selector -->
+        <div class="language-selector">
+          <button class="language-selector-btn" id="languageBtn">
+            <i class="fas fa-globe"></i>
+            <span id="currentLanguage">{{ current_language|upper }}</span>
+          </button>
+          <div class="language-dropdown" id="languageDropdown">
+            {% for lang in supported_languages %}
+            <div class="language-option {% if lang.code == current_language %}selected{% endif %}" data-lang="{{ lang.code }}">
+              {{ lang.name }}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
         <button id="clearChatBtn" class="header-button tooltip" data-tooltip="Clear chat">
           <i class="fas fa-broom"></i>
         </button>
@@ -1528,10 +1678,11 @@
             </button>
           </div>
         </div>
-        <div class="action-buttons">
-          <button class="action-btn" onclick="window.location.href='/predict'"><i class="fas fa-camera"></i>Skin Analysis</button>
-          <button class="action-btn" onclick="triggerAction('routine')"><i class="fas fa-list-check"></i>Get Routine</button>
-          <button class="action-btn" onclick="triggerAction('appointment')"><i class="fas fa-calendar"></i>Book Appointment</button>
+        <div class="dynamic-suggestions">
+          <div class="dynamic-suggestion" onclick="sendSuggestion(this)">What's my skin type?</div>
+          <div class="dynamic-suggestion" onclick="sendSuggestion(this)">How to treat acne?</div>
+          <div class="dynamic-suggestion" onclick="sendSuggestion(this)">Recommend skincare routine</div>
+          <div class="dynamic-suggestion" onclick="sendSuggestion(this)">Book an appointment</div>
         </div>
       </div>
     </div>
@@ -1577,129 +1728,38 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    // Debug mode for development
-    const isDebugMode = false; // Set to true to enable debugging
-    
-    function debugLog(...args) {
-        if (isDebugMode) {
-            console.log(...args);
-        }
-    }
-    
-    // Add debug button if in debug mode
-    if (isDebugMode) {
-        const debugBtn = document.createElement('button');
-        debugBtn.className = 'header-button tooltip';
-        debugBtn.setAttribute('data-tooltip', 'Debug Mode');
-        debugBtn.innerHTML = '<i class="fas fa-bug"></i>';
-        debugBtn.style.background = 'rgba(255, 0, 0, 0.2)';
-        debugBtn.onclick = () => {
-            const lastResponse = localStorage.getItem('lastApiResponse');
-            if (lastResponse) {
-                console.log('Last API Response:', JSON.parse(lastResponse));
-                alert('Last API response logged to console');
-            } else {
-                alert('No API response saved yet');
-            }
-        };
-        document.querySelector('.chat-header-right').prepend(debugBtn);
-    }
-    
-    // Add debug storage for API responses
-    function storeApiResponse(endpoint, data) {
-        if (isDebugMode) {
-            localStorage.setItem('lastApiResponse', JSON.stringify(data));
-            localStorage.setItem('lastApiEndpoint', endpoint);
-            debugLog(`API Response from ${endpoint}:`, data);
-        }
-    }
-    
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM Elements
     const chatMessages = document.getElementById('chatMessages');
     const chatInput = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendBtn');
     const clearChatBtn = document.getElementById('clearChatBtn');
     const scrollBottomBtn = document.getElementById('scrollBottomBtn');
     const newMsgAlert = document.getElementById('newMsgAlert');
-    const suggestionChips = document.getElementById('suggestionChips');
-    const categoryBtns = document.querySelectorAll('.category-btn');
+    const languageBtn = document.getElementById('languageBtn');
+    const languageDropdown = document.getElementById('languageDropdown');
+    const languageOptions = document.querySelectorAll('.language-option');
+    const currentLanguageDisplay = document.getElementById('currentLanguage');
     
-    // Action triggers
-    window.triggerAction = function(action) {
-        switch(action) {
-            case 'routine':
-                sendMessage("I need a personalized skincare routine");
-                break;
-            case 'appointment':
-                sendMessage("Make an appointment");
-                break;
-        }
-    };
+    // Keep track of current language
+    let currentLanguage = "{{ current_language }}";
     
-    // Suggestion categories
-    const suggestions = {
-        'common': [
-            "What's my skin type?",
-            "How to treat acne?",
-            "Make an appointment",
-            "Recommended products",
-            "Skincare routine"
-        ],
-        'skin-types': [
-            "How to care for oily skin?",
-            "Dry skin remedies",
-            "Combination skin routine",
-            "Sensitive skin products",
-            "How to know my skin type?"
-        ],
-        'conditions': [
-            "Treating rosacea",
-            "Eczema remedies",
-            "Dark spots treatment",
-            "Reducing wrinkles",
-            "Help with hyperpigmentation"
-        ],
-        'products': [
-            "Best moisturizers",
-            "Sunscreen recommendations",
-            "Anti-aging serums",
-            "Acne spot treatments",
-            "Chemical exfoliants guide"
-        ]
-    };
-    
-    // Initialize with common suggestions
-    function loadSuggestions(category) {
-        suggestionChips.innerHTML = '';
-        suggestions[category].forEach(suggestion => {
-            const chip = document.createElement('div');
-            chip.classList.add('suggestion-chip');
-            chip.textContent = suggestion;
-            chip.onclick = () => sendSuggestion(chip);
-            suggestionChips.appendChild(chip);
-        });
-    }
-    
-    // Set active category and load suggestions
-    categoryBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            categoryBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            loadSuggestions(btn.dataset.category);
-        });
-    });
-    
-    // Auto-expanding textarea
+    // Auto-resize textarea
     chatInput.addEventListener('input', function() {
         this.style.height = 'auto';
         this.style.height = (this.scrollHeight) + 'px';
-        // Reset height if empty
-        if (this.value.trim() === '') {
-            this.style.height = '';
+        
+        // Limit to 5 rows max
+        const maxHeight = parseInt(getComputedStyle(this).lineHeight) * 5;
+        if (this.scrollHeight > maxHeight) {
+            this.style.height = maxHeight + 'px';
+            this.style.overflowY = 'auto';
+        } else {
+            this.style.overflowY = 'hidden';
         }
     });
     
-    // Get current time in HH:MM format
+    // Get current time
     function getCurrentTime() {
         const now = new Date();
         let hours = now.getHours();
@@ -1707,12 +1767,258 @@ document.addEventListener('DOMContentLoaded', () => {
         const ampm = hours >= 12 ? 'PM' : 'AM';
         
         hours = hours % 12;
-        hours = hours ? hours : 12; // the hour '0' should be '12'
+        hours = hours ? hours : 12;
         minutes = minutes < 10 ? '0' + minutes : minutes;
         
-        return hours + ':' + minutes + ' ' + ampm;
+        return `${hours}:${minutes} ${ampm}`;
     }
-
+    
+    // Setup copy buttons
+    function setupCopyButtons() {
+        const copyButtons = document.querySelectorAll('.copy-btn:not(.setup)');
+        
+        copyButtons.forEach(btn => {
+            btn.classList.add('setup');
+            
+            btn.addEventListener('click', function() {
+                const messageBubble = this.closest('.message-bubble');
+                const textToCopy = messageBubble.textContent.trim();
+                
+                navigator.clipboard.writeText(textToCopy)
+                    .then(() => {
+                        const originalTooltip = this.getAttribute('data-tooltip');
+                        this.setAttribute('data-tooltip', 'Copied!');
+                        
+                        setTimeout(() => {
+                            this.setAttribute('data-tooltip', originalTooltip);
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Error copying text: ', err);
+                    });
+            });
+        });
+    }
+    
+    // Scroll to bottom
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // Scroll with animation
+    function scrollToBottomWithCheck() {
+        const isScrolledToBottom = chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + 100;
+        
+        if (isScrolledToBottom) {
+            scrollToBottom();
+        } else {
+            newMsgAlert.classList.add('visible');
+        }
+    }
+    
+    // Handle send message
+    function handleSendMessage() {
+        const message = chatInput.value.trim();
+        if (message) {
+            sendMessage(message);
+        }
+    }
+    
+    // Handle suggestion chip click
+    function sendSuggestion(chip) {
+        const message = chip.textContent.trim();
+        chatInput.value = message;
+        handleSendMessage();
+    }
+    window.sendSuggestion = sendSuggestion;
+    
+    // Create element for dynamic suggestions
+    function createSuggestions(suggestions) {
+        if (!suggestions || !suggestions.length) return '';
+        
+        let html = '<div class="dynamic-suggestions">';
+        suggestions.forEach(suggestion => {
+            html += `<div class="dynamic-suggestion" onclick="sendSuggestion(this)">${suggestion}</div>`;
+        });
+        html += '</div>';
+        
+        return html;
+    }
+    
+    // Create product cards
+    function createProductCards(products) {
+        if (!products || !products.length) return '';
+        
+        let html = '<div class="product-card-container">';
+        products.forEach(product => {
+            html += `
+                <div class="product-card">
+                    <img src="${product.image}" alt="${product.name}" class="product-image">
+                    <div class="product-info">
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-description">${product.description}</div>
+                        <a href="${product.link}" class="product-link">Learn More</a>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        
+        return html;
+    }
+    
+    // Create routine steps
+    function createRoutineSteps(steps) {
+        if (!steps || !steps.length) return '';
+        
+        let html = '<div class="routine-steps">';
+        html += '<div class="routine-title">Recommended Routine:</div>';
+        
+        steps.forEach((step, index) => {
+            html += `
+                <div class="routine-step">
+                    <div class="step-number">${index + 1}</div>
+                    <div class="step-text">${step}</div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        return html;
+    }
+    
+    // Create ingredients list
+    function createIngredientsList(ingredients) {
+        if (!ingredients || !ingredients.length) return '';
+        
+        let html = '<div class="ingredients-container">';
+        ingredients.forEach(ingredient => {
+            html += `
+                <div class="ingredient-tag">
+                    <i class="fas fa-flask"></i> ${ingredient}
+                </div>
+            `;
+        });
+        html += '</div>';
+        
+        return html;
+    }
+    
+    // Create tool suggestions
+    function createToolSuggestions(tools) {
+        if (!tools || !tools.length) return '';
+        
+        const toolsInfo = {
+            'skin_analysis': {
+                name: 'Skin Analysis',
+                description: 'Upload a photo to analyze your skin conditions',
+                icon: 'fa-camera',
+                url: '/predict'
+            },
+            'skin_disease_prediction': {
+                name: 'Skin Disease Prediction',
+                description: 'Identify potential skin disorders from images',
+                icon: 'fa-microscope',
+                url: '/skin_disease_prediction'
+            }
+        };
+        
+        let html = '<div class="tool-suggestions">';
+        tools.forEach(tool => {
+            if (toolsInfo[tool]) {
+                const info = toolsInfo[tool];
+                html += `
+                    <div class="tool-suggestion" onclick="window.location.href='${info.url}'">
+                        <div class="tool-icon">
+                            <i class="fas ${info.icon}"></i>
+                        </div>
+                        <div class="tool-info">
+                            <div class="tool-name">${info.name}</div>
+                            <div class="tool-description">${info.description}</div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+        html += '</div>';
+        
+        return html;
+    }
+    
+    // Create feedback UI
+    function createFeedbackUI(messageId) {
+        return `
+            <div class="feedback-ui" data-message-id="${messageId}">
+                <div class="feedback-question">Was this response helpful?</div>
+                <div class="feedback-buttons">
+                    <button class="feedback-btn" data-rating="1">Not helpful</button>
+                    <button class="feedback-btn" data-rating="3">Somewhat</button>
+                    <button class="feedback-btn" data-rating="5">Very helpful</button>
+                </div>
+                <textarea class="feedback-input" placeholder="Optional: Tell us how we can improve" style="display: none;"></textarea>
+                <button class="feedback-submit" style="display: none;">Submit Feedback</button>
+            </div>
+        `;
+    }
+    
+    // Setup feedback UI
+    function setupFeedbackUI(messageGroup) {
+        const feedbackUI = messageGroup.querySelector('.feedback-ui');
+        if (!feedbackUI) return;
+        
+        const messageId = feedbackUI.getAttribute('data-message-id');
+        const buttons = feedbackUI.querySelectorAll('.feedback-btn');
+        const textArea = feedbackUI.querySelector('.feedback-input');
+        const submitBtn = feedbackUI.querySelector('.feedback-submit');
+        
+        buttons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove selected class from all buttons
+                buttons.forEach(b => b.classList.remove('selected'));
+                
+                // Add selected class to clicked button
+                this.classList.add('selected');
+                
+                // Show textarea and submit button
+                textArea.style.display = 'block';
+                submitBtn.style.display = 'block';
+            });
+        });
+        
+        submitBtn.addEventListener('click', function() {
+            const selectedBtn = feedbackUI.querySelector('.feedback-btn.selected');
+            if (!selectedBtn) return;
+            
+            const rating = selectedBtn.getAttribute('data-rating');
+            const feedback = textArea.value.trim();
+            
+            // Send feedback to server
+            submitFeedback(messageId, rating, feedback);
+            
+            // Thank you message
+            feedbackUI.innerHTML = '<div class="feedback-question">Thank you for your feedback!</div>';
+        });
+    }
+    
+    // Submit feedback to server
+    async function submitFeedback(messageId, rating, feedback) {
+        try {
+            const response = await fetch('/chatbot_feedback', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ messageId, rating, feedback })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to submit feedback');
+            }
+        } catch (error) {
+            console.error('Error submitting feedback:', error);
+        }
+    }
+    
     // Append a user message
     function appendUserMessage(text) {
         const messageGroup = document.createElement('div');
@@ -1735,10 +2041,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Append a bot message
-    function appendBotMessage(text, additionalContent = null) {
+    function appendBotMessage(response) {
         const messageGroup = document.createElement('div');
         messageGroup.classList.add('message-group', 'bot');
         
+        // Basic message header
         let messageHTML = `
             <div class="message-header">
                 <div class="bot-avatar">
@@ -1749,8 +2056,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="message-time">${getCurrentTime()}</span>
                 </div>
             </div>
+        `;
+        
+        // Message text bubble
+        let messageText = response.botReply || response.text;
+        messageHTML += `
             <div class="message-bubble bot">
-                ${text}
+                ${messageText}
                 <div class="message-actions">
                     <button class="message-action-btn tooltip copy-btn" data-tooltip="Copy message">
                         <i class="fas fa-copy"></i>
@@ -1759,98 +2071,60 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         
-        if (additionalContent) {
-            messageHTML += additionalContent;
+        // Add any additional rich content based on the response type
+        let additionalContent = '';
+        
+        // Add feedback UI for non-system messages
+        let shouldAddFeedback = true;
+        
+        // Product recommendations
+        if (response.type === 'product_recommendation' && response.products) {
+            additionalContent += createProductCards(response.products);
         }
         
+        // Routine steps
+        else if (response.type === 'routine' && response.routine_steps) {
+            additionalContent += createRoutineSteps(response.routine_steps);
+        }
+        
+        // Ingredient information
+        else if (response.type === 'educational' && response.ingredients) {
+            additionalContent += createIngredientsList(response.ingredients);
+        }
+        
+        // Tool suggestions
+        else if (response.type === 'tool_suggestion' && response.tools) {
+            additionalContent += createToolSuggestions(response.tools);
+        }
+        
+        // System messages don't need feedback
+        else if (['clear_confirmation', 'language_change', 'feedback_confirmation', 'error'].includes(response.type)) {
+            shouldAddFeedback = false;
+        }
+        
+        // Add suggestion chips if available
+        if (response.suggestions) {
+            additionalContent += createSuggestions(response.suggestions);
+        }
+        
+        // Add feedback UI for normal responses
+        if (shouldAddFeedback && response.messageId) {
+            additionalContent += createFeedbackUI(response.messageId);
+        }
+        
+        // Add all content to the message group
+        messageHTML += additionalContent;
         messageGroup.innerHTML = messageHTML;
+        
+        // Add to chat
         chatMessages.appendChild(messageGroup);
+        
+        // Setup interactive elements
         setupCopyButtons();
+        setupFeedbackUI(messageGroup);
         scrollToBottomWithCheck();
     }
     
-    // Create product card HTML
-    function createProductCard(product) {
-        // Handle different possible product data structures
-        const brand = product.brand || product.name.split(' ')[0] || '';
-        const name = product.name || 'Product';
-        const price = product.price || '';
-        const ingredients = product.ingredients || product.key_ingredients || '';
-        
-        let priceDisplay = '';
-        if (price) {
-            // Check if price already has a currency symbol
-            const hasCurrency = /^[₹$€£]/.test(price.toString());
-            priceDisplay = hasCurrency ? price : `₹${price}`;
-        }
-        
-        return `
-            <div class="product-card">
-                <div class="product-title">${brand} ${name}</div>
-                ${priceDisplay ? `<div class="product-detail">Price: ${priceDisplay}</div>` : ''}
-                ${ingredients ? `<div class="product-ingredients">Key ingredients: ${ingredients}</div>` : ''}
-            </div>
-        `;
-    }
-    
-    // Create skincare routine HTML
-    function createRoutineHTML(routineType, steps) {
-        const icon = routineType === 'morning' ? 'sun' : 'moon';
-        const title = routineType === 'morning' ? 'Morning Routine' : 'Night Routine';
-        
-        let stepsHTML = '';
-        steps.forEach((step, index) => {
-            stepsHTML += `<div class="routine-step">${index + 1}. ${step}</div>`;
-        });
-        
-        return `
-            <div class="routine-card">
-                <div class="routine-title"><i class="fas fa-${icon}"></i> ${title}</div>
-                ${stepsHTML}
-            </div>
-        `;
-    }
-
-    // Scroll to bottom of chat
-    function scrollToBottom() {
-        chatMessages.scrollTo({
-            top: chatMessages.scrollHeight,
-            behavior: 'smooth'
-        });
-    }
-    
-    // Check if user has scrolled up and show alert/button if needed
-    function scrollToBottomWithCheck() {
-        const isScrolledToBottom = chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + 100;
-        
-        if (isScrolledToBottom) {
-            scrollToBottom();
-            newMsgAlert.classList.remove('visible');
-            scrollBottomBtn.classList.remove('visible');
-        } else {
-            newMsgAlert.classList.add('visible');
-            scrollBottomBtn.classList.add('visible');
-        }
-    }
-    
-    // Setup copy buttons for messages
-    function setupCopyButtons() {
-        document.querySelectorAll('.copy-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const message = btn.closest('.message-bubble').textContent.trim();
-                navigator.clipboard.writeText(message);
-                
-                // Show feedback
-                const originalTooltip = btn.getAttribute('data-tooltip');
-                btn.setAttribute('data-tooltip', 'Copied!');
-                setTimeout(() => {
-                    btn.setAttribute('data-tooltip', originalTooltip);
-                }, 2000);
-            });
-        });
-    }
-
     // Show typing indicator
     function showTypingIndicator() {
         const typingGroup = document.createElement('div');
@@ -1886,6 +2160,36 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Change language
+    async function changeLanguage(langCode) {
+        try {
+            // Update UI
+            currentLanguageDisplay.textContent = langCode.toUpperCase();
+            currentLanguage = langCode;
+            
+            // Close dropdown
+            languageDropdown.classList.remove('active');
+            
+            // Update language on server
+            const response = await fetch('/set_language', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ language: langCode })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to update language preference');
+            }
+            
+            // Inform the user
+            sendMessage(`switch to ${langCode}`);
+        } catch (error) {
+            console.error('Error changing language:', error);
+        }
+    }
+
     // Send message to bot
     async function sendMessage(message) {
         if (!message || message.trim() === '') return;
@@ -1893,143 +2197,43 @@ document.addEventListener('DOMContentLoaded', () => {
         appendUserMessage(message);
         chatInput.value = '';
         chatInput.style.height = ''; // Reset height
-        showTypingIndicator();
-
+        
         try {
-            // Fetch response from server
-            setTimeout(async () => {
-                try {
-                    const response = await fetch('/chatbot', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify({ userInput: message })
-                    });
-
-                    const data = await response.json();
-                    removeTypingIndicator();
-                    
-                    // Check if this is a special response type
-                    if (data.type === 'appointment_flow' || data.type === 'appointment_confirmation') {
-                        // Add appointment-specific buttons
-                        const appointmentButtons = `
-                            <div class="action-buttons">
-                                <button class="action-btn" onclick="window.location.href='/userappointment'"><i class="fas fa-calendar-check"></i>View Appointments</button>
-                                <button class="action-btn" onclick="window.location.href='/bookappointment'"><i class="fas fa-calendar-plus"></i>Appointment Page</button>
-                            </div>
-                        `;
-                        appendBotMessage(data.botReply || "I'll help you schedule an appointment.", appointmentButtons);
-                    } 
-                    else if (message.toLowerCase().includes('routine') || message.toLowerCase().includes('regimen')) {
-                        // Create a mock routine for display purposes
-                        // In a real app, this would come from the backend
-                        const morningSteps = [
-                            "Gentle Cleanser",
-                            "Vitamin C Serum",
-                            "Hydrating Moisturizer",
-                            "SPF 30+ Sunscreen"
-                        ];
-                        
-                        const nightSteps = [
-                            "Oil Cleanser",
-                            "Water-based Cleanser",
-                            "Exfoliant (2-3 times weekly)",
-                            "Hydrating Toner",
-                            "Treatment Serum",
-                            "Night Cream"
-                        ];
-                        
-                        const routineHTML = `
-                            ${createRoutineHTML('morning', morningSteps)}
-                            ${createRoutineHTML('night', nightSteps)}
-                        `;
-                        
-                        const routineButtons = `
-                            <div class="action-buttons">
-                                <button class="action-btn" onclick="window.location.href='/profile'"><i class="fas fa-user"></i>View Full Profile</button>
-                                <button class="action-btn" onclick="window.location.href='/survey'"><i class="fas fa-clipboard-list"></i>Update Survey</button>
-                            </div>
-                        `;
-                        
-                        appendBotMessage(data.botReply || "Here's a suggested skincare routine based on your profile:", routineHTML + routineButtons);
-                    }
-                    else if (message.toLowerCase().includes('product') || message.toLowerCase().includes('recommend')) {
-                        // Create mock product recommendations
-                        // In a real app, this would come from the backend
-                        const products = [
-                            {
-                                brand: "CeraVe",
-                                name: "Hydrating Cleanser",
-                                price: "899",
-                                ingredients: "Ceramides, Hyaluronic Acid, Glycerin"
-                            },
-                            {
-                                brand: "The Ordinary",
-                                name: "Niacinamide 10% + Zinc 1%",
-                                price: "750",
-                                ingredients: "Niacinamide, Zinc PCA, Glycerin"
-                            },
-                            {
-                                brand: "Neutrogena",
-                                name: "Hydro Boost Water Gel",
-                                price: "1200",
-                                ingredients: "Hyaluronic Acid, Glycerin, Dimethicone"
-                            }
-                        ];
-                        
-                        let productsHTML = '';
-                        products.forEach(product => {
-                            productsHTML += createProductCard(product);
-                        });
-                        
-                        const productButtons = `
-                            <div class="action-buttons">
-                                <button class="action-btn" onclick="triggerAction('analyze')"><i class="fas fa-camera"></i>Analyze Skin</button>
-                                <button class="action-btn" onclick="window.location.href='/predict'"><i class="fas fa-search"></i>More Products</button>
-                            </div>
-                        `;
-                        
-                        appendBotMessage(data.botReply || "Here are some recommended products based on your skin type:", productsHTML + productButtons);
-                    }
-                    else {
-                        // Regular response
-                        appendBotMessage(data.botReply || "I'm here to assist with your skincare needs!");
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    removeTypingIndicator();
-                    appendBotMessage("I'm having trouble connecting right now. Please try again in a moment.");
-                }
-            }, 1000 + Math.random() * 1000); // Random delay between 1-2s for natural feel
+            // Show typing indicator for better UX
+            showTypingIndicator();
+            
+            const response = await fetch('/chatbot', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ userInput: message })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to get response from chatbot');
+            }
+            
+            const data = await response.json();
+            
+            // Simulate typing delay for natural feel
+            const typingDelay = data.needsTypingIndicator !== false ? 
+                Math.min(1000 + message.length * 10, 3000) : 0;
+                
+            setTimeout(() => {
+                removeTypingIndicator();
+                appendBotMessage(data);
+            }, typingDelay);
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error sending message:', error);
             removeTypingIndicator();
-            appendBotMessage("I'm having trouble connecting right now. Please try again in a moment.");
+            appendBotMessage({
+                botReply: "Sorry, I'm having trouble connecting to the server. Please try again later.",
+                type: "error"
+            });
         }
     }
-
-    // Handle sending message from input
-    function handleSendMessage() {
-        const message = chatInput.value.trim();
-        sendMessage(message);
-    }
-
-    // Handle suggestion chip selection
-    window.sendSuggestion = function(chip) {
-        const message = chip.textContent;
-        
-        // Add a subtle animation to the selected chip
-        chip.style.transform = 'scale(0.95)';
-        setTimeout(() => {
-            chip.style.transform = '';
-        }, 200);
-        
-        // Send the message
-        sendMessage(message);
-    };
-
+    
     // Event listeners
     sendBtn.addEventListener('click', handleSendMessage);
     
@@ -2038,6 +2242,33 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             handleSendMessage();
         }
+    });
+    
+    // Language selector
+    languageBtn.addEventListener('click', () => {
+        languageDropdown.classList.toggle('active');
+    });
+    
+    // Close language dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!languageBtn.contains(e.target) && !languageDropdown.contains(e.target)) {
+            languageDropdown.classList.remove('active');
+        }
+    });
+    
+    // Language options
+    languageOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            const langCode = option.getAttribute('data-lang');
+            // Update selected styling
+            document.querySelectorAll('.language-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            option.classList.add('selected');
+            
+            // Change language
+            changeLanguage(langCode);
+        });
     });
     
     // Clear chat functionality
@@ -2060,6 +2291,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 'Content-Type': 'application/json'
             }
         }).catch(error => console.error('Error clearing conversation:', error));
+        
+        // Send clear chat message
+        sendMessage('clear chat');
     });
     
     // Scroll to bottom button
@@ -2092,45 +2326,28 @@ document.addEventListener('DOMContentLoaded', () => {
     chatInput.focus();
     
     // Handle viewport height changes (for mobile browsers)
-    function updateViewportHeight() {
-        let vh = window.innerHeight * 0.01;
-        document.documentElement.style.setProperty('--vh', `${vh}px`);
-        
-        // Dynamic adjustment for chat container height
-        const contentHeader = document.querySelector('.content-header');
-        const headerHeight = contentHeader ? contentHeader.offsetHeight : 0;
-        const chatContainer = document.querySelector('.chat-container');
-        
-        if (chatContainer) {
-            // Adjust height based on available space
-            const availableHeight = window.innerHeight - headerHeight - 90; // 90px for other margins
-            chatContainer.style.height = `${Math.max(500, availableHeight * 0.85)}px`;
-        }
-    }
-    
-    // Set initial viewport height
-    updateViewportHeight();
-    
-    // Update viewport height on resize
-    window.addEventListener('resize', updateViewportHeight);
-    
-    // Fix for iOS Safari scrolling issues
-    chatMessages.addEventListener('touchstart', function() {
-        const top = chatMessages.scrollTop;
-        const totalScroll = chatMessages.scrollHeight;
-        const currentScroll = top + chatMessages.offsetHeight;
-        
-        if (top === 0) {
-            chatMessages.scrollTop = 1;
-        } else if (currentScroll === totalScroll) {
-            chatMessages.scrollTop = top - 1;
+    window.addEventListener('resize', () => {
+        if (window.innerWidth <= 768) {
+            // On mobile, scroll to bottom when keyboard opens
+            setTimeout(scrollToBottom, 100);
         }
     });
     
-    // Setup copy buttons for initial messages
-    setupCopyButtons();
+    // Function for triggering predefined actions
+    window.triggerAction = function(action) {
+        switch(action) {
+            case 'routine':
+                sendMessage('Recommend a skincare routine for me');
+                break;
+            case 'appointment':
+                sendMessage('Make an appointment');
+                break;
+            default:
+                break;
+        }
+    };
     
-    // Load chat history if user is logged in
+    // Load chat history on page load
     async function loadChatHistory() {
         try {
             const response = await fetch('/get_conversation_history');
@@ -2146,7 +2363,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (msg.role === 'user') {
                             appendUserMessage(msg.text);
                         } else {
-                            appendBotMessage(msg.text);
+                            appendBotMessage({botReply: msg.text});
                         }
                     });
                 }
