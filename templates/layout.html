@@ -949,40 +949,41 @@
         <!-- Desktop Navigation Menu -->
         <nav class="nav-menu">
           <a href="{{ url_for('predict') }}" class="nav-item {% if request.endpoint == 'predict' %}active{% endif %}">
-            <i class="fas fa-camera-retro"></i>Face Analysis
+            <i class="fas fa-camera"></i> Face Analysis
           </a>
           <a href="{{ url_for('skin_disease_prediction') }}" class="nav-item {% if request.endpoint == 'skin_disease_prediction' %}active{% endif %}">
-            <i class="fas fa-flask"></i>Analyse Skin
+            <i class="fas fa-disease"></i> Skin Disease
           </a>
           <a href="{{ url_for('userappoint') }}" class="nav-item {% if request.endpoint == 'userappoint' %}active{% endif %}">
-            <i class="fas fa-calendar-check"></i>Appointments
+            <i class="fas fa-calendar-check"></i> My Appointments
           </a>
           <a href="{{ url_for('profile') }}" class="nav-item {% if request.endpoint == 'profile' %}active{% endif %}">
-            <i class="fas fa-user-circle"></i>Profile
+            <i class="fas fa-user-circle"></i> Profile
           </a>
           <a href="{{ url_for('bookappointment') }}" class="nav-item {% if request.endpoint == 'bookappointment' or request.endpoint == 'consultation' %}active{% endif %}">
-            <i class="fas fa-calendar-plus"></i>Book Appointment
+            <i class="fas fa-calendar-plus"></i> Book Appointment
+          </a>
+          <a href="{{ url_for('chatbot_page') }}" class="nav-item {% if request.endpoint == 'chatbot_page' %}active{% endif %}">
+            <i class="fas fa-comment-dots"></i> Virtual Assistant
           </a>
           
-          {% if session.get('username') %}
-            {% set user = get_user(session.get('username')) %}
-            {% if user %}
-              {% if user.is_doctor %}
-              <a href="{{ url_for('doctor_appointments') }}" class="nav-item {% if request.endpoint == 'doctor_appointments' %}active{% endif %}">
-                <i class="fas fa-user-md"></i>Doctor Panel
-              </a>
-              {% endif %}
-            {% endif %}
-            <a href="{{ url_for('logout') }}" class="nav-item {% if request.endpoint == 'logout' %}active{% endif %}">
-              <i class="fas fa-sign-out-alt"></i>Logout
-            </a>
+          {% if session.get('is_doctor') %}
+          <a href="{{ url_for('doctor_appointments') }}" class="nav-item {% if request.endpoint == 'doctor_appointments' %}active{% endif %}">
+            <i class="fas fa-stethoscope"></i> Doctor Dashboard
+          </a>
+          {% endif %}
+          
+          {% if session.get('user_id') %}
+          <a href="{{ url_for('logout') }}" class="nav-item {% if request.endpoint == 'logout' %}active{% endif %}">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </a>
           {% else %}
-            <a href="{{ url_for('login') }}" class="nav-item {% if request.endpoint == 'login' %}active{% endif %}">
-              <i class="fas fa-sign-in-alt"></i>Login
-            </a>
-            <a href="{{ url_for('register') }}" class="nav-item {% if request.endpoint == 'register' %}active{% endif %}">
-              <i class="fas fa-user-plus"></i>Register
-            </a>
+          <a href="{{ url_for('login') }}" class="nav-item {% if request.endpoint == 'login' %}active{% endif %}">
+            <i class="fas fa-sign-in-alt"></i> Login
+          </a>
+          <a href="{{ url_for('register') }}" class="nav-item {% if request.endpoint == 'register' %}active{% endif %}">
+            <i class="fas fa-user-plus"></i> Register
+          </a>
           {% endif %}
         </nav>
         
@@ -996,40 +997,41 @@
     <!-- Mobile Dropdown Menu -->
     <div id="mobile-dropdown" class="mobile-dropdown">
       <a href="{{ url_for('bookappointment') }}" class="mobile-nav-item {% if request.endpoint == 'bookappointment' or request.endpoint == 'consultation' %}active{% endif %}">
-        <i class="fas fa-calendar-plus"></i>Book Appointment
+        <i class="fas fa-calendar-plus"></i> Book Appointment
       </a>
       <a href="{{ url_for('predict') }}" class="mobile-nav-item {% if request.endpoint == 'predict' %}active{% endif %}">
-        <i class="fas fa-camera-retro"></i>Face Analysis
+        <i class="fas fa-camera"></i> Face Analysis
       </a>
       <a href="{{ url_for('skin_disease_prediction') }}" class="mobile-nav-item {% if request.endpoint == 'skin_disease_prediction' %}active{% endif %}">
-        <i class="fas fa-flask"></i>Analyse Skin
+        <i class="fas fa-disease"></i> Skin Disease
       </a>
       <a href="{{ url_for('userappoint') }}" class="mobile-nav-item {% if request.endpoint == 'userappoint' %}active{% endif %}">
-        <i class="fas fa-calendar-check"></i>Appointments
+        <i class="fas fa-calendar-check"></i> My Appointments
       </a>
       <a href="{{ url_for('profile') }}" class="mobile-nav-item {% if request.endpoint == 'profile' %}active{% endif %}">
-        <i class="fas fa-user-circle"></i>Profile
+        <i class="fas fa-user-circle"></i> Profile
+      </a>
+      <a href="{{ url_for('chatbot_page') }}" class="mobile-nav-item {% if request.endpoint == 'chatbot_page' %}active{% endif %}">
+        <i class="fas fa-comment-dots"></i> Virtual Assistant
       </a>
       
-      {% if session.get('username') %}
-        {% set user = get_user(session.get('username')) %}
-        {% if user %}
-          {% if user.is_doctor %}
-          <a href="{{ url_for('doctor_appointments') }}" class="mobile-nav-item {% if request.endpoint == 'doctor_appointments' %}active{% endif %}">
-            <i class="fas fa-user-md"></i>Doctor Panel
-          </a>
-          {% endif %}
-        {% endif %}
-        <a href="{{ url_for('logout') }}" class="mobile-nav-item {% if request.endpoint == 'logout' %}active{% endif %}">
-          <i class="fas fa-sign-out-alt"></i>Logout
-        </a>
+      {% if session.get('is_doctor') %}
+      <a href="{{ url_for('doctor_appointments') }}" class="mobile-nav-item {% if request.endpoint == 'doctor_appointments' %}active{% endif %}">
+        <i class="fas fa-stethoscope"></i> Doctor Dashboard
+      </a>
+      {% endif %}
+      
+      {% if session.get('user_id') %}
+      <a href="{{ url_for('logout') }}" class="mobile-nav-item {% if request.endpoint == 'logout' %}active{% endif %}">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
       {% else %}
-        <a href="{{ url_for('login') }}" class="mobile-nav-item {% if request.endpoint == 'login' %}active{% endif %}">
-          <i class="fas fa-sign-in-alt"></i>Login
-        </a>
-        <a href="{{ url_for('register') }}" class="mobile-nav-item {% if request.endpoint == 'register' %}active{% endif %}">
-          <i class="fas fa-user-plus"></i>Register
-        </a>
+      <a href="{{ url_for('login') }}" class="mobile-nav-item {% if request.endpoint == 'login' %}active{% endif %}">
+        <i class="fas fa-sign-in-alt"></i> Login
+      </a>
+      <a href="{{ url_for('register') }}" class="mobile-nav-item {% if request.endpoint == 'register' %}active{% endif %}">
+        <i class="fas fa-user-plus"></i> Register
+      </a>
       {% endif %}
     </div>
   </header>

@@ -223,6 +223,16 @@ def create_tables():
         )
         ''')
         
+        conn.execute('''
+        CREATE TABLE IF NOT EXISTS conversations (
+            id INTEGER PRIMARY KEY,
+            user_id INTEGER,
+            role TEXT NOT NULL,
+            text TEXT NOT NULL,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+        
         conn.commit()
 
 def ensure_database_compatibility():
@@ -1162,6 +1172,247 @@ def setup_sample_doctors():
     except Exception as e:
         app.logger.error(f"Error setting up sample doctors: {str(e)}")
         return jsonify({"error": f"Error setting up sample doctors: {str(e)}"}), 500
+
+def build_conversation_prompt(history, user_input):
+    """Builds a conversation prompt for the chatbot, including conversation history and user input."""
+    prompt = """You are KnowYourSkins AI Assistant, an expert dermatology and skincare advisor. Follow these guidelines:
+
+1. ACCURACY: Provide medically accurate skincare information based on dermatological science. Never invent facts.
+2. CONCISENESS: Keep answers brief, focused, and to the point (1-3 sentences when possible). No fluff or unnecessary explanations.
+3. VALUE: Prioritize actionable advice and practical recommendations over general information.
+4. TONE: Professional but conversational and empathetic. Acknowledge skin concerns with understanding.
+5. CAUTION: For medical conditions, recommend professional consultation with a dermatologist when appropriate.
+6. PERSONALIZATION: Use context from previous messages to tailor your advice.
+
+Your strengths include analyzing skin types, recommending routines, explaining ingredients, and discussing evidence-based treatments.
+
+If unsure, acknowledge limitations rather than guessing. Skin health is important - accuracy matters.
+
+"""
+    
+    # Add conversation history
+    if history:
+        prompt += "Previous conversation:\n"
+        for msg in history:
+            if msg['role'] == 'user':
+                prompt += f"User: {msg['text']}\n"
+            else:
+                prompt += f"Assistant: {msg['text']}\n"
+    
+    # Add current user input
+    prompt += f"\nCurrent question: {user_input}\n\nYour concise, accurate response:"
+    
+    return prompt
+
+def refine_response(response):
+    """Post-processes the chatbot response to ensure it's concise, valuable and well-structured."""
+    if not response:
+        return "I'm not sure about that. Please consider consulting with a dermatologist for personalized advice."
+    
+    # Trim any leading/trailing whitespace or common AI-generated fillers
+    response = response.strip()
+    
+    # Remove common verbose AI introductions
+    filler_phrases = [
+        "As an AI assistant, I",
+        "As a skincare assistant, I",
+        "Based on the information provided,",
+        "I'd be happy to help with that.",
+        "Thank you for your question.",
+        "That's a great question.",
+        "I'd like to provide some information about",
+        "I can certainly help with that.",
+        "Let me answer that for you.",
+    ]
+    
+    for phrase in filler_phrases:
+        if response.startswith(phrase):
+            response = response[len(phrase):].strip()
+            # Remove additional connecting words if they exist
+            for connector in [", ", ". ", "! "]:
+                if response.startswith(connector):
+                    response = response[len(connector):].strip()
+    
+    # Capitalize first letter if needed
+    if response and not response[0].isupper():
+        response = response[0].upper() + response[1:]
+    
+    # If response is too long (over 500 chars), try to summarize with the Gemini API
+    if len(response) > 500:
+        try:
+            headers = {"Content-Type": "application/json"}
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+            
+            summarize_prompt = f"Summarize this skincare advice in 2-3 concise, valuable sentences, keeping all important recommendations and warnings: {response}"
+            
+            summary_response = requests.post(
+                url, 
+                headers=headers, 
+                json={"contents": [{"parts": [{"text": summarize_prompt}]}]}
+            )
+            
+            if summary_response.status_code == 200:
+                data = summary_response.json()
+                summary = (data.get("candidates", [{}])[0]
+                           .get("content", {})
+                           .get("parts", [{}])[0]
+                           .get("text", ""))
+                
+                if summary and len(summary) < len(response):
+                    return summary.strip()
+        except Exception:
+            # If summarization fails, return the original but slightly truncated
+            pass
+            
+    return response
+
+def complete_answer_if_incomplete(answer):
+    """Checks if the chatbot's answer is complete and continues it if necessary."""
+    # Check if answer ends with proper punctuation
+    if not answer.rstrip().endswith(('.', '!', '?', ':', ';', '"', ')', ']', '}')):
+        # Answer appears incomplete, so continue it
+        continuation_prompt = f"Continue the following answer: {answer}"
+        
+        headers = {"Content-Type": "application/json"}
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+        response = requests.post(url, headers=headers, json={"contents": [{"parts": [{"text": continuation_prompt}]}]})
+        
+        if response.status_code == 200:
+            data = response.json()
+            continuation = (data.get("candidates", [{}])[0]
+                           .get("content", {})
+                           .get("parts", [{}])[0]
+                           .get("text", ""))
+            return answer + " " + continuation.strip()
+    
+    return answer
+
+def get_conversation_history(user_id=None):
+    """Gets the conversation history for a user or session."""
+    with get_db_connection() as conn:
+        if user_id:
+            history = conn.execute(
+                "SELECT role, text FROM conversations WHERE user_id = ? ORDER BY timestamp", 
+                (user_id,)
+            ).fetchall()
+        else:
+            # For non-logged-in users, use session ID
+            session_id = session.get('session_id')
+            if not session_id:
+                return []
+                
+            history = conn.execute(
+                "SELECT role, text FROM conversations WHERE user_id = ? ORDER BY timestamp", 
+                (session_id,)
+            ).fetchall()
+        
+        return [dict(h) for h in history]
+
+def save_conversation_message(role, text, user_id=None):
+    """Saves a message to the conversation history."""
+    with get_db_connection() as conn:
+        if user_id:
+            conn.execute(
+                "INSERT INTO conversations (user_id, role, text) VALUES (?, ?, ?)",
+                (user_id, role, text)
+            )
+        else:
+            # For non-logged-in users, use session ID
+            session_id = session.get('session_id')
+            if not session_id:
+                session_id = str(uuid.uuid4())
+                session['session_id'] = session_id
+                
+            conn.execute(
+                "INSERT INTO conversations (user_id, role, text) VALUES (?, ?, ?)",
+                (session_id, role, text)
+            )
+        conn.commit()
+
+def clear_conversation_history(user_id=None):
+    """Clears the conversation history for a user or session."""
+    with get_db_connection() as conn:
+        if user_id:
+            conn.execute("DELETE FROM conversations WHERE user_id = ?", (user_id,))
+        else:
+            # For non-logged-in users, use session ID
+            session_id = session.get('session_id')
+            if session_id:
+                conn.execute("DELETE FROM conversations WHERE user_id = ?", (session_id,))
+        conn.commit()
+
+@app.route("/chatbot", methods=["POST"])
+def chatbot():
+    """Handles chatbot interactions."""
+    try:
+        data = request.json
+        user_input = data.get("userInput", "").strip()
+        
+        if not user_input:
+            return jsonify({"botReply": "I didn't receive a message. Could you please try again?"})
+        
+        # Get user ID if logged in, otherwise use session ID
+        user_id = session.get('user_id')
+        
+        # Save user message to conversation history
+        save_conversation_message('user', user_input, user_id)
+        
+        # Get conversation history
+        history = get_conversation_history(user_id)[-8:]  # Get only the last 8 messages for context
+        
+        # Build prompt for Gemini
+        prompt = build_conversation_prompt(history, user_input)
+        
+        # Call Gemini API for response
+        headers = {"Content-Type": "application/json"}
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+        response = requests.post(url, headers=headers, json={"contents": [{"parts": [{"text": prompt}]}]})
+        
+        if response.status_code == 200:
+            data = response.json()
+            bot_reply = (data.get("candidates", [{}])[0]
+                          .get("content", {})
+                          .get("parts", [{}])[0]
+                          .get("text", ""))
+            
+            # Check if answer is complete
+            bot_reply = complete_answer_if_incomplete(bot_reply.strip())
+            
+            # Refine the response to make it more valuable and concise
+            bot_reply = refine_response(bot_reply)
+            
+            # Save bot message to conversation history
+            save_conversation_message('assistant', bot_reply, user_id)
+            
+            return jsonify({"botReply": bot_reply})
+        else:
+            # Log error details
+            print(f"Error from Gemini API: {response.status_code} - {response.text}")
+            return jsonify({"botReply": "I'm having trouble processing your request right now. Please try again later."})
+            
+    except Exception as e:
+        print(f"Chatbot error: {str(e)}")
+        traceback.print_exc()
+        return jsonify({"botReply": "I encountered an error while processing your message. Please try again."})
+
+@app.route("/get_conversation_history", methods=["GET"])
+def get_conversation_history_route():
+    """API endpoint to get conversation history."""
+    user_id = session.get('user_id')
+    history = get_conversation_history(user_id)
+    return jsonify(history)
+
+@app.route("/clear_conversation", methods=["POST"])
+def clear_conversation():
+    """API endpoint to clear conversation history."""
+    user_id = session.get('user_id')
+    clear_conversation_history(user_id)
+    return jsonify({"success": True})
+
+@app.route("/chatbot_page")
+def chatbot_page():
+    """Renders the chatbot UI page."""
+    return render_template("chatbot.html")
 
 if __name__ == "__main__":
     create_tables()  # Create tables if they don't exist
