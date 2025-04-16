@@ -75,7 +75,8 @@ supported_languages = {
     "ja": "japanese",
     "ko": "korean",
     "ar": "arabic",
-    "hi": "hindi"
+    "hi": "hindi",
+    "ta": "tamil"
 }
 
 # -----------------------------------------------------------------------------
@@ -552,6 +553,32 @@ def translate_text(text, target_language="en"):
         
         # Check if both languages are supported
         if source_lang in supported_languages and target_language in supported_languages:
+            # Special handling for Tamil which may need specific translation source
+            if target_language == "ta":
+                try:
+                    # Try to translate directly from source to Tamil
+                    translator = GoogleTranslator(source=source_lang, target=target_language)
+                    translated_text = translator.translate(text)
+                    
+                    # If translation is empty or failed, try translating from English to Tamil
+                    if not translated_text or translated_text == text:
+                        # First translate to English if needed
+                        if source_lang != "en":
+                            en_translator = GoogleTranslator(source=source_lang, target="en")
+                            english_text = en_translator.translate(text)
+                        else:
+                            english_text = text
+                            
+                        # Then translate from English to Tamil
+                        ta_translator = GoogleTranslator(source="en", target="ta")
+                        translated_text = ta_translator.translate(english_text)
+                    
+                    return translated_text
+                except Exception as e:
+                    print(f"Tamil translation error: {str(e)}")
+                    # Fall back to regular translation method
+            
+            # Regular translation for other languages
             translator = GoogleTranslator(source=source_lang, target=target_language)
             translated_text = translator.translate(text)
             return translated_text
@@ -580,6 +607,143 @@ def analyze_sentiment(text):
             return "very_positive"
     except:
         return "neutral"  # Default to neutral on error
+
+def analyze_uploaded_image(image_data, user_id=None):
+    """Analyze an image uploaded directly from the chatbot interface"""
+    try:
+        # Create temp file for processing
+        import tempfile
+        import base64
+        
+        # Extract base64 data
+        if isinstance(image_data, str) and image_data.startswith('data:image'):
+            image_data = image_data.split(',')[1]
+        
+        # Decode base64 data
+        image_bytes = base64.b64decode(image_data)
+        
+        # Create temp file
+        with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as temp_file:
+            temp_file.write(image_bytes)
+            temp_path = temp_file.name
+        
+        # Apply same analysis as the predict endpoint
+        unique_classes = set()
+        
+        # Run skin condition detection
+        skin_result = model_skin.predict(temp_path, confidence=15, overlap=30).json()
+        predictions = skin_result.get("predictions", [])
+        if predictions:
+            skin_labels = [pred["class"] for pred in predictions]
+            unique_classes.update(skin_labels)
+        
+        # Run oiliness detection
+        custom_configuration = InferenceConfiguration(confidence_threshold=0.3)
+        with CLIENT.use_configuration(custom_configuration):
+            oiliness_result = CLIENT.infer(temp_path, model_id="oilyness-detection-kgsxz/1")
+            
+        if not oiliness_result.get("predictions"):
+            unique_classes.add("dryness")
+        else:
+            oiliness_classes = [
+                class_mapping.get(pred["class"], pred["class"])
+                for pred in oiliness_result.get("predictions", [])
+                if pred.get("confidence", 0) >= 0.3
+            ]
+            unique_classes.update(oiliness_classes)
+        
+        # Generate annotated image
+        os.makedirs(ANNOTATIONS_FOLDER, exist_ok=True)
+        annotated_filename = f"chat_analysis_{str(uuid.uuid4())}.jpg"
+        annotated_image_path = os.path.join(ANNOTATIONS_FOLDER, annotated_filename)
+        
+        img_cv = cv2.imread(temp_path)
+        detections = sv.Detections.from_inference(skin_result)
+        box_annotator = sv.BoxAnnotator()
+        label_annotator = sv.LabelAnnotator()
+        annotated_image = box_annotator.annotate(scene=img_cv, detections=detections)
+        annotated_image = label_annotator.annotate(scene=annotated_image, detections=detections)
+        cv2.imwrite(annotated_image_path, annotated_image)
+        
+        # Get AI analysis and product recommendations
+        ai_analysis_text = get_gemini_recommendations(unique_classes)
+        recommended_products = recommend_products_based_on_classes(list(unique_classes))
+        
+        # Clean up temp file
+        try:
+            os.unlink(temp_path)
+        except:
+            pass
+        
+        return {
+            "classes": list(unique_classes),
+            "ai_analysis": ai_analysis_text,
+            "recommendations": recommended_products,
+            "annotated_image": f"/{annotated_image_path.replace('\\', '/')}"
+        }
+        
+    except Exception as e:
+        print(f"Error analyzing image: {str(e)}")
+        return {"error": str(e)}
+
+def transcribe_audio(audio_data):
+    """Transcribe audio data to text using Gemini API for multilingual support"""
+    try:
+        # Extract base64 data if full data URI is provided
+        if isinstance(audio_data, str) and audio_data.startswith('data:audio'):
+            audio_data = audio_data.split(',')[1]
+        
+        # Use Gemini API for transcription
+        headers = {"Content-Type": "application/json"}
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+        
+        # Create prompt for audio transcription
+        prompt = "Please transcribe the following audio accurately. Respond with ONLY the transcription text, no additional comments."
+        
+        # Send request with audio data
+        response = requests.post(
+            url, 
+            headers=headers, 
+            json={
+                "contents": [
+                    {
+                        "parts": [
+                            {"text": prompt},
+                            {
+                                "inline_data": {
+                                    "mime_type": "audio/mp3",
+                                    "data": audio_data
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        )
+        
+        # Process response
+        if response.status_code == 200:
+            result = response.json()
+            transcription = (result.get("candidates", [{}])[0]
+                             .get("content", {})
+                             .get("parts", [{}])[0]
+                             .get("text", ""))
+            
+            # Clean up transcription (remove any prefixes like "Transcription:" or quotes)
+            transcription = re.sub(r'^(transcription:|"|\[|\()', '', transcription, flags=re.IGNORECASE).strip()
+            transcription = re.sub(r'("|\.|\]|\))$', '', transcription).strip()
+            
+            if not transcription:
+                return {"transcription": None, "error": "Could not transcribe audio. Please try again."}
+                
+            return {"transcription": transcription, "error": None}
+        else:
+            print(f"Transcription API error: {response.status_code}, {response.text}")
+            return {"transcription": None, "error": f"Could not transcribe audio. API Error: {response.status_code}"}
+        
+    except Exception as e:
+        print(f"Error transcribing audio: {str(e)}")
+        return {"transcription": None, "error": f"Error processing audio: {str(e)}"}
 
 def generate_quick_replies(conversation_history, user_input):
     """Generate suggested quick replies based on conversation context"""
@@ -841,7 +1005,8 @@ def get_conversation_history(user_id=None):
             # For non-logged-in users, use session ID
             session_id = session.get('session_id')
             if not session_id:
-                return []
+                session_id = str(uuid.uuid4())
+                session['session_id'] = session_id
                 
             history = conn.execute(
                 "SELECT role, text FROM conversations WHERE user_id = ? ORDER BY timestamp", 
@@ -886,7 +1051,7 @@ def clear_conversation_history(user_id=None):
 # Updated build_conversation_prompt to support advanced context handling
 def build_conversation_prompt(history, user_input):
     """Builds a conversation prompt for the chatbot, including conversation history and user input."""
-    prompt = """You are KnowYourSkins AI Assistant, an expert skincare advisor. Follow these guidelines:
+    prompt = """You are Aura, an expert skincare advisor. Follow these guidelines:
 
 1. ACCURACY: Provide accurate skincare information based on dermatological science. Never invent facts.
 2. CONCISENESS: Keep answers brief, focused, and to the point (1-3 sentences when possible). No fluff or unnecessary explanations.
@@ -1615,9 +1780,11 @@ def chatbot():
     try:
         data = request.get_json()
         user_input = data.get("userInput")
+        image_data = data.get("imageData")
+        audio_data = data.get("audioData")
         
-        if not user_input:
-            return jsonify({"error": "No user input provided."}), 400
+        if not user_input and not image_data and not audio_data:
+            return jsonify({"error": "No input provided."}), 400
         
         # Track if we need to simulate typing indicator
         should_simulate_typing = True
@@ -1629,71 +1796,118 @@ def chatbot():
             if user:
                 user_id = user["id"]
         
+        # Ensure session_id exists for non-logged in users
+        session_id = session.get('session_id')
+        if not session_id:
+            session_id = str(uuid.uuid4())
+            session['session_id'] = session_id
+        
         # Check for language preference
         user_language = "en"  # Default to English
         if user_id:
             user_language = get_user_language_preference(user_id)
         
-        # Detect input language and handle language preference
-        detected_language = detect_language(user_input)
-        
-        # Handle language change request
-        if re.search(r'(?:speak|talk|switch to|change to|use) (english|spanish|french|german|italian|portuguese|russian|chinese|japanese|korean|arabic|hindi)', user_input, re.IGNORECASE):
-            language_match = re.search(r'(?:speak|talk|switch to|change to|use) (english|spanish|french|german|italian|portuguese|russian|chinese|japanese|korean|arabic|hindi)', user_input, re.IGNORECASE)
-            if language_match:
-                requested_language = language_match.group(1).lower()
-                language_code = {
-                    "english": "en",
-                    "spanish": "es",
-                    "french": "fr",
-                    "german": "de",
-                    "italian": "it",
-                    "portuguese": "pt",
-                    "russian": "ru",
-                    "chinese": "zh-cn",
-                    "japanese": "ja",
-                    "korean": "ko",
-                    "arabic": "ar",
-                    "hindi": "hi"
-                }.get(requested_language, "en")
-                
-                if user_id:
-                    set_user_language_preference(user_id, language_code)
-                
-                user_language = language_code
-                response_text = f"I'll now communicate in {requested_language.title()}."
-                
-                # Translate response if not English
-                if language_code != "en":
-                    response_text = translate_text(response_text, language_code)
-                
+        # Process audio transcription if provided
+        if audio_data:
+            transcription_result = transcribe_audio(audio_data)
+            if transcription_result.get("error"):
                 return jsonify({
-                    "botReply": response_text,
-                    "type": "language_change",
-                    "language": language_code,
+                    "botReply": f"I couldn't understand the audio. {transcription_result.get('error')}",
+                    "type": "error",
                     "needsTypingIndicator": False
                 })
+            
+            # Replace user_input with transcription
+            user_input = transcription_result.get("transcription")
+        
+        # Process image if provided
+        if image_data:
+            # Save the user message first (indicating image upload)
+            conversation_history = get_conversation_history(user_id or session_id)
+            save_conversation_message("user", "I've uploaded an image for skin analysis.", user_id or session_id)
+            
+            # Analyze the image
+            analysis_result = analyze_uploaded_image(image_data, user_id)
+            
+            if "error" in analysis_result:
+                return jsonify({
+                    "botReply": f"I couldn't analyze the image. {analysis_result.get('error')}",
+                    "type": "error",
+                    "needsTypingIndicator": False
+                })
+            
+            # Generate response based on analysis
+            skin_conditions = analysis_result.get("classes", [])
+            ai_analysis = analysis_result.get("ai_analysis", "")
+            
+            bot_reply = f"I've analyzed your skin image and detected: {', '.join(skin_conditions)}. {ai_analysis}"
+            
+            # Save bot reply to conversation history
+            save_conversation_message("assistant", bot_reply, user_id or session_id)
+            
+            return jsonify({
+                "botReply": bot_reply,
+                "type": "image_analysis",
+                "analysis": analysis_result,
+                "needsTypingIndicator": should_simulate_typing,
+                "messageId": str(uuid.uuid4())
+            })
+        
+        # Detect input language for text input
+        detected_language = "en"
+        if user_input:
+            detected_language = detect_language(user_input)
+        
+        # Check for language preference
+        if detected_language != "en" and detected_language != user_language:
+            # Handle language change request
+            if re.search(r'(?:speak|talk|switch to|change to|use) (english|spanish|french|german|italian|portuguese|russian|chinese|japanese|korean|arabic|hindi)', user_input, re.IGNORECASE):
+                language_match = re.search(r'(?:speak|talk|switch to|change to|use) (english|spanish|french|german|italian|portuguese|russian|chinese|japanese|korean|arabic|hindi)', user_input, re.IGNORECASE)
+                if language_match:
+                    requested_language = language_match.group(1).lower()
+                    language_code = {
+                        "english": "en",
+                        "spanish": "es",
+                        "french": "fr",
+                        "german": "de",
+                        "italian": "it",
+                        "portuguese": "pt",
+                        "russian": "ru",
+                        "chinese": "zh-cn",
+                        "japanese": "ja",
+                        "korean": "ko",
+                        "arabic": "ar",
+                        "hindi": "hi"
+                    }.get(requested_language, "en")
+                    
+                    if user_id:
+                        set_user_language_preference(user_id, language_code)
+                    
+                    user_language = language_code
+                    response_text = f"I'll now communicate in {requested_language.title()}."
+                    
+                    # Translate response if not English
+                    if language_code != "en":
+                        response_text = translate_text(response_text, language_code)
+                    
+                    return jsonify({
+                        "botReply": response_text,
+                        "type": "language_change",
+                        "language": language_code,
+                        "needsTypingIndicator": False
+                    })
         
         # Initialize session variables if they don't exist
         if "conversation_state" not in session:
             session["conversation_state"] = {}
         conversation_state = session["conversation_state"]
         
-        # Load conversation history from database if available, otherwise use session
-        conversation_history = []
-        if user_id:
-            conversation_history = get_conversation_history(user_id)
-        elif "conversation_history" in session:
-            conversation_history = session["conversation_history"]
-        else:
-            session["conversation_history"] = []
-            conversation_history = []
+        # Load conversation history from database
+        conversation_history = get_conversation_history(user_id or session_id)
         
         # Handle special case: clear chat request
         if user_input.lower() in ["clear chat", "start new chat", "reset chat"]:
-            if user_id:
-                clear_conversation_history(user_id)
-            session["conversation_history"] = []
+            clear_conversation_history(user_id or session_id)
             session["conversation_state"] = {}
             session.modified = True
             
@@ -1718,7 +1932,7 @@ def chatbot():
                 feedback_text = parts[3] if len(parts) > 3 else ""
                 
                 # Save feedback
-                user_identifier = user_id if user_id else session.get('session_id', str(uuid.uuid4()))
+                user_identifier = user_id if user_id else session_id
                 save_chatbot_feedback(user_identifier, message_id, rating, feedback_text)
                 
                 return jsonify({
@@ -1730,9 +1944,7 @@ def chatbot():
         # If user asks about skin analysis or diagnosis, redirect them
         if any(term in user_input.lower() for term in ["analyze my skin", "diagnose my skin", "skin diagnosis", "analyze photo", "check my face", "analyze my face", "skin disease", "what disease", "what condition"]):
             # Save the user message
-            conversation_history.append({"role": "user", "text": user_input})
-            if user_id:
-                save_conversation_message("user", user_input, user_id)
+            save_conversation_message("user", user_input, user_id or session_id)
             
             # Generate and save the bot response
             bot_reply = "I can't analyze skin conditions or diagnose skin diseases through chat. Please use our dedicated Skin Analysis tool or Skin Disease Prediction tool from the main menu, or consult with a dermatologist for a professional diagnosis."
@@ -1741,12 +1953,7 @@ def chatbot():
             if user_language != "en":
                 bot_reply = translate_text(bot_reply, user_language)
                 
-            conversation_history.append({"role": "assistant", "text": bot_reply})
-            if user_id:
-                save_conversation_message("assistant", bot_reply, user_id)
-            
-            # Update session
-            session["conversation_history"] = conversation_history
+            save_conversation_message("assistant", bot_reply, user_id or session_id)
             
             return jsonify({
                 "botReply": bot_reply,
@@ -1766,18 +1973,11 @@ def chatbot():
                     session.modified = True
                     
                     # Save the user message
-                    conversation_history.append({"role": "user", "text": user_input})
-                    if user_id:
-                        save_conversation_message("user", user_input, user_id)
+                    save_conversation_message("user", user_input, user_id or session_id)
                     
                     # Generate and save the bot response
                     bot_reply = f"Great! Your appointment is set for {conversation_state['date']}. Now, please describe the reason for your appointment."
-                    conversation_history.append({"role": "assistant", "text": bot_reply})
-                    if user_id:
-                        save_conversation_message("assistant", bot_reply, user_id)
-                    
-                    # Update session if needed
-                    session["conversation_history"] = conversation_history
+                    save_conversation_message("assistant", bot_reply, user_id or session_id)
                     
                     return jsonify({
                         "botReply": bot_reply,
@@ -1821,18 +2021,13 @@ def chatbot():
                 )
                 
                 # Save the user message
-                conversation_history.append({"role": "user", "text": user_input})
-                if user_id:
-                    save_conversation_message("user", user_input, user_id)
+                save_conversation_message("user", user_input, user_id or session_id)
                 
                 # Generate and save the bot response
                 bot_reply = f"Your appointment has been successfully scheduled for {conversation_state['date']} with the reason: {reason}. Your reference ID is APPT-{appointment_id}."
-                conversation_history.append({"role": "assistant", "text": bot_reply})
-                if user_id:
-                    save_conversation_message("assistant", bot_reply, user_id)
+                save_conversation_message("assistant", bot_reply, user_id or session_id)
                 
                 # Reset conversation state
-                session["conversation_history"] = conversation_history
                 session["conversation_state"] = {}
                 session.modified = True
                 
@@ -1854,18 +2049,11 @@ def chatbot():
             session.modified = True
             
             # Save the user message
-            conversation_history.append({"role": "user", "text": user_input})
-            if user_id:
-                save_conversation_message("user", user_input, user_id)
+            save_conversation_message("user", user_input, user_id or session_id)
             
             # Generate and save the bot response
             bot_reply = "When would you like to schedule your appointment? (e.g., 'March 10 at 3 PM')"
-            conversation_history.append({"role": "assistant", "text": bot_reply})
-            if user_id:
-                save_conversation_message("assistant", bot_reply, user_id)
-            
-            # Update session
-            session["conversation_history"] = conversation_history
+            save_conversation_message("assistant", bot_reply, user_id or session_id)
             
             return jsonify({
                 "botReply": bot_reply,
@@ -1885,9 +2073,7 @@ def chatbot():
             user_input_for_ai = user_input
             
         # Save the user message first
-        conversation_history.append({"role": "user", "text": original_input})
-        if user_id:
-            save_conversation_message("user", original_input, user_id)
+        save_conversation_message("user", original_input, user_id or session_id)
         
         # Generate response
         prompt = build_conversation_prompt(conversation_history, user_input_for_ai)
@@ -1918,12 +2104,7 @@ def chatbot():
                 bot_reply = translate_text(bot_reply, user_language)
                 
             # Save the bot response
-            conversation_history.append({"role": "assistant", "text": bot_reply})
-            if user_id:
-                save_conversation_message("assistant", bot_reply, user_id)
-            
-            # Update session
-            session["conversation_history"] = conversation_history
+            save_conversation_message("assistant", bot_reply, user_id or session_id)
             
             # Create message ID for feedback
             message_id = str(uuid.uuid4())
@@ -1992,40 +2173,25 @@ def submit_chatbot_feedback():
         print(f"Error submitting feedback: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-@app.route("/clear_conversation", methods=["POST"])
-def clear_conversation():
-    try:
-        # Clear conversation in database if user is logged in
-        if "username" in session:
-            user = get_user(session.get("username"))
-            if user:
-                clear_conversation_history(user["id"])
-        
-        # Clear conversation in session
-        session["conversation_history"] = []
-        session["conversation_state"] = {}
-        session.modified = True
-        
-        return jsonify({"success": True})
-    except Exception as e:
-        print("Error clearing conversation:", str(e))
-        return jsonify({"success": False, "error": str(e)}), 500
-
 @app.route("/get_conversation_history", methods=["GET"])
 def get_conversation_history_route():
     try:
         # Get conversation from database if user is logged in
+        user_id = None
         if "username" in session:
             user = get_user(session.get("username"))
             if user:
-                history = get_conversation_history(user["id"])
-                return jsonify(history)
+                user_id = user["id"]
         
-        # Otherwise return from session
-        if "conversation_history" in session:
-            return jsonify(session["conversation_history"])
+        # Ensure session_id exists for non-logged in users
+        session_id = session.get('session_id')
+        if not session_id:
+            session_id = str(uuid.uuid4())
+            session['session_id'] = session_id
         
-        return jsonify([])
+        # Get history from database
+        history = get_conversation_history(user_id or session_id)
+        return jsonify(history)
     except Exception as e:
         print("Error fetching conversation history:", str(e))
         return jsonify([]), 500
@@ -2079,7 +2245,8 @@ def chatbot_page():
         {"code": "ja", "name": "日本語"},
         {"code": "ko", "name": "한국어"},
         {"code": "ar", "name": "العربية"},
-        {"code": "hi", "name": "हिंदी"}
+        {"code": "hi", "name": "हिंदी"},
+        {"code": "ta", "name": "தமிழ்"}
     ]
     
     return render_template(
@@ -2087,6 +2254,153 @@ def chatbot_page():
         current_language=user_language,
         supported_languages=supported_languages
     )
+
+@app.route("/clear_conversation", methods=["POST"])
+def clear_conversation():
+    try:
+        # Get user ID or session ID
+        user_id = None
+        if "username" in session:
+            user = get_user(session.get("username"))
+            if user:
+                user_id = user["id"]
+        
+        # Ensure session_id exists for non-logged in users
+        session_id = session.get('session_id')
+        if not session_id:
+            session_id = str(uuid.uuid4())
+            session['session_id'] = session_id
+        
+        # Clear conversation in database
+        clear_conversation_history(user_id or session_id)
+        
+        # Clear conversation state in session (keep this small)
+        session["conversation_state"] = {}
+        session.modified = True
+        
+        return jsonify({"success": True})
+    except Exception as e:
+        print("Error clearing conversation:", str(e))
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/translate_to_tamil", methods=["POST"])
+def translate_to_tamil():
+    """API endpoint to translate text specifically to Tamil"""
+    try:
+        data = request.get_json()
+        text = data.get("text")
+        
+        if not text:
+            return jsonify({"error": "No text provided"}), 400
+        
+        # First detect the language
+        source_lang = detect_language(text)
+        
+        # If already Tamil, return as is
+        if source_lang == "ta":
+            return jsonify({"translated": text})
+        
+        # First translate to English if not already English
+        if source_lang != "en":
+            en_translator = GoogleTranslator(source=source_lang, target="en")
+            english_text = en_translator.translate(text)
+        else:
+            english_text = text
+        
+        # Then translate from English to Tamil
+        ta_translator = GoogleTranslator(source="en", target="ta")
+        tamil_text = ta_translator.translate(english_text)
+        
+        # Ensure we got Tamil characters
+        tamil_regex = re.compile(r'[\u0B80-\u0BFF]')  # Unicode range for Tamil
+        if not tamil_regex.search(tamil_text):
+            return jsonify({"error": "Translation failed to produce Tamil text"}), 500
+        
+        return jsonify({"translated": tamil_text})
+    except Exception as e:
+        print(f"Tamil translation API error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/translate_to_hindi", methods=["POST"])
+def translate_to_hindi():
+    """API endpoint to translate text specifically to Hindi"""
+    try:
+        data = request.get_json()
+        text = data.get("text")
+        
+        if not text:
+            return jsonify({"error": "No text provided"}), 400
+        
+        # First detect the language
+        source_lang = detect_language(text)
+        
+        # If already Hindi, return as is
+        if source_lang == "hi":
+            return jsonify({"translated": text})
+        
+        # First translate to English if not already English
+        if source_lang != "en":
+            try:
+                en_translator = GoogleTranslator(source=source_lang, target="en")
+                english_text = en_translator.translate(text)
+                if not english_text:
+                    return jsonify({"error": "First-stage translation failed"}), 500
+            except Exception as e:
+                print(f"Error translating to English: {str(e)}")
+                # Fall back to original text if translation fails
+                english_text = text
+        else:
+            english_text = text
+        
+        # Then translate from English to Hindi
+        try:
+            hi_translator = GoogleTranslator(source="en", target="hi")
+            hindi_text = hi_translator.translate(english_text)
+        except Exception as e:
+            print(f"Error translating to Hindi: {str(e)}")
+            return jsonify({"error": f"Hindi translation failed: {str(e)}"}), 500
+        
+        # Ensure we got Hindi characters
+        hindi_regex = re.compile(r'[\u0900-\u097F]')  # Unicode range for Hindi
+        if not hindi_regex.search(hindi_text):
+            print("No Hindi characters found in translation result")
+            return jsonify({"error": "Translation failed to produce Hindi text"}), 500
+        
+        return jsonify({"translated": hindi_text})
+    except Exception as e:
+        print(f"Hindi translation API error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/translate_text", methods=["POST"])
+def translate_text_endpoint():
+    """Generic endpoint to translate text to any supported language"""
+    try:
+        data = request.get_json()
+        text = data.get("text")
+        target_language = data.get("language", "en")
+        
+        if not text:
+            return jsonify({"error": "No text provided"}), 400
+        
+        if target_language not in supported_languages:
+            return jsonify({"error": f"Unsupported language: {target_language}"}), 400
+        
+        # Special handling for Tamil and Hindi
+        if target_language == "ta":
+            return redirect(url_for("translate_to_tamil"), code=307)  # 307 preserves POST method
+        elif target_language == "hi":
+            return redirect(url_for("translate_to_hindi"), code=307)  # 307 preserves POST method
+        
+        # For other languages, use the standard translation function
+        translated_text = translate_text(text, target_language)
+        
+        if not translated_text:
+            return jsonify({"error": "Translation failed"}), 500
+            
+        return jsonify({"translated": translated_text})
+    except Exception as e:
+        print(f"Translation API error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
     create_tables()  # Create tables if they don't exist
