@@ -9,7 +9,7 @@ import pandas as pd
 import requests
 import traceback
 import google.generativeai as genai
-from flask import Flask, render_template, request, redirect, session, url_for, jsonify, abort
+from flask import Flask, render_template, request, redirect, session, url_for, jsonify, abort, send_file
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
 from roboflow import Roboflow
@@ -33,7 +33,13 @@ import time
 import re
 from deep_translator import GoogleTranslator
 from textblob import TextBlob
-from langdetect import detect
+from langdetect import detect, LangDetectException
+import google.cloud.translate_v2 as translate
+import tempfile
+import base64
+from gtts import gTTS
+import io
+import html
 
 # -----------------------------------------------------------------------------
 # Load Environment Variables and App Configuration
@@ -534,56 +540,309 @@ def get_skincare_routine(user_id):
 # -----------------------------------------------------------------------------
 
 def detect_language(text):
-    """Detect the language of the input text"""
+    """Detect the language of the input text with enhanced accuracy for short texts"""
     try:
+        # For very short text, we may need more aggressive analysis
+        if len(text) < 10:
+            # Special character patterns for different scripts
+            language_patterns = {
+                'ta': r'[\u0B80-\u0BFF]',  # Tamil
+                'hi': r'[\u0900-\u097F]',  # Hindi
+                'ar': r'[\u0600-\u06FF]',  # Arabic
+                'zh-cn': r'[\u4E00-\u9FFF]',  # Chinese
+                'ja': r'[\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF]',  # Japanese
+                'ko': r'[\uAC00-\uD7AF\u1100-\u11FF]'  # Korean
+            }
+            
+            # Check for script-specific characters
+            for lang, pattern in language_patterns.items():
+                if re.search(pattern, text):
+                    return lang
+        
+        # Use standard detection for longer text
         detected = detect(text)
         return detected
-    except:
+    except LangDetectException as e:
+        print(f"Language detection error: {str(e)}")
         return "en"  # Default to English on error
 
-def translate_text(text, target_language="en"):
-    """Translate text to the target language using deep_translator"""
+def smart_translate(text, target_language="en", source_language=None, prepare_for_speech=False):
+    """
+    Smart translation system that analyzes, preprocesses, translates, and postprocesses text for optimal output
+    
+    Args:
+        text (str): The text to translate
+        target_language (str): The target language code
+        source_language (str, optional): The source language if known
+        prepare_for_speech (bool): Whether to optimize output for speech synthesis
+        
+    Returns:
+        dict: A dict containing translation results and metadata
+    """
+    if not text:
+        return {"translated": "", "source_language": "en", "success": False}
+    
+    # Step 1: Clean and normalize input text
+    # Remove excessive whitespace and normalize punctuation
+    text = re.sub(r'\s+', ' ', text).strip()
+    text = text.replace('..', '.').replace(',,', ',')
+    
+    # Step 2: Language detection
+    if not source_language:
+        source_language = detect_language(text)
+    
+    # Return original if source and target language are the same
+    if source_language == target_language:
+        return {
+            "translated": text,
+            "source_language": source_language,
+            "target_language": target_language,
+            "segments": [{"text": text, "type": "original"}],
+            "success": True
+        }
+    
+    # Step 3: Preprocessing for specific language pairs
+    # Some segments might be better left untranslated
+    segments = []
+    preserve_patterns = {
+        # Technical content that should remain unchanged
+        "code": r'`.*?`|```[\s\S]*?```',
+        # Named entities like specific product names
+        "entities": r'@\w+|#\w+',
+        # URLs and file paths
+        "urls": r'https?://\S+|\S+\.(com|org|net|io)/\S*|/\S+/\S+\.\w+'
+    }
+    
+    # Extract segments to preserve
+    preserved_segments = []
+    for seg_type, pattern in preserve_patterns.items():
+        matches = re.finditer(pattern, text)
+        for match in matches:
+            preserved_segments.append({
+                "start": match.start(),
+                "end": match.end(),
+                "text": match.group(),
+                "type": seg_type
+            })
+    
+    # Sort preserved segments by start position
+    preserved_segments.sort(key=lambda x: x["start"])
+    
+    # Build complete segment list with preserved and translatable parts
+    last_end = 0
+    final_segments = []
+    
+    for segment in preserved_segments:
+        if segment["start"] > last_end:
+            # Add the translatable text before this preserved segment
+            final_segments.append({
+                "text": text[last_end:segment["start"]],
+                "type": "translatable"
+            })
+        
+        # Add the preserved segment
+        final_segments.append({
+            "text": segment["text"],
+            "type": segment["type"]
+        })
+        
+        last_end = segment["end"]
+    
+    # Add any remaining translatable text
+    if last_end < len(text):
+        final_segments.append({
+            "text": text[last_end:],
+            "type": "translatable"
+        })
+    
+    # Step 4: Translation with smart processing
+    translated_segments = []
+    
+    for segment in final_segments:
+        if segment["type"] == "translatable":
+            # Only translate segments that need translation
+            if segment["text"].strip():
+                translated_text = translate_text(segment["text"], target_language, source_language)
+                translated_segments.append({
+                    "text": translated_text,
+                    "type": "translated",
+                    "original": segment["text"]
+                })
+            else:
+                # For empty or whitespace-only segments
+                translated_segments.append({
+                    "text": segment["text"],
+                    "type": "whitespace"
+                })
+        else:
+            # Non-translatable segments remain unchanged
+            translated_segments.append({
+                "text": segment["text"],
+                "type": segment["type"]
+            })
+    
+    # Step 5: Prepare for display or speech
+    # For display, join with spaces where needed
+    translated_text = ""
+    for i, segment in enumerate(translated_segments):
+        # Add spacing intelligently
+        if i > 0 and translated_text and segment["text"]:
+            prev_type = translated_segments[i-1]["type"]
+            curr_type = segment["type"]
+            
+            # Skip space for special cases (punctuation, etc.)
+            if (curr_type == "translated" and segment["text"][0] in ',.:;?!') or \
+               (prev_type == "translated" and translated_text[-1] in ',.:;?!') or \
+               prev_type in ["urls", "code", "entities"] or \
+               curr_type in ["urls", "code", "entities"] or \
+               prev_type == "whitespace" or curr_type == "whitespace":
+                # No space needed
+                pass
+            else:
+                # Add space between segments
+                translated_text += " "
+        
+        translated_text += segment["text"]
+    
+    # Step 6: Clean up final text
+    # Fix potential spacing issues
+    translated_text = re.sub(r'\s+', ' ', translated_text)
+    translated_text = re.sub(r'\s([.,;:!?])', r'\1', translated_text)
+    
+    # If preparing for speech, make additional fixes
+    if prepare_for_speech:
+        # Create a copy of the text without SSML for display purposes
+        display_text = translated_text
+        
+        # Add appropriate pauses for speech systems
+        translated_text = translated_text.replace('. ', '. <break time="0.5s"/> ')
+        translated_text = translated_text.replace('? ', '? <break time="0.5s"/> ')
+        translated_text = translated_text.replace('! ', '! <break time="0.5s"/> ')
+        
+        # Spell out abbreviations and numbers if needed
+        if target_language in ["ta", "hi", "ar"]:
+            # These languages often need help with number pronunciation
+            translated_text = re.sub(r'(\d+)', lambda m: f'<say-as interpret-as="cardinal">{m.group(1)}</say-as>', translated_text)
+        
+        # Return both the display text and the speech-optimized text
+        return {
+            "translated": translated_text,
+            "display_text": display_text,
+            "source_language": source_language,
+            "target_language": target_language,
+            "segments": translated_segments,
+            "success": True
+        }
+    
+    # Return complete translation info
+    return {
+        "translated": translated_text,
+        "source_language": source_language,
+        "target_language": target_language,
+        "segments": translated_segments,
+        "success": True
+    }
+
+def translate_text(text, target_language="en", source_language=None):
+    """Translate text to the target language using multiple services for better reliability"""
     if target_language == "en" or not text:
         return text
     
     try:
-        source_lang = detect_language(text)
-        if source_lang == target_language:
+        # Use provided source language or detect it
+        if not source_language:
+            source_language = detect_language(text)
+            
+        if source_language == target_language:
             return text
         
-        # Check if both languages are supported
-        if source_lang in supported_languages and target_language in supported_languages:
-            # Special handling for Tamil which may need specific translation source
-            if target_language == "ta":
-                try:
-                    # Try to translate directly from source to Tamil
-                    translator = GoogleTranslator(source=source_lang, target=target_language)
-                    translated_text = translator.translate(text)
-                    
-                    # If translation is empty or failed, try translating from English to Tamil
-                    if not translated_text or translated_text == text:
-                        # First translate to English if needed
-                        if source_lang != "en":
-                            en_translator = GoogleTranslator(source=source_lang, target="en")
-                            english_text = en_translator.translate(text)
-                        else:
-                            english_text = text
-                            
-                        # Then translate from English to Tamil
-                        ta_translator = GoogleTranslator(source="en", target="ta")
-                        translated_text = ta_translator.translate(english_text)
-                    
-                    return translated_text
-                except Exception as e:
-                    print(f"Tamil translation error: {str(e)}")
-                    # Fall back to regular translation method
+        # First try Google Translator from deep_translator
+        try:
+            # Check if both languages are supported
+            if source_language in supported_languages and target_language in supported_languages:
+                # Special handling for Tamil and Hindi which may need specific translation path
+                if target_language in ["ta", "hi"]:
+                    try:
+                        # Try to translate directly from source
+                        translator = GoogleTranslator(source=source_language, target=target_language)
+                        translated_text = translator.translate(text)
+                        
+                        # If translation failed, try translating from English to target
+                        if not translated_text or translated_text == text:
+                            # First translate to English if needed
+                            if source_language != "en":
+                                en_translator = GoogleTranslator(source=source_language, target="en")
+                                english_text = en_translator.translate(text)
+                            else:
+                                english_text = text
+                                
+                            # Then translate from English to target language
+                            target_translator = GoogleTranslator(source="en", target=target_language)
+                            translated_text = target_translator.translate(english_text)
+                        
+                        # Verify the output has appropriate script characters
+                        if target_language == "ta":
+                            tamil_regex = re.compile(r'[\u0B80-\u0BFF]')  # Unicode range for Tamil
+                            if not tamil_regex.search(translated_text):
+                                # Try alternate service
+                                raise Exception("No Tamil characters in result")
+                        elif target_language == "hi":
+                            hindi_regex = re.compile(r'[\u0900-\u097F]')  # Unicode range for Hindi
+                            if not hindi_regex.search(translated_text):
+                                # Try alternate service
+                                raise Exception("No Hindi characters in result")
+                        
+                        # Decode HTML entities if any
+                        translated_text = html.unescape(translated_text)
+                        return translated_text
+                    except Exception as e:
+                        print(f"{target_language} translation error: {str(e)}")
+                        # Continue to fallback methods
+                
+                # Regular translation for other languages
+                translator = GoogleTranslator(source=source_language, target=target_language)
+                translated_text = translator.translate(text)
+                
+                # If we got a result, decode HTML entities and return it
+                if translated_text and translated_text != text:
+                    return html.unescape(translated_text)
             
-            # Regular translation for other languages
-            translator = GoogleTranslator(source=source_lang, target=target_language)
-            translated_text = translator.translate(text)
-            return translated_text
-        else:
-            return text  # Return original if language not supported
+            # If we reached here, the first method failed or wasn't supported
+            print(f"First translation method failed for {source_language} to {target_language}, trying backup method")
+            
+            # Try Google Cloud Translation API if available
+            try:
+                if 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ:
+                    translate_client = translate.Client()
+                    result = translate_client.translate(
+                        text,
+                        target_language=target_language,
+                        source_language=source_language
+                    )
+                    return html.unescape(result["translatedText"])
+            except Exception as e:
+                print(f"Google Cloud Translation error: {str(e)}")
+            
+            # Last resort: try translating through English as an intermediate
+            try:
+                # Step 1: Translate to English
+                if source_language != "en":
+                    to_english = GoogleTranslator(source=source_language, target="en").translate(text)
+                else:
+                    to_english = text
+                    
+                # Step 2: English to target language
+                translator = GoogleTranslator(source="en", target=target_language)
+                final_translation = translator.translate(to_english)
+                return html.unescape(final_translation)
+            except Exception as e:
+                print(f"Final fallback translation error: {str(e)}")
+                
+            # If all methods fail, return original text
+            return text
+        except Exception as e:
+            print(f"Primary translation error: {str(e)}")
+            return text  # Return original text on error
     except Exception as e:
         print(f"Translation error: {str(e)}")
         return text  # Return original text on error
@@ -2285,7 +2544,7 @@ def clear_conversation():
 
 @app.route("/translate_to_tamil", methods=["POST"])
 def translate_to_tamil():
-    """API endpoint to translate text specifically to Tamil"""
+    """Enhanced Tamil translation with special handling for Tamil script"""
     try:
         data = request.get_json()
         text = data.get("text")
@@ -2293,37 +2552,23 @@ def translate_to_tamil():
         if not text:
             return jsonify({"error": "No text provided"}), 400
         
-        # First detect the language
-        source_lang = detect_language(text)
+        # Use the smart translation system for Tamil
+        result = smart_translate(text, "ta", prepare_for_speech=True)
+        translated = result.get("translated", "")
         
-        # If already Tamil, return as is
-        if source_lang == "ta":
-            return jsonify({"translated": text})
-        
-        # First translate to English if not already English
-        if source_lang != "en":
-            en_translator = GoogleTranslator(source=source_lang, target="en")
-            english_text = en_translator.translate(text)
-        else:
-            english_text = text
-        
-        # Then translate from English to Tamil
-        ta_translator = GoogleTranslator(source="en", target="ta")
-        tamil_text = ta_translator.translate(english_text)
-        
-        # Ensure we got Tamil characters
+        # Verify we have Tamil characters in result
         tamil_regex = re.compile(r'[\u0B80-\u0BFF]')  # Unicode range for Tamil
-        if not tamil_regex.search(tamil_text):
-            return jsonify({"error": "Translation failed to produce Tamil text"}), 500
+        if not tamil_regex.search(translated) and translated != text:
+            return jsonify({"error": "Tamil translation produced invalid characters"}), 500
         
-        return jsonify({"translated": tamil_text})
+        return jsonify({"translated": translated})
     except Exception as e:
         print(f"Tamil translation API error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/translate_to_hindi", methods=["POST"])
 def translate_to_hindi():
-    """API endpoint to translate text specifically to Hindi"""
+    """Enhanced Hindi translation with special handling for Hindi script"""
     try:
         data = request.get_json()
         text = data.get("text")
@@ -2331,53 +2576,28 @@ def translate_to_hindi():
         if not text:
             return jsonify({"error": "No text provided"}), 400
         
-        # First detect the language
-        source_lang = detect_language(text)
+        # Use the smart translation system for Hindi
+        result = smart_translate(text, "hi", prepare_for_speech=True)
+        translated = result.get("translated", "")
         
-        # If already Hindi, return as is
-        if source_lang == "hi":
-            return jsonify({"translated": text})
-        
-        # First translate to English if not already English
-        if source_lang != "en":
-            try:
-                en_translator = GoogleTranslator(source=source_lang, target="en")
-                english_text = en_translator.translate(text)
-                if not english_text:
-                    return jsonify({"error": "First-stage translation failed"}), 500
-            except Exception as e:
-                print(f"Error translating to English: {str(e)}")
-                # Fall back to original text if translation fails
-                english_text = text
-        else:
-            english_text = text
-        
-        # Then translate from English to Hindi
-        try:
-            hi_translator = GoogleTranslator(source="en", target="hi")
-            hindi_text = hi_translator.translate(english_text)
-        except Exception as e:
-            print(f"Error translating to Hindi: {str(e)}")
-            return jsonify({"error": f"Hindi translation failed: {str(e)}"}), 500
-        
-        # Ensure we got Hindi characters
+        # Verify we have Hindi characters in result
         hindi_regex = re.compile(r'[\u0900-\u097F]')  # Unicode range for Hindi
-        if not hindi_regex.search(hindi_text):
-            print("No Hindi characters found in translation result")
-            return jsonify({"error": "Translation failed to produce Hindi text"}), 500
+        if not hindi_regex.search(translated) and translated != text:
+            return jsonify({"error": "Hindi translation produced invalid characters"}), 500
         
-        return jsonify({"translated": hindi_text})
+        return jsonify({"translated": translated})
     except Exception as e:
         print(f"Hindi translation API error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/translate_text", methods=["POST"])
 def translate_text_endpoint():
-    """Generic endpoint to translate text to any supported language"""
+    """Generic endpoint to translate text to any supported language with intelligent processing"""
     try:
         data = request.get_json()
         text = data.get("text")
         target_language = data.get("language", "en")
+        prepare_for_speech = data.get("prepare_for_speech", False)
         
         if not text:
             return jsonify({"error": "No text provided"}), 400
@@ -2385,21 +2605,151 @@ def translate_text_endpoint():
         if target_language not in supported_languages:
             return jsonify({"error": f"Unsupported language: {target_language}"}), 400
         
-        # Special handling for Tamil and Hindi
-        if target_language == "ta":
-            return redirect(url_for("translate_to_tamil"), code=307)  # 307 preserves POST method
-        elif target_language == "hi":
-            return redirect(url_for("translate_to_hindi"), code=307)  # 307 preserves POST method
+        # Special handling for Tamil and Hindi can now use the same smart translation
+        # system, removing the need for separate endpoints
+        result = smart_translate(text, target_language, prepare_for_speech=prepare_for_speech)
         
-        # For other languages, use the standard translation function
-        translated_text = translate_text(text, target_language)
-        
-        if not translated_text:
+        if not result.get("translated"):
             return jsonify({"error": "Translation failed"}), 500
             
-        return jsonify({"translated": translated_text})
+        return jsonify(result)
     except Exception as e:
         print(f"Translation API error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/text_to_speech", methods=["POST"])
+def text_to_speech_endpoint():
+    """Generate speech from text in the specified language using gTTS with smart preprocessing"""
+    try:
+        data = request.get_json()
+        text = data.get("text")
+        language = data.get("language", "en")
+        auto_translate = data.get("auto_translate", True)
+        
+        if not text:
+            return jsonify({"error": "No text provided"}), 400
+            
+        # Map language codes to gTTS supported format
+        lang_map = {
+            "en": "en",
+            "es": "es",
+            "fr": "fr",
+            "de": "de",
+            "it": "it",
+            "pt": "pt",
+            "ru": "ru",
+            "zh-cn": "zh-CN",
+            "ja": "ja",
+            "ko": "ko",
+            "ar": "ar",
+            "hi": "hi",
+            "ta": "ta"
+        }
+        
+        # Get the appropriate language code for gTTS
+        tts_lang = lang_map.get(language, "en")
+        
+        # If auto_translate is True, first translate to target language if needed
+        if auto_translate:
+            # Use smart translation with speech-optimized output
+            translation_result = smart_translate(text, language, prepare_for_speech=True)
+            text_for_speech = translation_result.get("translated", text)
+            
+            # Remove any speech markup that gTTS can't handle
+            text_for_speech = text_for_speech.replace('<break time="0.5s"/>', '')
+            text_for_speech = re.sub(r'<say-as[^>]*>([^<]*)</say-as>', r'\1', text_for_speech)
+        else:
+            text_for_speech = text
+        
+        # Specific handling for Tamil to ensure proper accent
+        if language == "ta":
+            slow_speed = True
+        else:
+            slow_speed = False
+            
+        # Create a temporary file to store the audio
+        audio_fp = io.BytesIO()
+        
+        try:
+            # Generate the TTS audio
+            tts = gTTS(text=text_for_speech, lang=tts_lang, slow=slow_speed)
+            tts.write_to_fp(audio_fp)
+            audio_fp.seek(0)
+            
+            # Convert to base64 for sending to the client
+            audio_data = base64.b64encode(audio_fp.read()).decode('utf-8')
+            return jsonify({
+                "audio": audio_data, 
+                "format": "mp3",
+                "text": text_for_speech
+            })
+        except Exception as e:
+            print(f"TTS generation error: {str(e)}")
+            return jsonify({"error": f"Failed to generate speech: {str(e)}"}), 500
+    except Exception as e:
+        print(f"Text-to-speech API error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+        
+@app.route("/stream_speech", methods=["GET"])
+def stream_speech():
+    """Stream the audio file directly with smart text preprocessing"""
+    try:
+        text = request.args.get("text")
+        language = request.args.get("language", "en")
+        auto_translate = request.args.get("auto_translate", "true").lower() == "true"
+        
+        if not text:
+            return jsonify({"error": "No text provided"}), 400
+            
+        # Map language codes
+        lang_map = {
+            "en": "en",
+            "es": "es",
+            "fr": "fr",
+            "de": "de",
+            "it": "it",
+            "pt": "pt",
+            "ru": "ru",
+            "zh-cn": "zh-CN",
+            "ja": "ja",
+            "ko": "ko",
+            "ar": "ar",
+            "hi": "hi",
+            "ta": "ta"
+        }
+        
+        tts_lang = lang_map.get(language, "en")
+        slow_speed = (language == "ta") # Slower for Tamil
+        
+        # If auto_translate is True, first translate to target language if needed
+        if auto_translate:
+            # Use smart translation with speech-optimized output
+            translation_result = smart_translate(text, language, prepare_for_speech=True)
+            text_for_speech = translation_result.get("translated", text)
+            
+            # Remove any speech markup that gTTS can't handle
+            text_for_speech = text_for_speech.replace('<break time="0.5s"/>', '')
+            text_for_speech = re.sub(r'<say-as[^>]*>([^<]*)</say-as>', r'\1', text_for_speech)
+        else:
+            text_for_speech = text
+        
+        # Create a temporary file for the audio
+        audio_fp = io.BytesIO()
+        
+        # Generate the audio file
+        tts = gTTS(text=text_for_speech, lang=tts_lang, slow=slow_speed)
+        tts.write_to_fp(audio_fp)
+        audio_fp.seek(0)
+        
+        # Return the audio file
+        return send_file(
+            audio_fp,
+            mimetype="audio/mpeg",
+            as_attachment=True,
+            download_name="speech.mp3"
+        )
+    except Exception as e:
+        print(f"Stream speech error: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":

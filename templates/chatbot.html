@@ -147,6 +147,16 @@
   }
   .header-button:hover::before { left: 100%; }
 
+  /* ================= Header Button States ================= */
+  .header-button.disabled {
+    opacity: 0.6;
+    background: rgba(255,255,255,0.05);
+  }
+  .header-button.disabled:hover {
+    background: rgba(255,255,255,0.08);
+    transform: none;
+  }
+
   /* ================= Chat Messages ================= */
   .chat-messages {
     flex: 1;
@@ -1278,6 +1288,77 @@
   .message-bubble.speaking {
     border-left: 3px solid #4a90e2 !important;
   }
+
+  /* Add styling for translation indicator */
+  .message-bubble.translating {
+    opacity: 0.9;
+  }
+
+  .translating-indicator {
+    font-style: italic;
+    color: var(--accent-color);
+    margin-top: 5px;
+    font-size: 0.8em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .translating-indicator small {
+    display: flex;
+    align-items: center;
+  }
+
+  .translating-indicator small::before {
+    content: '';
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-color);
+    border-top-color: transparent;
+    margin-right: 5px;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* TTS loading indicator styles */
+  .tts-loading-indicator {
+    font-style: italic;
+    color: var(--accent-color);
+    margin-top: 5px;
+    font-size: 0.8em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .tts-loading-indicator small {
+    display: flex;
+    align-items: center;
+  }
+
+  .tts-loading-indicator small::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-color);
+    border-top-color: transparent;
+    margin-right: 5px;
+    animation: spin 1s linear infinite;
+  }
+  
+  /* Single keyframes declaration */
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
 </style>
 
 <div class="container-main">
@@ -1325,6 +1406,9 @@
         </div>
         <button id="clearChatBtn" class="header-button tooltip" data-tooltip="Clear chat">
           <i class="fas fa-broom"></i>
+        </button>
+        <button id="autoTtsBtn" class="header-button tooltip" data-tooltip="Toggle auto-speech">
+          <i class="fas fa-volume-up"></i>
         </button>
       </div>
     </div>
@@ -1427,6 +1511,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatInput = document.getElementById('chatInput');
     const sendBtn = document.getElementById('sendBtn');
     const clearChatBtn = document.getElementById('clearChatBtn');
+    const autoTtsBtn = document.getElementById('autoTtsBtn');
     const scrollBottomBtn = document.getElementById('scrollBottomBtn');
     const newMsgAlert = document.getElementById('newMsgAlert');
     const languageBtn = document.getElementById('languageBtn');
@@ -1458,6 +1543,57 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentLanguage = "{{ current_language }}";
     let isSpeaking = false;
     let isProcessing = false;
+    
+    // Check if auto TTS is disabled (from localStorage)
+    const isAutoTtsDisabled = window.localStorage.getItem('auto_tts_disabled') === 'true';
+    if (isAutoTtsDisabled) {
+        autoTtsBtn.classList.add('disabled');
+        autoTtsBtn.querySelector('i').classList.remove('fa-volume-up');
+        autoTtsBtn.querySelector('i').classList.add('fa-volume-mute');
+        autoTtsBtn.setAttribute('data-tooltip', 'Enable auto-speech');
+    }
+    
+    // Setup auto TTS toggle button
+    autoTtsBtn.addEventListener('click', () => {
+        const isCurrentlyDisabled = window.localStorage.getItem('auto_tts_disabled') === 'true';
+        
+        if (isCurrentlyDisabled) {
+            // Enable auto TTS
+            window.localStorage.removeItem('auto_tts_disabled');
+            autoTtsBtn.classList.remove('disabled');
+            autoTtsBtn.querySelector('i').classList.remove('fa-volume-mute');
+            autoTtsBtn.querySelector('i').classList.add('fa-volume-up');
+            autoTtsBtn.setAttribute('data-tooltip', 'Disable auto-speech');
+            showToast('Auto speech enabled', 'success');
+        } else {
+            // Disable auto TTS
+            window.localStorage.setItem('auto_tts_disabled', 'true');
+            autoTtsBtn.classList.add('disabled');
+            autoTtsBtn.querySelector('i').classList.remove('fa-volume-up');
+            autoTtsBtn.querySelector('i').classList.add('fa-volume-mute');
+            autoTtsBtn.setAttribute('data-tooltip', 'Enable auto-speech');
+            showToast('Auto speech disabled', 'info');
+            
+            // Stop any ongoing speech
+            if (speechSynthesis.speaking) {
+                speechSynthesis.cancel();
+            }
+            
+            // Stop any active audio elements
+            document.querySelectorAll('audio.tts-audio').forEach(audio => {
+                audio.pause();
+                audio.remove();
+            });
+            
+            // Reset UI state
+            ttsBtn.classList.remove('speaking');
+            document.querySelectorAll('.speak-btn').forEach(b => b.classList.remove('speaking'));
+            document.querySelectorAll('.message-bubble').forEach(b => b.classList.remove('speaking'));
+            document.querySelectorAll('.message-siri-wave').forEach(w => w.classList.remove('active'));
+            document.querySelectorAll('.siri-wave-container').forEach(w => w.classList.remove('active'));
+            isSpeaking = false;
+        }
+    });
 
     // Show loading state
     function showLoading() {
@@ -1599,6 +1735,12 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.message-siri-wave').forEach(w => w.classList.remove('active'));
             document.querySelectorAll('.siri-wave-container').forEach(w => w.classList.remove('active'));
             isSpeaking = false;
+            
+            // Stop any active audio elements playing server-side TTS
+            document.querySelectorAll('audio.tts-audio').forEach(audio => {
+                audio.pause();
+                audio.remove();
+            });
             return; 
         }
         const lastBotMessage = chatMessages.querySelector('.message-group.bot:last-child .message-bubble.bot');
@@ -1610,11 +1752,125 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function speakText(text, messageId = null) {
         if (!speechSynthesis) return;
+        
+        // Cancel any ongoing speech synthesis
         speechSynthesis.cancel();
+        
+        // Stop any active audio elements playing server-side TTS
+        document.querySelectorAll('audio.tts-audio').forEach(audio => {
+            audio.pause();
+            audio.remove();
+        });
+        
         isSpeaking = true;
         
+        // Find Siri-wave containers to activate
+        let siriWave = null;
+        let messageSiriWave = null;
+        
+        if (messageId) {
+            const messageBubble = document.getElementById(messageId);
+            if (messageBubble) {
+                messageBubble.classList.add('speaking');
+                messageSiriWave = messageBubble.querySelector('.message-siri-wave');
+                if (messageSiriWave) messageSiriWave.classList.add('active');
+                
+                // Find the closest siri-wave-container
+                const container = document.querySelector('.siri-wave-container');
+                if (container) {
+                    container.classList.add('active');
+                    siriWave = container;
+                }
+                
+                // Check if we have pre-translated text optimized for speech
+                if (messageBubble.dataset.translatedText && currentLanguage !== 'en') {
+                    text = messageBubble.dataset.translatedText;
+                }
+            }
+        }
+        
+        // For certain languages like Tamil or Hindi, we should use server-side TTS
+        const serverSideTTSLanguages = ['ta', 'hi', 'ar']; // Languages that need server-side TTS
+        
+        // Check if we should use server-side TTS instead of browser TTS
+        if (serverSideTTSLanguages.includes(currentLanguage)) {
+            console.log(`Using server-side TTS for ${currentLanguage}`);
+            
+            // Create an audio element to play the server-generated speech
+            const audioElement = new Audio();
+            audioElement.className = 'tts-audio';
+            
+            // Set up event handlers to clean up after playback
+            audioElement.onended = () => {
+                isSpeaking = false;
+                ttsBtn.classList.remove('speaking');
+                document.querySelectorAll('.message-bubble').forEach(b => b.classList.remove('speaking'));
+                document.querySelectorAll('.message-siri-wave').forEach(w => w.classList.remove('active'));
+                document.querySelectorAll('.siri-wave-container').forEach(w => w.classList.remove('active'));
+                audioElement.remove(); // Remove the element when done
+            };
+            
+            // Show loading indicator for TTS generation
+            if (messageId) {
+                const messageBubble = document.getElementById(messageId);
+                if (messageBubble) {
+                    // Remove any existing loading indicators first
+                    const existingIndicator = messageBubble.querySelector('.tts-loading-indicator');
+                    if (existingIndicator) existingIndicator.remove();
+                    
+                    const loadingIndicator = document.createElement('div');
+                    loadingIndicator.className = 'tts-loading-indicator';
+                    loadingIndicator.innerHTML = '<small>Generating speech...</small>';
+                    messageBubble.appendChild(loadingIndicator);
+                }
+            }
+            
+            // Pass auto_translate=false since we've already translated the text
+            const encodedText = encodeURIComponent(text);
+            audioElement.src = `/stream_speech?text=${encodedText}&language=${currentLanguage}&auto_translate=false`;
+            audioElement.load();
+            
+            // Add to body to maintain reference
+            document.body.appendChild(audioElement);
+            
+            audioElement.oncanplaythrough = () => {
+                // Remove loading indicator if present
+                const loadingIndicator = document.querySelector('.tts-loading-indicator');
+                if (loadingIndicator) loadingIndicator.remove();
+                
+                // Play the audio
+                audioElement.play().catch(error => {
+                    console.error('Error playing audio:', error);
+                    isSpeaking = false;
+                    ttsBtn.classList.remove('speaking');
+                    document.querySelectorAll('.message-bubble').forEach(b => b.classList.remove('speaking'));
+                    document.querySelectorAll('.message-siri-wave').forEach(w => w.classList.remove('active'));
+                    document.querySelectorAll('.siri-wave-container').forEach(w => w.classList.remove('active'));
+                    audioElement.remove();
+                    showErrorToast('Could not play speech. Please try again.');
+                });
+            };
+            
+            audioElement.onerror = () => {
+                console.error('Error loading audio file');
+                // Remove loading indicator if present
+                const loadingIndicator = document.querySelector('.tts-loading-indicator');
+                if (loadingIndicator) loadingIndicator.remove();
+                
+                isSpeaking = false;
+                ttsBtn.classList.remove('speaking');
+                document.querySelectorAll('.message-bubble').forEach(b => b.classList.remove('speaking'));
+                document.querySelectorAll('.message-siri-wave').forEach(w => w.classList.remove('active'));
+                document.querySelectorAll('.siri-wave-container').forEach(w => w.classList.remove('active'));
+                audioElement.remove();
+                showErrorToast('Could not generate speech. Please try again.');
+            };
+            
+            return;
+        }
+        
+        // Continue with browser TTS for other languages
         const voices = speechSynthesis.getVoices();
-        console.log("Available voices:", voices.map(v => v.name + ' (' + v.lang + ')'));
         
         // Find the best voice for the current language
         let bestVoice = null;
@@ -1698,214 +1954,79 @@ document.addEventListener('DOMContentLoaded', function() {
             bestVoice = voices[0]; // Default to first available voice
         }
         
-        // Find Siri-wave containers to activate
-        let siriWave = null;
-        let messageSiriWave = null;
+        // Clean up the text by removing any SSML tags for browser TTS
+        let cleanText = text;
+        // Remove SSML tags that the browser's TTS doesn't understand
+        cleanText = cleanText.replace(/<break[^>]*>/g, '');
+        cleanText = cleanText.replace(/<say-as[^>]*>([^<]*)<\/say-as>/g, '$1');
+        cleanText = cleanText.replace(/<\/?(emphasis|prosody|voice)[^>]*>/g, '');
         
-        if (messageId) {
-            const messageBubble = document.getElementById(messageId);
-            if (messageBubble) {
-                messageBubble.classList.add('speaking');
-                messageSiriWave = messageBubble.querySelector('.message-siri-wave');
-                if (messageSiriWave) messageSiriWave.classList.add('active');
-                
-                // Find the closest siri-wave-container
-                const messageGroup = messageBubble.closest('.message-group');
-                if (messageGroup) {
-                    siriWave = messageGroup.querySelector('.siri-wave-container');
-                    if (siriWave) siriWave.classList.add('active');
-                }
-            }
+        // Create and configure the utterance
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        if (bestVoice) utterance.voice = bestVoice;
+        utterance.lang = bestVoice ? bestVoice.lang : (languageToVoiceMap[currentLanguage] ? languageToVoiceMap[currentLanguage][0] : 'en-US');
+        utterance.volume = 0.8;
+        utterance.rate = currentLanguage === 'ta' ? 0.8 : 1.0; // Slow down Tamil speech
+        utterance.pitch = 1.0;
+        
+        // Handle the end of speech
+        utterance.onend = () => {
+            isSpeaking = false;
+            ttsBtn.classList.remove('speaking');
+            document.querySelectorAll('.message-bubble').forEach(b => b.classList.remove('speaking'));
+            document.querySelectorAll('.message-siri-wave').forEach(w => w.classList.remove('active'));
+            document.querySelectorAll('.siri-wave-container').forEach(w => w.classList.remove('active')); 
+        };
+        
+        utterance.onerror = (e) => {
+            console.error("TTS error:", e);
+            isSpeaking = false;
+            ttsBtn.classList.remove('speaking');
+            document.querySelectorAll('.message-bubble').forEach(b => b.classList.remove('speaking'));
+            document.querySelectorAll('.message-siri-wave').forEach(w => w.classList.remove('active'));
+            document.querySelectorAll('.siri-wave-container').forEach(w => w.classList.remove('active'));
+            showErrorToast('Error during text-to-speech conversion');
         }
         
-        // Split text into smaller chunks for more reliable TTS
-        const maxChunkLength = 100; // Maximum characters per chunk
-        let chunks = [];
-        
-        // First try to split by sentences
-        const sentences = text.match(/[^.!?]+[.!?]+/g) || [];
-        
-        if (sentences.length > 0) {
-            // Process each sentence and split if too long
-            sentences.forEach(sentence => {
-                const trimmedSentence = sentence.trim();
-                if (trimmedSentence.length <= maxChunkLength) {
-                    chunks.push(trimmedSentence);
-                } else {
-                    // Split long sentences by commas or other separators
-                    const subParts = trimmedSentence.split(/,|;|\:|\-\-/);
-                    let currentChunk = "";
-                    
-                    subParts.forEach(part => {
-                        const trimmedPart = part.trim();
-                        if ((currentChunk + trimmedPart).length <= maxChunkLength) {
-                            currentChunk += (currentChunk ? ", " : "") + trimmedPart;
-                        } else {
-                            if (currentChunk) chunks.push(currentChunk);
-                            currentChunk = trimmedPart;
-                        }
-                    });
-                    
-                    if (currentChunk) chunks.push(currentChunk);
-                }
-            });
-        } else {
-            // If no sentences found, just split by character count
-            let i = 0;
-            while (i < text.length) {
-                chunks.push(text.substr(i, maxChunkLength));
-                i += maxChunkLength;
-            }
-        }
-        
-        // If no chunks were created, use the entire text as one chunk
-        if (chunks.length === 0) {
-            chunks = [text];
-        }
-        
-        // Create utterances from chunks
-        const utterances = chunks.map(chunk => {
-            const u = new SpeechSynthesisUtterance(chunk);
-            
-            // Set language-specific settings
-            switch(currentLanguage) {
-                case 'hi':
-                    u.lang = 'hi-IN';
-                    u.rate = 0.9;
-                    u.pitch = 1.0;
-                    break;
-                case 'ta':
-                    u.lang = 'ta-IN';
-                    u.rate = 0.8;
-                    u.pitch = 1.0;
-                    break;
-                case 'zh-cn':
-                    u.lang = 'zh-CN';
-                    u.rate = 0.9;
-                    u.pitch = 1.0;
-                    break;
-                case 'ja':
-                    u.lang = 'ja-JP';
-                    u.rate = 0.9;
-                    u.pitch = 1.0;
-                    break;
-                case 'ko':
-                    u.lang = 'ko-KR';
-                    u.rate = 0.9;
-                    u.pitch = 1.0;
-                    break;
-                case 'ar':
-                    u.lang = 'ar-SA';
-                    u.rate = 0.9;
-                    u.pitch = 1.0;
-                    break;
-                default:
-                    u.lang = getRecognitionLanguage(currentLanguage);
-                    u.rate = 1.0;
-                    u.pitch = 1.1;
-            }
-            
-            // Set the selected voice
-            if (bestVoice) {
-                u.voice = bestVoice;
-            }
-            
-            u.volume = 1.0;
-            return u;
-        });
-        
-        let currentIndex = 0;
-        let resumeTimer = null;
-        
-        // Keep synthesis session alive with periodic resume (Safari fix)
-        function keepAlive() {
-            if (speechSynthesis.speaking) {
-                speechSynthesis.pause();
-                speechSynthesis.resume();
-                resumeTimer = setTimeout(keepAlive, 5000);
-            }
-        }
-        
-        resumeTimer = setTimeout(keepAlive, 5000);
-        
-        function speakNext() {
-            if (currentIndex < utterances.length && isSpeaking) {
-                const currentUtterance = utterances[currentIndex];
-                currentUtterance.onend = () => { 
-                    currentIndex++; 
-                    if (currentIndex < utterances.length && isSpeaking) {
-                        setTimeout(speakNext, 250);
-                    } else { 
-                        clearTimeout(resumeTimer);
-                        ttsBtn.classList.remove('speaking');
-                        isSpeaking = false;
-                        
-                        // Deactivate Siri waves
-                        if (siriWave) siriWave.classList.remove('active');
-                        if (messageSiriWave) messageSiriWave.classList.remove('active');
-                        if (messageId) {
-                            const messageBubble = document.getElementById(messageId);
-                            if (messageBubble) messageBubble.classList.remove('speaking');
-                        }
-                        document.querySelectorAll('.speak-btn').forEach(b => b.classList.remove('speaking'));
-                    }
-                };
-                currentUtterance.onerror = (event) => { 
-                    console.error(`Speech synthesis error for chunk ${currentIndex}:`, event);
-                    currentIndex++;
-                    clearTimeout(resumeTimer);
-                    if (currentIndex < utterances.length && isSpeaking) {
-                        setTimeout(speakNext, 250);
-                    } else {
-                        ttsBtn.classList.remove('speaking');
-                        isSpeaking = false;
-                        
-                        // Deactivate Siri waves
-                        if (siriWave) siriWave.classList.remove('active');
-                        if (messageSiriWave) messageSiriWave.classList.remove('active');
-                        if (messageId) {
-                            const messageBubble = document.getElementById(messageId);
-                            if (messageBubble) messageBubble.classList.remove('speaking');
-                        }
-                        document.querySelectorAll('.speak-btn').forEach(b => b.classList.remove('speaking'));
-                    }
-                };
-                
-                try {
-                    speechSynthesis.speak(currentUtterance);
-                } catch (e) {
-                    console.error("Speech synthesis error:", e);
-                    currentIndex++;
-                    if (currentIndex < utterances.length && isSpeaking) {
-                        setTimeout(speakNext, 250);
-                    }
-                }
-            }
-        }
-        
-        speakNext();
+        // Start speaking
+        speechSynthesis.speak(utterance);
     }
 
     // New function to speak bot messages automatically (Siri-like behavior)
     function speakBotMessage(messageId, text) {
-        // Stop any ongoing speech
-        if (speechSynthesis.speaking) {
-            speechSynthesis.cancel();
-            document.querySelectorAll('.speak-btn').forEach(b => b.classList.remove('speaking'));
-            document.querySelectorAll('.message-bubble').forEach(b => b.classList.remove('speaking'));
-            document.querySelectorAll('.message-siri-wave').forEach(w => w.classList.remove('active'));
-            document.querySelectorAll('.siri-wave-container').forEach(w => w.classList.remove('active'));
+        // Only auto-speak if user hasn't manually turned it off
+        if (window.localStorage.getItem('auto_tts_disabled') === 'true') {
+            return;
         }
         
-        // Find the speak button for this message and activate it
-        const messageBubble = document.getElementById(messageId);
-        if (messageBubble) {
-            const speakBtn = messageBubble.querySelector('.speak-btn');
-            if (speakBtn) speakBtn.classList.add('speaking');
-        }
-        
-        // Speak the text
-        speakText(text, messageId);
+        // Add a small delay to ensure translations have completed
+        setTimeout(() => {
+            // Stop any ongoing speech
+            if (speechSynthesis.speaking) {
+                speechSynthesis.cancel();
+            }
+            
+            // Stop any active audio elements playing server-side TTS
+            document.querySelectorAll('audio.tts-audio').forEach(audio => {
+                audio.pause();
+                audio.remove();
+            });
+            
+            // Find the message bubble and speak button
+            const messageBubble = document.getElementById(messageId);
+            if (messageBubble) {
+                const speakBtn = messageBubble.querySelector('.speak-btn');
+                if (speakBtn) speakBtn.classList.add('speaking');
+                
+                // Use the translated text if available (after translation completes)
+                if (messageBubble.dataset.translatedText) {
+                    text = messageBubble.dataset.translatedText;
+                }
+                
+                // Speak the text
+                speakText(text, messageId);
+            }
+        }, 800); // Wait for potential translations to complete
     }
 
     // Auto-resize input with improved behavior
@@ -2174,17 +2295,21 @@ document.addEventListener('DOMContentLoaded', function() {
         setupSpeakButtons();
         scrollToBottomWithCheck();
         
-        // Check if message needs Tamil translation fix
-        if (currentLanguage === 'ta' && messageText) {
-            detectAndFixTamilText(messageText);
+        // Check if message needs translation
+        if (messageText) {
+            detectAndFixLanguageText(messageText);
         }
         
-        // Auto-read the message (Siri-like behavior)
-        setTimeout(() => {
-            if (messageText) {
+        // Only auto-read the message if auto TTS is not disabled
+        // and if this is not a silenced message type
+        const isAutoTtsDisabled = window.localStorage.getItem('auto_tts_disabled') === 'true';
+        const isResponseTypeSilent = response.type === 'silent' || response.type === 'history_load';
+        
+        if (!isAutoTtsDisabled && !isResponseTypeSilent && messageText) {
+            setTimeout(() => {
                 speakBotMessage(messageId, messageText);
-            }
-        }, 500);
+            }, 500);
+        }
     }
 
     // Send message with improved error handling and UX
@@ -2533,6 +2658,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 isSpeaking = false;
             }
             
+            // Stop any active audio elements playing server-side TTS
+            document.querySelectorAll('audio.tts-audio').forEach(audio => {
+                audio.pause();
+                audio.remove();
+            });
+            
+            // Store old language to check if translation is needed
+            const oldLanguage = currentLanguage;
+            
             // Update current language
             currentLanguage = langCode;
             
@@ -2598,7 +2732,43 @@ document.addEventListener('DOMContentLoaded', function() {
             const needsWelcomeMessage = document.querySelectorAll('.message-group').length > 1;
             
             if (needsWelcomeMessage) {
+                // Disable auto-TTS for the welcome message
+                const previousSetting = window.localStorage.getItem('auto_tts_disabled');
+                window.localStorage.setItem('auto_tts_disabled', 'true');
+                
+                // Append the message
                 appendBotMessage(welcomeResponse);
+                
+                // Restore previous TTS setting
+                if (previousSetting === null) {
+                    window.localStorage.removeItem('auto_tts_disabled');
+                } else {
+                    window.localStorage.setItem('auto_tts_disabled', previousSetting);
+                }
+            }
+            
+            // Only translate existing messages if we're not switching to English
+            // and the language actually changed
+            if (langCode !== 'en' && oldLanguage !== langCode) {
+                // Get all bot messages and translate them
+                const messagesToTranslate = document.querySelectorAll('.message-group.bot .message-bubble.bot');
+                
+                // Translate with a slight delay between each to avoid overwhelming the server
+                messagesToTranslate.forEach((messageBubble, index) => {
+                    // Skip translating the welcome message we just added
+                    if (messageBubble.id && messageBubble.id.startsWith('lang-change-')) {
+                        return;
+                    }
+                    
+                    // Get the original text (if we have it) or the current text
+                    const textToTranslate = messageBubble.dataset.originalText || messageBubble.textContent.trim();
+                    
+                    // Add a delay proportional to the message index to avoid overwhelming the server
+                    setTimeout(() => {
+                        // Only call detect/translate if needed
+                        detectAndFixLanguageText(textToTranslate);
+                    }, index * 300);
+                });
             }
             
             // Show toast notification
@@ -2633,8 +2803,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Enhanced translation helper for automatic language detection/correction
-    function detectAndFixTamilText(text) {
-        // Renamed but kept for compatibility with existing code
+    function detectAndFixLanguageText(text) {
+        // Map of language codes to their Unicode script ranges
         const languageRegexMap = {
             'ta': /[\u0B80-\u0BFF]/, // Tamil
             'hi': /[\u0900-\u097F]/, // Hindi
@@ -2645,22 +2815,57 @@ document.addEventListener('DOMContentLoaded', function() {
             'ru': /[\u0400-\u04FF]/ // Russian
         };
         
-        // If language doesn't have a specific character set, don't check
-        if (!languageRegexMap[currentLanguage]) return text;
+        // If current language is English or doesn't have a specific character set, don't check
+        if (currentLanguage === 'en' || !languageRegexMap[currentLanguage]) return text;
         
         // Check if text contains characters of current language
         const hasExpectedChars = languageRegexMap[currentLanguage].test(text);
         
+        // Generate a unique ID for this translation request
+        const translationId = Date.now().toString();
+        
         if (!hasExpectedChars) {
-            console.log(`Response doesn't contain ${currentLanguage} characters. Requesting new translation...`);
+            console.log(`Response doesn't contain ${currentLanguage} characters. Requesting translation...`);
             
-            // Use the generic translation endpoint
+            // Show loading indicator for translation
+            const lastBotMessage = chatMessages.querySelector('.message-group.bot:last-child .message-bubble.bot');
+            if (lastBotMessage) {
+                // Store original text before translation
+                if (!lastBotMessage.dataset.originalText) {
+                    lastBotMessage.dataset.originalText = text;
+                }
+                
+                // Add translating class for styling
+                lastBotMessage.classList.add('translating');
+                
+                // Remove any existing translating indicators
+                const existingIndicator = lastBotMessage.querySelector('.translating-indicator');
+                if (existingIndicator) existingIndicator.remove();
+                
+                // Add small translating indicator
+                const transIndicator = document.createElement('div');
+                transIndicator.className = 'translating-indicator';
+                transIndicator.setAttribute('data-translation-id', translationId);
+                transIndicator.innerHTML = `<small>Translating to ${getLanguageName(currentLanguage)}...</small>`;
+                lastBotMessage.appendChild(transIndicator);
+                
+                // Cancel any ongoing speech while translation is in progress
+                if (isSpeaking) {
+                    speechSynthesis.cancel();
+                    document.querySelectorAll('audio.tts-audio').forEach(audio => {
+                        audio.pause();
+                    });
+                }
+            }
+            
+            // Use the generic translation endpoint with smart translation
             fetch('/translate_text', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     text: text,
-                    language: currentLanguage
+                    language: currentLanguage,
+                    prepare_for_speech: true // Optimize for both display and speech
                 })
             })
             .then(response => {
@@ -2671,14 +2876,30 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(data => {
                 if (data.translated) {
+                    // Get the display text without SSML and the speech text with SSML
+                    let displayText = data.display_text || data.translated;
+                    let speechText = data.translated;
+                    
+                    // If we don't have a separate display_text, clean the SSML from translated
+                    if (!data.display_text) {
+                        // Remove SSML tags from display text
+                        displayText = displayText.replace(/<break[^>]*>/g, '');
+                        displayText = displayText.replace(/<say-as[^>]*>([^<]*)<\/say-as>/g, '$1');
+                        displayText = displayText.replace(/<\/?(emphasis|prosody|voice)[^>]*>/g, '');
+                    }
+                    
                     // Verify the translated text has appropriate characters if possible
                     const isValidTranslation = !languageRegexMap[currentLanguage] || 
-                        languageRegexMap[currentLanguage].test(data.translated);
+                        languageRegexMap[currentLanguage].test(displayText);
                     
                     if (isValidTranslation) {
                         // Update the displayed text with translation
-                        const lastBotMessage = chatMessages.querySelector('.message-group.bot:last-child .message-bubble.bot');
                         if (lastBotMessage) {
+                            lastBotMessage.classList.remove('translating');
+                            
+                            // Get the message ID for speech updates
+                            const messageId = lastBotMessage.id;
+                            
                             // Re-add the message actions
                             const actionsHtml = `
                                 <div class="message-actions">
@@ -2695,22 +2916,58 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <div class="message-siri-wave-bar"></div>
                                 </div>`;
                             
-                            lastBotMessage.innerHTML = data.translated + actionsHtml;
+                            // Remove translating indicator if exists
+                            const indicator = lastBotMessage.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
+                            if (indicator) indicator.remove();
+                            
+                            // Update content with the cleaned display text
+                            lastBotMessage.innerHTML = displayText + actionsHtml;
+                            
+                            // Setup interaction buttons again
                             setupCopyButtons();
                             setupSpeakButtons();
                             
+                            // Store the original and translated text for TTS
+                            if (!lastBotMessage.dataset.originalText) {
+                                lastBotMessage.dataset.originalText = text;
+                            }
+                            
+                            // Store the speech-optimized text separately
+                            lastBotMessage.dataset.translatedText = speechText;
+                            
                             // If TTS was speaking, restart it with the correct translated text
                             if (ttsBtn.classList.contains('speaking')) {
-                                speakText(data.translated, lastBotMessage.id);
+                                // Small delay to ensure buttons are setup
+                                setTimeout(() => {
+                                    speakText(speechText, messageId);
+                                }, 100);
                             }
                         }
+                    } else {
+                        console.warn("Translation received but character verification failed");
+                        if (lastBotMessage) {
+                            lastBotMessage.classList.remove('translating');
+                            const indicator = lastBotMessage.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
+                            if (indicator) indicator.remove();
+                        }
+                        showErrorToast(`Translation to ${getLanguageName(currentLanguage)} may not be perfect.`);
                     }
                 } else {
-                    console.warn("Translation received but character verification failed");
+                    console.warn("Translation received but empty or invalid");
+                    if (lastBotMessage) {
+                        lastBotMessage.classList.remove('translating');
+                        const indicator = lastBotMessage.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
+                        if (indicator) indicator.remove();
+                    }
                 }
             })
             .catch(error => {
                 console.error(`Error translating to ${currentLanguage}:`, error);
+                if (lastBotMessage) {
+                    lastBotMessage.classList.remove('translating');
+                    const indicator = lastBotMessage.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
+                    if (indicator) indicator.remove();
+                }
                 showErrorToast(`Translation to ${getLanguageName(currentLanguage)} failed. Using original text.`);
             });
         }
@@ -2745,11 +3002,35 @@ document.addEventListener('DOMContentLoaded', function() {
             if (res.ok) {
                 const history = await res.json();
                 if (history.length > 0) {
+                    // Temporarily disable auto-speech during history loading
+                    const originalAutoTtsSetting = window.localStorage.getItem('auto_tts_disabled');
+                    window.localStorage.setItem('auto_tts_disabled', 'true');
+                    
                     chatMessages.innerHTML = '';
+                    
+                    // Add messages without auto-speech and mark them as history
                     history.forEach(msg => {
-                        if (msg.role === 'user') appendUserMessage(msg.text);
-                        else appendBotMessage({ botReply: msg.text });
+                        if (msg.role === 'user') {
+                            appendUserMessage(msg.text);
+                        } else {
+                            appendBotMessage({ 
+                                botReply: msg.text,
+                                type: 'history_load' // Mark as history to prevent auto-speech
+                            });
+                        }
                     });
+                    
+                    // Translate loaded messages if needed (without auto-speak)
+                    if (currentLanguage !== 'en') {
+                        checkAndTranslateLoadedMessages();
+                    }
+                    
+                    // Restore original auto-speech setting
+                    if (originalAutoTtsSetting === null) {
+                        window.localStorage.removeItem('auto_tts_disabled');
+                    } else {
+                        window.localStorage.setItem('auto_tts_disabled', originalAutoTtsSetting);
+                    }
                 }
             }
         } catch (error) {
@@ -2762,10 +3043,53 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Check and translate loaded messages if necessary
+    function checkAndTranslateLoadedMessages() {
+        // Get all bot messages
+        const botMessages = document.querySelectorAll('.message-group.bot .message-bubble.bot');
+        
+        // Skip translation if we're displaying in English
+        if (currentLanguage === 'en') return;
+        
+        // Map of language codes to their Unicode script ranges
+        const languageRegexMap = {
+            'ta': /[\u0B80-\u0BFF]/, // Tamil
+            'hi': /[\u0900-\u097F]/, // Hindi
+            'ar': /[\u0600-\u06FF]/, // Arabic
+            'zh-cn': /[\u4E00-\u9FFF]/, // Chinese
+            'ja': /[\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF]/, // Japanese
+            'ko': /[\uAC00-\uD7AF\u1100-\u11FF]/, // Korean
+            'ru': /[\u0400-\u04FF]/ // Russian
+        };
+        
+        // Check if the current language has a defined character set
+        const currentLangRegex = languageRegexMap[currentLanguage];
+        
+        // For each message, check if it needs translation
+        botMessages.forEach((msgBubble, index) => {
+            const text = msgBubble.textContent.trim();
+            
+            // Skip empty messages
+            if (!text) return;
+            
+            // Check if the message is already in the target language
+            if (currentLangRegex && currentLangRegex.test(text)) {
+                // Already in target language, no need to translate
+                return;
+            }
+            
+            // Add a delay to avoid overwhelming the translation service
+            setTimeout(() => {
+                // Use the existing translation function but mark as silent
+                detectAndFixLanguageText(text);
+            }, index * 300); // Stagger requests every 300ms
+        });
+    }
+    
     // Initialize the chat
     loadChatHistory();
     chatInput.focus();
-    
+
     // Category button handling 
     const categoryButtons = document.querySelectorAll('.category-btn');
     const suggestionChips = document.getElementById('suggestionChips');
