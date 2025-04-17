@@ -1053,7 +1053,7 @@ def analyze_uploaded_image(image_data, user_id=None):
             "classes": list(unique_classes),
             "ai_analysis": ai_analysis_text,
             "recommendations": recommended_products,
-            "annotated_image": f"/{annotated_image_path.replace('\\', '/')}"
+            "annotated_image": "/" + annotated_image_path.replace("\\", "/")
         }
         
     except Exception as e:
@@ -1952,7 +1952,7 @@ def predict():
                 "classes": list(unique_classes),
                 "ai_analysis": ai_analysis_text,
                 "recommendations": recommended_products,
-                "annotated_image": f"/{annotated_image_path.replace('\\', '/')}"
+                "annotated_image": "/" + annotated_image_path.replace("\\", "/")
             }
             return jsonify(prediction_data)
         except Exception as e:
