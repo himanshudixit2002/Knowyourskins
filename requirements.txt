@@ -25,7 +25,7 @@ inference-sdk==0.36.1
 # AI/ML libraries
 google-generativeai==0.3.1
 langchain-core==0.1.5
-supervision==0.18.0
+supervision==0.25.1
 
 # NLP and text processing
 nltk==3.8.1
