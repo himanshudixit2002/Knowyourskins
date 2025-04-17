@@ -1952,7 +1952,7 @@ def predict():
                 "classes": list(unique_classes),
                 "ai_analysis": ai_analysis_text,
                 "recommendations": recommended_products,
-                "annotated_image": f"/{annotated_image_path}"
+                "annotated_image": f"/{annotated_image_path.replace('\\', '/')}"
             }
             return jsonify(prediction_data)
         except Exception as e:
