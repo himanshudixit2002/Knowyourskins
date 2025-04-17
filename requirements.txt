@@ -17,10 +17,10 @@ matplotlib==3.8.2
 imutils==0.5.4
 
 # API and HTTP libraries
-requests==2.32.0
+requests==2.31.0
 gdown==5.2.0
 roboflow==1.1.0
-inference-sdk==0.36.1
+# inference-sdk temporarily disabled due to dependency conflicts
 
 # AI/ML libraries
 google-generativeai==0.3.1
