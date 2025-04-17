@@ -1486,6 +1486,172 @@
   }
 
   /* Action Buttons */
+
+  /* New Analysis Styles */
+  .analysis-structured {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .analysis-block {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    transition: transform 0.3s ease;
+  }
+
+  .analysis-block:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .analysis-block-header {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .analysis-block-title {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  .analysis-block-icon {
+    color: var(--primary-color);
+    font-size: 1.25rem;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .analysis-block-content {
+    padding: 1.25rem;
+  }
+
+  .analysis-block-text {
+    color: var(--text-muted);
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  .analysis-subheader {
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 1rem 0 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .key-point-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0;
+  }
+
+  .key-point-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .key-point-item:last-child {
+    border-bottom: none;
+  }
+
+  .key-point-icon {
+    color: var(--primary-color);
+    margin-top: 0.25rem;
+    flex-shrink: 0;
+  }
+
+  .key-point-text {
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .key-highlight {
+    display: inline-block;
+    background: rgba(255, 159, 90, 0.15);
+    padding: 0.1rem 0.5rem;
+    border-radius: 4px;
+    color: var(--primary-color);
+    font-weight: 500;
+  }
+
+  .severity-meter {
+    display: flex;
+    align-items: center;
+    margin-top: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+  }
+
+  .severity-label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-right: 1rem;
+    min-width: 80px;
+  }
+
+  .severity-bars {
+    display: flex;
+    flex-grow: 1;
+    gap: 3px;
+  }
+
+  .severity-bar {
+    height: 8px;
+    flex-grow: 1;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+  }
+
+  .severity-bar.active {
+    background: linear-gradient(90deg, var(--primary-dark), var(--primary-color));
+  }
+
+  .severity-text {
+    margin-left: 1rem;
+    font-weight: 500;
+    min-width: 80px;
+    text-align: right;
+  }
+
+  .severity-low .severity-text {
+    color: #10b981;
+  }
+
+  .severity-medium .severity-text {
+    color: #f59e0b;
+  }
+
+  .severity-high .severity-text {
+    color: #ef4444;
+  }
+
+  .disclaimer-box {
+    display: flex;
+    gap: 1rem;
+    background: rgba(220, 38, 38, 0.1);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 1rem;
+  }
 </style>
 
 <div class="container-main">
@@ -1732,31 +1898,218 @@
               <div class="ai-analysis-text">
                 {% if ai_analysis is defined and ai_analysis %}
                   {% if ai_analysis is string %}
-                    <div class="formatted-analysis">
-                      {{ ai_analysis | safe }}
-                    </div>
-                  {% elif ai_analysis is mapping %}
-                    <div class="analysis-grid">
-                      <!-- Description Section -->
-                      <div class="analysis-section description-section">
-                        <div class="section-header">
-                          <h4><i class="fas fa-info-circle"></i> Description</h4>
+                    <script>
+                      // Function to properly format AI text for display
+                      function formatAIText(text) {
+                        if (!text) return '';
+                        
+                        // Replace ** markers with HTML bold tags
+                        let formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                        
+                        // Split into paragraphs and process each
+                        const paragraphs = formatted.split(/\n{2,}/g);
+                        let result = '';
+                        
+                        // Process the first paragraph as description
+                        if (paragraphs.length > 0) {
+                          result += `<p class="ai-paragraph">${paragraphs[0]}</p>`;
+                        }
+                        
+                        // Special sections to identify
+                        const sections = {
+                          treatment: { 
+                            title: 'Treatment Options',
+                            icon: 'fa-pills',
+                            keywords: ['treatment', 'therapy', 'cream', 'medication', 'cortico', 'inhibitor']
+                          },
+                          skincare: { 
+                            title: 'Skincare Recommendations',
+                            icon: 'fa-spa',
+                            keywords: ['skincare', 'routine', 'cleanser', 'moisturizer', 'cream', 'sunscreen']
+                          },
+                          lifestyle: { 
+                            title: 'Lifestyle & Prevention',
+                            icon: 'fa-heartbeat',
+                            keywords: ['lifestyle', 'diet', 'nutrition', 'stress', 'exercise', 'protect', 'prevention']
+                          }
+                        };
+                        
+                        // Create section objects
+                        let contentSections = {};
+                        
+                        // Sort remaining paragraphs into sections
+                        for (let i = 1; i < paragraphs.length; i++) {
+                          const para = paragraphs[i];
+                          let assigned = false;
+                          
+                          for (const [key, section] of Object.entries(sections)) {
+                            if (section.keywords.some(word => para.toLowerCase().includes(word))) {
+                              if (!contentSections[key]) {
+                                contentSections[key] = [];
+                              }
+                              contentSections[key].push(para);
+                              assigned = true;
+                              break;
+                            }
+                          }
+                          
+                          // If not assigned to a specific section, add to the one that makes most sense
+                          if (!assigned) {
+                            // Default to lifestyle section if not assigned
+                            if (!contentSections['lifestyle']) {
+                              contentSections['lifestyle'] = [];
+                            }
+                            contentSections['lifestyle'].push(para);
+                          }
+                        }
+                        
+                        // Render each section
+                        for (const [key, section] of Object.entries(sections)) {
+                          if (contentSections[key] && contentSections[key].length > 0) {
+                            result += `
+                              <div class="ai-section">
+                                <h4 class="ai-section-title"><i class="fas ${section.icon}"></i> ${section.title}</h4>
+                                <div class="ai-section-content">
+                                  ${contentSections[key].map(p => `<p class="ai-paragraph">${p}</p>`).join('')}
+                                </div>
+                              </div>
+                            `;
+                          }
+                        }
+                        
+                        return result;
+                      }
+                    </script>
+                    
+                    <div class="analysis-structured">
+                      <!-- Main description block -->
+                      <div class="analysis-block">
+                        <div class="analysis-block-header">
+                          <div class="analysis-block-icon">
+                            <i class="fas fa-info-circle"></i>
+                          </div>
+                          <h4 class="analysis-block-title">Condition Overview</h4>
                         </div>
-                        <div class="section-content">
-                          <p>{{ ai_analysis.description | default('') }}</p>
+                        <div class="analysis-block-content formatted-ai-content">
+                          <div id="formatted-ai-content"></div>
+                          <script>
+                            document.addEventListener('DOMContentLoaded', function() {
+                              // The AI analysis text is embedded in a data attribute
+                              const aiElement = document.createElement('div');
+                              aiElement.innerHTML = `{{ ai_analysis|safe }}`;
+                              const aiText = aiElement.textContent || aiElement.innerText;
+                              document.getElementById('formatted-ai-content').innerHTML = formatAIText(aiText);
+                            });
+                          </script>
+                        </div>
+                      </div>
+                      
+                      <!-- Recommendations Block (shown only if not in AI text) -->
+                      <div class="analysis-block" id="generic-recommendations">
+                        <div class="analysis-block-header">
+                          <div class="analysis-block-icon">
+                            <i class="fas fa-hand-holding-medical"></i>
+                          </div>
+                          <h4 class="analysis-block-title">General Recommendations</h4>
+                        </div>
+                        <div class="analysis-block-content">
+                          <ul class="key-point-list">
+                            <li class="key-point-item">
+                              <div class="key-point-icon">
+                                <i class="fas fa-user-md"></i>
+                              </div>
+                              <p class="key-point-text">Consult with a dermatologist for an accurate diagnosis and personalized treatment plan.</p>
+                            </li>
+                            <li class="key-point-item">
+                              <div class="key-point-icon">
+                                <i class="fas fa-shield-alt"></i>
+                              </div>
+                              <p class="key-point-text">Avoid scratching or irritating the affected areas to prevent further complications.</p>
+                            </li>
+                            <li class="key-point-item">
+                              <div class="key-point-icon">
+                                <i class="fas fa-calendar-check"></i>
+                              </div>
+                              <p class="key-point-text">Keep track of any changes in the appearance or symptoms of the condition over time.</p>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Standard disclaimer -->
+                    <div class="disclaimer-box">
+                      <div class="disclaimer-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                      </div>
+                      <div class="disclaimer-content">
+                        <p><strong>Medical Disclaimer:</strong> This analysis is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.</p>
+                      </div>
+                    </div>
+                    
+                    <style>
+                      .formatted-ai-content {
+                        line-height: 1.7;
+                      }
+                      .ai-paragraph {
+                        margin-bottom: 1rem;
+                        color: var(--text-muted);
+                      }
+                      .ai-section {
+                        margin-top: 1.5rem;
+                        padding-top: 1.5rem;
+                        border-top: 1px solid rgba(255, 255, 255, 0.1);
+                      }
+                      .ai-section-title {
+                        font-size: 1.1rem;
+                        font-weight: 600;
+                        color: var(--text-light);
+                        margin-bottom: 1rem;
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                      }
+                      .ai-section-title i {
+                        color: var(--primary-color);
+                      }
+                      .ai-section-content {
+                        color: var(--text-muted);
+                      }
+                    </style>
+                    
+                  {% elif ai_analysis is mapping %}
+                    <div class="analysis-structured">
+                      <!-- Description Block -->
+                      <div class="analysis-block">
+                        <div class="analysis-block-header">
+                          <div class="analysis-block-icon">
+                            <i class="fas fa-info-circle"></i>
+                          </div>
+                          <h4 class="analysis-block-title">Condition Overview</h4>
+                        </div>
+                        <div class="analysis-block-content">
+                          <p class="analysis-block-text">{{ ai_analysis.description | default('No description available.') }}</p>
                         </div>
                       </div>
                       
                       <!-- Symptoms Section -->
                       {% if ai_analysis.symptoms is defined and ai_analysis.symptoms %}
-                      <div class="analysis-section symptoms-section">
-                        <div class="section-header">
-                          <h4><i class="fas fa-clipboard-list"></i> Common Symptoms</h4>
+                      <div class="analysis-block">
+                        <div class="analysis-block-header">
+                          <div class="analysis-block-icon">
+                            <i class="fas fa-clipboard-list"></i>
+                          </div>
+                          <h4 class="analysis-block-title">Common Symptoms</h4>
                         </div>
-                        <div class="section-content">
-                          <ul class="feature-list">
+                        <div class="analysis-block-content">
+                          <ul class="key-point-list">
                             {% for symptom in ai_analysis.symptoms %}
-                              <li><i class="fas fa-check"></i> {{ symptom }}</li>
+                              <li class="key-point-item">
+                                <div class="key-point-icon">
+                                  <i class="fas fa-check-circle"></i>
+                                </div>
+                                <p class="key-point-text">{{ symptom }}</p>
+                              </li>
                             {% endfor %}
                           </ul>
                         </div>
@@ -1765,16 +2118,48 @@
                       
                       <!-- Recommendations Section -->
                       {% if ai_analysis.recommendations is defined and ai_analysis.recommendations %}
-                      <div class="analysis-section recommendations-section">
-                        <div class="section-header">
-                          <h4><i class="fas fa-hand-holding-medical"></i> Recommendations</h4>
+                      <div class="analysis-block">
+                        <div class="analysis-block-header">
+                          <div class="analysis-block-icon">
+                            <i class="fas fa-hand-holding-medical"></i>
+                          </div>
+                          <h4 class="analysis-block-title">Recommendations</h4>
                         </div>
-                        <div class="section-content">
-                          <ul class="feature-list">
+                        <div class="analysis-block-content">
+                          <ul class="key-point-list">
                             {% for rec in ai_analysis.recommendations %}
-                              <li><i class="fas fa-check"></i> {{ rec }}</li>
+                              <li class="key-point-item">
+                                <div class="key-point-icon">
+                                  <i class="fas fa-check-circle"></i>
+                                </div>
+                                <p class="key-point-text">{{ rec }}</p>
+                              </li>
                             {% endfor %}
                           </ul>
+                        </div>
+                      </div>
+                      {% endif %}
+                      
+                      <!-- Severity Assessment if available -->
+                      {% if ai_analysis.severity is defined and ai_analysis.severity %}
+                      <div class="analysis-block">
+                        <div class="analysis-block-header">
+                          <div class="analysis-block-icon">
+                            <i class="fas fa-exclamation-circle"></i>
+                          </div>
+                          <h4 class="analysis-block-title">Severity Assessment</h4>
+                        </div>
+                        <div class="analysis-block-content">
+                          {% set severity_level = ai_analysis.severity | lower %}
+                          <div class="severity-meter severity-{{ severity_level }}">
+                            <div class="severity-label">Severity:</div>
+                            <div class="severity-bars">
+                              <div class="severity-bar {{ 'active' if severity_level in ['low', 'medium', 'high'] }}"></div>
+                              <div class="severity-bar {{ 'active' if severity_level in ['medium', 'high'] }}"></div>
+                              <div class="severity-bar {{ 'active' if severity_level == 'high' }}"></div>
+                            </div>
+                            <div class="severity-text">{{ ai_analysis.severity | title }}</div>
+                          </div>
                         </div>
                       </div>
                       {% endif %}
@@ -1790,12 +2175,42 @@
                         <p><strong>Medical Disclaimer:</strong> {{ ai_analysis.disclaimer }}</p>
                       </div>
                     </div>
+                    {% else %}
+                    <!-- Standard disclaimer if none provided -->
+                    <div class="disclaimer-box">
+                      <div class="disclaimer-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                      </div>
+                      <div class="disclaimer-content">
+                        <p><strong>Medical Disclaimer:</strong> This analysis is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.</p>
+                      </div>
+                    </div>
                     {% endif %}
                   {% else %}
-                    <p>No detailed analysis available.</p>
+                    <div class="analysis-block">
+                      <div class="analysis-block-header">
+                        <div class="analysis-block-icon">
+                          <i class="fas fa-info-circle"></i>
+                        </div>
+                        <h4 class="analysis-block-title">Analysis Information</h4>
+                      </div>
+                      <div class="analysis-block-content">
+                        <p class="analysis-block-text">No detailed analysis available for this condition. Please consult with a healthcare professional for proper diagnosis and treatment recommendations.</p>
+                      </div>
+                    </div>
                   {% endif %}
                 {% else %}
-                  <p>No analysis information available.</p>
+                  <div class="analysis-block">
+                    <div class="analysis-block-header">
+                      <div class="analysis-block-icon">
+                        <i class="fas fa-info-circle"></i>
+                      </div>
+                      <h4 class="analysis-block-title">Analysis Information</h4>
+                    </div>
+                    <div class="analysis-block-content">
+                      <p class="analysis-block-text">No analysis information available. Please try again with a clearer image or consult with a healthcare professional.</p>
+                    </div>
+                  </div>
                 {% endif %}
               </div>
             </div>
@@ -1900,6 +2315,22 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
   
+  // Format AI analysis text if available
+  const aiContentElement = document.getElementById('formatted-ai-content');
+  if (aiContentElement) {
+    try {
+      // The AI analysis text is embedded in a data attribute
+      const aiElement = document.createElement('div');
+      aiElement.innerHTML = `{{ ai_analysis|safe }}`;
+      const aiText = aiElement.textContent || aiElement.innerText;
+      aiContentElement.innerHTML = formatAIText(aiText);
+    } catch (error) {
+      console.error('Error formatting AI text:', error);
+      // Fallback to simple display
+      aiContentElement.innerHTML = `<p class="ai-paragraph">{{ ai_analysis|safe }}</p>`;
+    }
+  }
+
   // Highlight the highest probability in the table
   const probabilityTable = document.querySelector('.probability-table table');
   if (probabilityTable) {
@@ -2104,37 +2535,41 @@ document.addEventListener('DOMContentLoaded', function() {
   let isProcessing = false; // Flag to prevent multiple simultaneous API calls
   
   // Start the camera
-  startCameraBtn.addEventListener('click', async () => {
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          width: { ideal: 640 },
-          height: { ideal: 480 },
-          facingMode: 'environment' // Prefer rear camera on mobile
-        }, 
-        audio: false 
-      });
-      
-      videoElement.srcObject = stream;
-      cameraStatus.textContent = 'Camera is active';
-      startCameraBtn.disabled = true;
-      captureCameraBtn.disabled = false;
-      stopCameraBtn.disabled = false;
-      
-      // Start continuous prediction
-      livePrediction.style.display = 'block';
-      predictionInterval = setInterval(performLivePrediction, 1000); // Predict every 1 second
-      
-    } catch (error) {
-      cameraStatus.textContent = `Camera error: ${error.message}`;
-      console.error('Error accessing camera:', error);
-    }
-  });
+  if (startCameraBtn) {
+    startCameraBtn.addEventListener('click', async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            facingMode: 'environment' // Prefer rear camera on mobile
+          }, 
+          audio: false 
+        });
+        
+        videoElement.srcObject = stream;
+        cameraStatus.textContent = 'Camera is active';
+        startCameraBtn.disabled = true;
+        captureCameraBtn.disabled = false;
+        stopCameraBtn.disabled = false;
+        
+        // Start continuous prediction
+        livePrediction.style.display = 'block';
+        predictionInterval = setInterval(performLivePrediction, 1000); // Predict every 1 second
+        
+      } catch (error) {
+        cameraStatus.textContent = `Camera error: ${error.message}`;
+        console.error('Error accessing camera:', error);
+      }
+    });
+  }
   
   // Stop the camera
-  stopCameraBtn.addEventListener('click', () => {
-    stopCamera();
-  });
+  if (stopCameraBtn) {
+    stopCameraBtn.addEventListener('click', () => {
+      stopCamera();
+    });
+  }
   
   function stopCamera() {
     if (stream) {
@@ -2156,50 +2591,52 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // Capture a still image from the camera
-  captureCameraBtn.addEventListener('click', () => {
-    if (!stream) return;
-    
-    const ctx = canvasElement.getContext('2d');
-    canvasElement.width = videoElement.videoWidth;
-    canvasElement.height = videoElement.videoHeight;
-    ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-    
-    // Convert canvas to blob and submit to server
-    canvasElement.toBlob((blob) => {
-      const formData = new FormData();
-      formData.append('image', blob, 'camera-capture.jpg');
+  if (captureCameraBtn) {
+    captureCameraBtn.addEventListener('click', () => {
+      if (!stream) return;
       
-      // Show loading spinner
-      document.getElementById('loading-spinner').style.display = 'block';
+      const ctx = canvasElement.getContext('2d');
+      canvasElement.width = videoElement.videoWidth;
+      canvasElement.height = videoElement.videoHeight;
+      ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
       
-      // Send to server for analysis
-      fetch('/skin_disease_prediction', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Prediction data:', data);
-        // Hide loading spinner
-        document.getElementById('loading-spinner').style.display = 'none';
+      // Convert canvas to blob and submit to server
+      canvasElement.toBlob((blob) => {
+        const formData = new FormData();
+        formData.append('image', blob, 'camera-capture.jpg');
         
-        // Update the results tab with the prediction data
-        updateResultsTab(data);
+        // Show loading spinner
+        document.getElementById('loading-spinner').style.display = 'block';
         
-        // Show the results tab
-        document.querySelector('.tab-btn[data-tab="results"]').style.display = 'inline-flex';
-        switchTab('results');
-        
-        // Stop the camera when we switch to results
-        stopCamera();
-      })
-      .catch(error => {
-        console.error('Error submitting image:', error);
-        document.getElementById('loading-spinner').style.display = 'none';
-        cameraStatus.textContent = `Error analyzing image: ${error.message}`;
-      });
-    }, 'image/jpeg', 0.95);
-  });
+        // Send to server for analysis
+        fetch('/skin_disease_prediction', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Prediction data:', data);
+          // Hide loading spinner
+          document.getElementById('loading-spinner').style.display = 'none';
+          
+          // Update the results tab with the prediction data
+          updateResultsTab(data);
+          
+          // Show the results tab
+          document.querySelector('.tab-btn[data-tab="results"]').style.display = 'inline-flex';
+          switchTab('results');
+          
+          // Stop the camera when we switch to results
+          stopCamera();
+        })
+        .catch(error => {
+          console.error('Error submitting image:', error);
+          document.getElementById('loading-spinner').style.display = 'none';
+          cameraStatus.textContent = `Error analyzing image: ${error.message}`;
+        });
+      }, 'image/jpeg', 0.95);
+    });
+  }
   
   // Perform live prediction without capturing (using canvas in background)
   async function performLivePrediction() {
@@ -2338,6 +2775,14 @@ document.addEventListener('DOMContentLoaded', function() {
           </div>
         `;
       }
+    }
+    
+    // Scroll to results section for better visibility
+    const resultsTab = document.getElementById('results');
+    if (resultsTab) {
+      setTimeout(() => {
+        resultsTab.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     }
   }
   

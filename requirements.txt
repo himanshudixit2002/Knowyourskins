@@ -47,3 +47,4 @@ SpeechRecognition==3.10.0
 # Note: uuid is part of Python's standard library, no need to pip install it
 
 # Spacy language model - install with: python -m spacy download en_core_web_sm 
+google-cloud-translate>=3.0.0

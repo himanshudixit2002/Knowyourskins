@@ -1047,36 +1047,37 @@
   /* ================= Language Selector ================= */
   .language-selector {
     position: relative;
-    margin-left: 10px;
     z-index: 10;
+    margin-right: 0.75rem;
   }
   .language-selector-btn {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 6px;
-    color: white;
-    padding: 5px 10px;
-    font-size: 14px;
-    cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 5px;
-    min-height: 34px;
-    min-width: 34px;
-    justify-content: center;
+    gap: 8px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.9);
+    padding: 6px 10px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 36px;
+    min-width: 36px;
   }
   .language-selector-btn:hover { background: rgba(255,255,255,0.2); }
   .language-dropdown {
     position: absolute;
-    top: 100%; right: 0;
-    background: rgba(30,35,45,0.95);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 6px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    min-width: 180px;
-    max-height: 300px;
-    overflow-y: auto;
+    top: 110%;
+    right: 0;
+    width: 200px;
+    background: rgba(25,30,40,0.95);
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
     display: none;
+    padding: 8px 0;
+    overflow-y: auto;
+    max-height: 300px;
     z-index: 1000;
     backdrop-filter: blur(10px);
     margin-top: 5px;
@@ -1094,6 +1095,44 @@
   }
   .language-option:hover { background: rgba(255,138,0,0.2); }
   .language-option.selected { background: rgba(255,138,0,0.3); font-weight: 500; }
+
+  /* Translation indicator styling */
+  .translating-indicator {
+    margin-top: 8px;
+    padding: 4px 8px;
+    background-color: rgba(255, 138, 0, 0.15);
+    border-radius: 4px;
+    animation: pulse 1.5s infinite;
+    display: inline-block;
+  }
+
+  .translating-indicator small {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .translating-indicator small::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #ff8a00;
+    animation: pulse 1.5s infinite;
+  }
+
+  .message-bubble.translating {
+    opacity: 0.8;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+  }
   
   @media (max-width: 480px) {
     .language-selector-btn {
@@ -1113,7 +1152,7 @@
       min-height: 36px;
     }
   }
-
+  
   /* ================= Image Upload & Previews ================= */
   .image-upload-container {
     position: absolute;
@@ -2801,22 +2840,113 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Get all bot messages and translate them
                 const messagesToTranslate = document.querySelectorAll('.message-group.bot .message-bubble.bot');
                 
-                // Translate with a slight delay between each to avoid overwhelming the server
-                messagesToTranslate.forEach((messageBubble, index) => {
-                    // Skip translating the welcome message we just added
-                    if (messageBubble.id && messageBubble.id.startsWith('lang-change-')) {
-                        return;
-                    }
+                if (messagesToTranslate.length > 0) {
+                    // Show a loading toast
+                    showToast(`Translating ${messagesToTranslate.length} messages to ${getLanguageName(langCode)}...`, 'info');
                     
-                    // Get the original text (if we have it) or the current text
-                    const textToTranslate = messageBubble.dataset.originalText || messageBubble.textContent.trim();
-                    
-                    // Add a delay proportional to the message index to avoid overwhelming the server
-                    setTimeout(() => {
-                        // Only call detect/translate if needed
-                        detectAndFixLanguageText(textToTranslate);
-                    }, index * 300);
-                });
+                    // Translate with a slight delay between each to avoid overwhelming the server
+                    messagesToTranslate.forEach((messageBubble, index) => {
+                        // Skip translating the welcome message we just added
+                        if (messageBubble.id && messageBubble.id.startsWith('lang-change-')) {
+                            return;
+                        }
+                        
+                        // Get the original text (if we have it) or the current text
+                        const textToTranslate = messageBubble.dataset.originalText || messageBubble.textContent.trim();
+                        
+                        // Add a delay proportional to the message index to avoid overwhelming the server
+                        setTimeout(() => {
+                            // Create a unique translation ID for this message
+                            const translationId = `${Date.now()}-${index}`;
+                            
+                            // Add translating class for styling
+                            messageBubble.classList.add('translating');
+                            
+                            // Remove any existing translating indicators
+                            const existingIndicator = messageBubble.querySelector('.translating-indicator');
+                            if (existingIndicator) existingIndicator.remove();
+                            
+                            // Add small translating indicator
+                            const transIndicator = document.createElement('div');
+                            transIndicator.className = 'translating-indicator';
+                            transIndicator.setAttribute('data-translation-id', translationId);
+                            transIndicator.innerHTML = `<small>Translating...</small>`;
+                            messageBubble.appendChild(transIndicator);
+                            
+                            // Call the translation endpoint directly instead of using detectAndFixLanguageText
+                            fetch('/translate_text', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ 
+                                    text: textToTranslate,
+                                    language: langCode,
+                                    prepare_for_speech: true
+                                })
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error(`Translation request failed with status: ${response.status}`);
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (data.translated) {
+                                    // Get the display text and speech text
+                                    let displayText = data.display_text || data.translated;
+                                    let speechText = data.translated;
+                                    
+                                    // Clean the display text if needed
+                                    if (!data.display_text) {
+                                        displayText = displayText.replace(/<break[^>]*>/g, '');
+                                        displayText = displayText.replace(/<say-as[^>]*>([^<]*)<\/say-as>/g, '$1');
+                                        displayText = displayText.replace(/<\/?(emphasis|prosody|voice)[^>]*>/g, '');
+                                    }
+                                    
+                                    // Update the message
+                                    messageBubble.classList.remove('translating');
+                                    
+                                    // Get the message actions
+                                    const messageActions = messageBubble.querySelector('.message-actions');
+                                    const messageSiriWave = messageBubble.querySelector('.message-siri-wave');
+                                    
+                                    // Keep the original text for potential future translations
+                                    if (!messageBubble.dataset.originalText) {
+                                        messageBubble.dataset.originalText = textToTranslate;
+                                    }
+                                    
+                                    // Store the speech-optimized text
+                                    messageBubble.dataset.translatedText = speechText;
+                                    
+                                    // Remove the indicator
+                                    const indicator = messageBubble.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
+                                    if (indicator) indicator.remove();
+                                    
+                                    // Update the content
+                                    messageBubble.innerHTML = displayText;
+                                    
+                                    // Re-add the message actions if they existed
+                                    if (messageActions) messageBubble.appendChild(messageActions);
+                                    if (messageSiriWave) messageBubble.appendChild(messageSiriWave);
+                                    
+                                    // Re-setup the buttons
+                                    setupCopyButtons();
+                                    setupSpeakButtons();
+                                } else {
+                                    // Handle translation failure
+                                    messageBubble.classList.remove('translating');
+                                    const indicator = messageBubble.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
+                                    if (indicator) indicator.remove();
+                                }
+                            })
+                            .catch(error => {
+                                console.error(`Error translating message to ${langCode}:`, error);
+                                messageBubble.classList.remove('translating');
+                                const indicator = messageBubble.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
+                                if (indicator) indicator.remove();
+                            });
+                        }, index * 300);
+                    });
+                }
             }
             
             // Show toast notification
@@ -2866,6 +2996,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // If current language is English or doesn't have a specific character set, don't check
         if (currentLanguage === 'en' || !languageRegexMap[currentLanguage]) return text;
         
+        // Find the last bot message bubble to update
+        const lastBotMessage = document.querySelectorAll('.message-group.bot .message-bubble.bot').length > 0 ? 
+            document.querySelector('.message-group.bot:last-child .message-bubble.bot') : null;
+        
         // Check if text contains characters of current language
         const hasExpectedChars = languageRegexMap[currentLanguage].test(text);
         
@@ -2876,7 +3010,6 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log(`Response doesn't contain ${currentLanguage} characters. Requesting translation...`);
             
             // Show loading indicator for translation
-            const lastBotMessage = chatMessages.querySelector('.message-group.bot:last-child .message-bubble.bot');
             if (lastBotMessage) {
                 // Store original text before translation
                 if (!lastBotMessage.dataset.originalText) {
@@ -3206,6 +3339,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Skip translation if we're displaying in English
         if (currentLanguage === 'en') return;
         
+        // Show a loading toast
+        showToast(`Translating ${botMessages.length} messages to ${getLanguageName(currentLanguage)}...`, 'info');
+        
         // Map of language codes to their Unicode script ranges
         const languageRegexMap = {
             'ta': /[\u0B80-\u0BFF]/, // Tamil
@@ -3217,27 +3353,100 @@ document.addEventListener('DOMContentLoaded', function() {
             'ru': /[\u0400-\u04FF]/ // Russian
         };
         
-        // Check if the current language has a defined character set
-        const currentLangRegex = languageRegexMap[currentLanguage];
-        
-        // For each message, check if it needs translation
-        botMessages.forEach((msgBubble, index) => {
-            const text = msgBubble.textContent.trim();
-            
-            // Skip empty messages
-            if (!text) return;
-            
-            // Check if the message is already in the target language
-            if (currentLangRegex && currentLangRegex.test(text)) {
-                // Already in target language, no need to translate
-                return;
-            }
-            
-            // Add a delay to avoid overwhelming the translation service
+        // Process each message with a delay to avoid overwhelming the server
+        botMessages.forEach((messageBubble, index) => {
             setTimeout(() => {
-                // Use the existing translation function but mark as silent
-                detectAndFixLanguageText(text);
-            }, index * 300); // Stagger requests every 300ms
+                // Create a unique ID for this translation
+                const translationId = `history-${Date.now()}-${index}`;
+                
+                // Get the text to translate
+                const textToTranslate = messageBubble.textContent.trim();
+                
+                // Skip if this message is already in the target language
+                if (languageRegexMap[currentLanguage] && languageRegexMap[currentLanguage].test(textToTranslate)) {
+                    return;
+                }
+                
+                // Add translating class and indicator
+                messageBubble.classList.add('translating');
+                
+                // Add indicator
+                const transIndicator = document.createElement('div');
+                transIndicator.className = 'translating-indicator';
+                transIndicator.setAttribute('data-translation-id', translationId);
+                transIndicator.innerHTML = `<small>Translating...</small>`;
+                messageBubble.appendChild(transIndicator);
+                
+                // Store original text
+                messageBubble.dataset.originalText = textToTranslate;
+                
+                // Call the translation endpoint
+                fetch('/translate_text', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        text: textToTranslate,
+                        language: currentLanguage,
+                        prepare_for_speech: true
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Translation request failed with status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.translated) {
+                        // Get the display text and speech text
+                        let displayText = data.display_text || data.translated;
+                        let speechText = data.translated;
+                        
+                        // Clean display text if needed
+                        if (!data.display_text) {
+                            displayText = displayText.replace(/<break[^>]*>/g, '');
+                            displayText = displayText.replace(/<say-as[^>]*>([^<]*)<\/say-as>/g, '$1');
+                            displayText = displayText.replace(/<\/?(emphasis|prosody|voice)[^>]*>/g, '');
+                        }
+                        
+                        // Update the message
+                        messageBubble.classList.remove('translating');
+                        
+                        // Get the message actions and wave
+                        const messageActions = messageBubble.querySelector('.message-actions');
+                        const messageSiriWave = messageBubble.querySelector('.message-siri-wave');
+                        
+                        // Store the speech text
+                        messageBubble.dataset.translatedText = speechText;
+                        
+                        // Remove indicator
+                        const indicator = messageBubble.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
+                        if (indicator) indicator.remove();
+                        
+                        // Update content
+                        messageBubble.innerHTML = displayText;
+                        
+                        // Re-add actions and wave
+                        if (messageActions) messageBubble.appendChild(messageActions);
+                        if (messageSiriWave) messageBubble.appendChild(messageSiriWave);
+                        
+                        // Re-setup buttons
+                        setupCopyButtons();
+                        setupSpeakButtons();
+                    } else {
+                        // Handle failure
+                        messageBubble.classList.remove('translating');
+                        const indicator = messageBubble.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
+                        if (indicator) indicator.remove();
+                    }
+                })
+                .catch(error => {
+                    console.error(`Error translating history message to ${currentLanguage}:`, error);
+                    messageBubble.classList.remove('translating');
+                    const indicator = messageBubble.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
+                    if (indicator) indicator.remove();
+                });
+            }, index * 300);
         });
     }
     

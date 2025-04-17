@@ -40,6 +40,9 @@ import base64
 from gtts import gTTS
 import io
 from PIL import Image
+import sys
+import html
+import datetime
 
 # Advanced text-to-speech imports
 try:
