@@ -101,6 +101,93 @@
     overflow: hidden;
   }
 
+  /* Camera Container */
+  .camera-container {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 159, 90, 0.3);
+    border-radius: 20px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .camera-feed {
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    border-radius: 12px;
+    margin: 0 auto 1.5rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  .camera-controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .camera-btn {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .camera-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 159, 90, 0.3);
+  }
+
+  .camera-btn:disabled {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.5);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .detection-info {
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border-radius: 10px;
+    padding: 1rem;
+    margin-top: 1rem;
+    text-align: left;
+  }
+
+  #camera-status {
+    margin-bottom: 1rem;
+    color: var(--text-muted);
+  }
+
+  /* ... existing styles ... */
+  
+  /* Upload Box */
+  .upload-box {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px dashed rgba(255, 159, 90, 0.3);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
   .upload-box::before {
     content: '';
     position: absolute;
@@ -1428,41 +1515,39 @@
     </div>
 
     <div class="tab-navigation">
-      <button class="tab-btn {% if prediction is not defined %}active{% endif %}" data-tab="upload" type="button">
+      <button class="tab-btn active" data-tab="upload">
         <i class="fas fa-upload"></i> Upload Image
       </button>
-      {% if prediction is defined %}
-      <button class="tab-btn {% if prediction is defined %}active{% endif %}" data-tab="results" type="button">
+      <button class="tab-btn" data-tab="camera">
+        <i class="fas fa-camera"></i> Live Camera
+      </button>
+      <button class="tab-btn" data-tab="results" {% if prediction %}style="display: inline-flex"{% else %}style="display: none"{% endif %}>
         <i class="fas fa-chart-pie"></i> Analysis Results
       </button>
-      {% endif %}
     </div>
 
     <!-- Upload Tab -->
-    <div id="upload-tab" class="tab-content {% if prediction is not defined %}active{% endif %}">
+    <div id="upload-tab" class="tab-content active">
       <form id="upload-form" action="{{ url_for('skin_disease_prediction') }}" method="post" enctype="multipart/form-data">
         <div class="upload-box" id="upload-area">
           <div class="upload-icon-container">
             <i class="fas fa-upload upload-icon"></i>
           </div>
           <h3>Upload Your Skin Image</h3>
-          <p>Click or drag & drop to upload</p>
-          <p class="text-sm text-gray-400">Supported formats: JPG, JPEG, PNG (Max: 10MB)</p>
-          <input type="file" name="image" id="file-input" accept=".jpg,.jpeg,.png">
+          <p>Drop your image here or click to browse</p>
+          <p class="text-sm text-gray-400 mt-2">Supported formats: JPG, JPEG, PNG</p>
+          <input type="file" name="image" id="file-input" accept="image/jpeg, image/png" hidden />
         </div>
         
         <div class="preview-container" id="preview-container">
           <div class="preview-image-container">
-            <img id="preview-image" class="preview-image" src="#" alt="Preview">
+            <img id="preview-image" class="preview-image" src="#" alt="Preview" />
             <button type="button" class="remove-preview" id="remove-preview">
               <i class="fas fa-times"></i>
             </button>
           </div>
-          <div class="progress-container" id="progress-container">
-            <div class="progress-bar" id="progress-bar"></div>
-          </div>
-          <button type="submit" class="upload-btn" id="upload-btn" disabled>
-            <i class="fas fa-diagnoses"></i> Analyze Skin Condition
+          <button id="upload-btn" type="submit" class="upload-btn mt-4" disabled>
+            <i class="fas fa-upload"></i> Upload for Analysis
           </button>
         </div>
       </form>
@@ -1473,30 +1558,74 @@
           <div class="spinner-middle"></div>
           <div class="spinner-inner"></div>
         </div>
-        <p class="loading-text">Analyzing Your Image</p>
-        <p class="loading-subtext">Our AI is examining your skin for potential conditions</p>
+        <h3 class="loading-text">Analyzing your skin image...</h3>
+        <p class="loading-subtext">Our AI is examining the image for potential skin conditions.</p>
         <div class="loading-progress">
           <div class="loading-progress-bar" id="loading-progress-bar"></div>
         </div>
       </div>
     </div>
     
+    <!-- Camera Tab -->
+    <div class="tab-content" id="camera-tab">
+      <div class="camera-container">
+        <h3 class="text-white text-xl mb-4">Real-time Skin Disease Detection</h3>
+        <p class="text-gray-400 mb-6">Use your camera to detect skin conditions in real-time</p>
+        
+        <p id="camera-status">Click "Start Camera" to begin</p>
+        
+        <div class="camera-feed-container">
+          <video id="camera-feed" class="camera-feed" autoplay playsinline></video>
+          <canvas id="camera-canvas" style="display: none;"></canvas>
+        </div>
+        
+        <div class="camera-controls">
+          <button id="start-camera" class="camera-btn">
+            <i class="fas fa-video"></i> Start Camera
+          </button>
+          <button id="capture-image" class="camera-btn" disabled>
+            <i class="fas fa-camera"></i> Capture Image
+          </button>
+          <button id="stop-camera" class="camera-btn" disabled>
+            <i class="fas fa-video-slash"></i> Stop Camera
+          </button>
+        </div>
+        
+        <div id="live-prediction" class="detection-info" style="display: none;">
+          <h4 class="font-bold text-lg mb-2">Live Detection:</h4>
+          <p id="live-prediction-text">Waiting for analysis...</p>
+          <div class="flex items-center mt-2">
+            <div class="mr-2 font-semibold">Confidence:</div>
+            <div class="w-full bg-gray-700 rounded-full h-4 overflow-hidden">
+              <div id="confidence-bar" class="h-full bg-gradient-to-r from-orange-500 to-amber-500" style="width: 0%"></div>
+            </div>
+            <div id="confidence-text" class="ml-2">0%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <!-- Results Tab -->
-    <div id="results-tab" class="tab-content {% if prediction is defined %}active{% endif %}">
-      {% if prediction is defined %}
+    <div id="results-tab" class="tab-content">
+      {% if prediction %}
         <div class="results-dashboard">
           <div class="dashboard-grid">
             <!-- Left column: Image and primary diagnosis -->
             <div class="dashboard-col">
-              <!-- Image Preview Card -->
-              <div class="dashboard-card result-image-card">
+              <!-- Uploaded Image Card -->
+              <div class="dashboard-card image-card">
                 <div class="card-header">
-                  <h3 class="card-title"><i class="fas fa-camera-retro"></i> Analyzed Image</h3>
+                  <h3 class="card-title"><i class="fas fa-image"></i> Analyzed Image</h3>
+                  <div class="card-actions">
+                    <button class="card-action-btn" title="Download Image">
+                      <i class="fas fa-download"></i>
+                    </button>
+                  </div>
                 </div>
                 <div class="card-body">
                   <div class="result-image-container">
-                    <img src="{{ image_url }}" alt="Skin Image" class="result-image">
-                    <div class="image-overlay">
+                    <img src="{{ image_url }}" alt="Analyzed skin image" class="result-image">
+                    <div class="image-controls">
                       <button class="zoom-btn" title="Zoom Image">
                         <i class="fas fa-search-plus"></i>
                       </button>
@@ -1851,6 +1980,19 @@ document.addEventListener('DOMContentLoaded', function() {
   const goToUploadBtn = document.getElementById('go-to-upload-btn');
   const appContainer = document.getElementById('app-container');
   
+  // Action buttons event listeners
+  if (analyzeAnotherBtn) {
+    analyzeAnotherBtn.addEventListener('click', () => {
+      switchTab('upload');
+    });
+  }
+  
+  if (goToUploadBtn) {
+    goToUploadBtn.addEventListener('click', () => {
+      switchTab('upload');
+    });
+  }
+  
   // Click on upload area to trigger file input
   if (uploadArea) {
     uploadArea.addEventListener('click', () => {
@@ -1897,121 +2039,314 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   function updatePreview() {
+    if (!fileInput.files || !fileInput.files[0]) return;
+    
     const file = fileInput.files[0];
-    if (file) {
-      // Check file type
-      const fileType = file.type;
-      if (!['image/jpeg', 'image/jpg', 'image/png'].includes(fileType)) {
-        alert('Please select a valid image file (JPG, JPEG, or PNG)');
-        resetFileInput();
-        return;
-      }
-      
-      // Check file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        alert('File size exceeds 10MB limit');
-        resetFileInput();
-        return;
-      }
-      
-      // Update preview
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        previewImage.src = e.target.result;
-        previewContainer.style.display = 'block';
-        uploadArea.style.display = 'none';
-        uploadBtn.disabled = false;
-        if (progressContainer) {
-          progressContainer.style.display = 'block';
-        }
-      };
-      reader.readAsDataURL(file);
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+      previewImage.src = e.target.result;
+      previewContainer.style.display = 'block';
+      uploadBtn.disabled = false;
     }
+    
+    reader.readAsDataURL(file);
   }
   
-  // Remove preview image
+  // Handle removing preview
   if (removePreviewBtn) {
-    removePreviewBtn.addEventListener('click', resetFileInput);
-  }
-  
-  function resetFileInput() {
-    if (fileInput) {
-      fileInput.value = '';
-    }
-    if (previewContainer) {
+    removePreviewBtn.addEventListener('click', function() {
+      previewImage.src = '#';
       previewContainer.style.display = 'none';
-    }
-    if (uploadArea) {
-      uploadArea.style.display = 'block';
-    }
-    if (uploadBtn) {
+      fileInput.value = '';
       uploadBtn.disabled = true;
-    }
-    if (progressContainer) {
-      progressContainer.style.display = 'none';
-    }
+    });
   }
   
   // Handle form submission
   if (uploadForm) {
     uploadForm.addEventListener('submit', function(e) {
-      if (!fileInput.files.length) {
+      if (!fileInput.files || !fileInput.files[0]) {
         e.preventDefault();
-        alert('Please select an image to upload');
         return;
       }
       
       // Show loading spinner
-      if (loadingSpinner) {
-        loadingSpinner.style.display = 'block';
-      }
-      if (previewContainer) {
-        previewContainer.style.display = 'none';
-      }
+      loadingSpinner.style.display = 'block';
       
-      // Animate the progress bar
-      if (loadingProgressBar) {
-        let width = 0;
-        let increment = 2;
-        let maxWidth = 90; // Only go to 90% until results come back
-        
-        const progressInterval = setInterval(function() {
-          if (width >= maxWidth) {
-            clearInterval(progressInterval);
-          } else {
-            width += increment;
-            increment = Math.max(0.5, increment * 0.97); // Gradually slow down
-            loadingProgressBar.style.width = width + '%';
-          }
-        }, 80);
-      }
+      // Simulate progress bar animation for visual feedback
+      loadingProgressBar.style.width = '0%';
+      const interval = setInterval(function() {
+        const currentWidth = parseFloat(loadingProgressBar.style.width);
+        if (currentWidth < 90) {
+          loadingProgressBar.style.width = (currentWidth + Math.random() * 10) + '%';
+        } else {
+          clearInterval(interval);
+        }
+      }, 300);
     });
   }
   
-  // Go to Upload button event listener
-  if (goToUploadBtn) {
-    goToUploadBtn.addEventListener('click', function() {
-      switchTab('upload');
-    });
-  }
+  // Camera functionality
+  const startCameraBtn = document.getElementById('start-camera');
+  const captureCameraBtn = document.getElementById('capture-image');
+  const stopCameraBtn = document.getElementById('stop-camera');
+  const videoElement = document.getElementById('camera-feed');
+  const canvasElement = document.getElementById('camera-canvas');
+  const cameraStatus = document.getElementById('camera-status');
+  const livePrediction = document.getElementById('live-prediction');
+  const confidenceBar = document.getElementById('confidence-bar');
+  const confidenceText = document.getElementById('confidence-text');
+  const livePredictionText = document.getElementById('live-prediction-text');
   
-  // Analyze Another Image button event listener
-  if (analyzeAnotherBtn) {
-    analyzeAnotherBtn.addEventListener('click', function() {
-      resetFileInput();
-      switchTab('upload');
-    });
-  }
+  let stream = null;
+  let predictionInterval = null;
+  let isProcessing = false; // Flag to prevent multiple simultaneous API calls
   
-  // Initialize the correct tab based on if results exist
-  if (appContainer) {
-    const hasPrediction = appContainer.dataset.hasPrediction === 'true';
-    if (hasPrediction) {
-      switchTab('results');
-    } else {
-      switchTab('upload');
+  // Start the camera
+  startCameraBtn.addEventListener('click', async () => {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: 'environment' // Prefer rear camera on mobile
+        }, 
+        audio: false 
+      });
+      
+      videoElement.srcObject = stream;
+      cameraStatus.textContent = 'Camera is active';
+      startCameraBtn.disabled = true;
+      captureCameraBtn.disabled = false;
+      stopCameraBtn.disabled = false;
+      
+      // Start continuous prediction
+      livePrediction.style.display = 'block';
+      predictionInterval = setInterval(performLivePrediction, 1000); // Predict every 1 second
+      
+    } catch (error) {
+      cameraStatus.textContent = `Camera error: ${error.message}`;
+      console.error('Error accessing camera:', error);
+    }
+  });
+  
+  // Stop the camera
+  stopCameraBtn.addEventListener('click', () => {
+    stopCamera();
+  });
+  
+  function stopCamera() {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      videoElement.srcObject = null;
+      stream = null;
+    }
+    
+    cameraStatus.textContent = 'Camera stopped';
+    startCameraBtn.disabled = false;
+    captureCameraBtn.disabled = true;
+    stopCameraBtn.disabled = true;
+    livePrediction.style.display = 'none';
+    
+    if (predictionInterval) {
+      clearInterval(predictionInterval);
+      predictionInterval = null;
     }
   }
+  
+  // Capture a still image from the camera
+  captureCameraBtn.addEventListener('click', () => {
+    if (!stream) return;
+    
+    const ctx = canvasElement.getContext('2d');
+    canvasElement.width = videoElement.videoWidth;
+    canvasElement.height = videoElement.videoHeight;
+    ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+    
+    // Convert canvas to blob and submit to server
+    canvasElement.toBlob((blob) => {
+      const formData = new FormData();
+      formData.append('image', blob, 'camera-capture.jpg');
+      
+      // Show loading spinner
+      document.getElementById('loading-spinner').style.display = 'block';
+      
+      // Send to server for analysis
+      fetch('/skin_disease_prediction', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Prediction data:', data);
+        // Hide loading spinner
+        document.getElementById('loading-spinner').style.display = 'none';
+        
+        // Update the results tab with the prediction data
+        updateResultsTab(data);
+        
+        // Show the results tab
+        document.querySelector('.tab-btn[data-tab="results"]').style.display = 'inline-flex';
+        switchTab('results');
+        
+        // Stop the camera when we switch to results
+        stopCamera();
+      })
+      .catch(error => {
+        console.error('Error submitting image:', error);
+        document.getElementById('loading-spinner').style.display = 'none';
+        cameraStatus.textContent = `Error analyzing image: ${error.message}`;
+      });
+    }, 'image/jpeg', 0.95);
+  });
+  
+  // Perform live prediction without capturing (using canvas in background)
+  async function performLivePrediction() {
+    if (!stream || !videoElement.videoWidth || isProcessing) return;
+    
+    isProcessing = true;
+    
+    try {
+      const ctx = canvasElement.getContext('2d');
+      canvasElement.width = videoElement.videoWidth;
+      canvasElement.height = videoElement.videoHeight;
+      ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+      
+      // Convert canvas to base64 image data
+      const imageData = canvasElement.toDataURL('image/jpeg', 0.7);
+      
+      livePredictionText.textContent = 'Analyzing...';
+      
+      // Send to optimized server endpoint for real-time processing
+      const response = await fetch('/camera_predict', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          image_data: imageData
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Server error');
+      }
+      
+      const data = await response.json();
+      
+      // Update live prediction display
+      livePredictionText.textContent = `Detected: ${data.prediction}`;
+      
+      // Update confidence bar
+      const confidence = data.confidence || 0;
+      confidenceBar.style.width = `${confidence}%`;
+      confidenceText.textContent = `${confidence.toFixed(1)}%`;
+      
+      // Color the confidence bar based on confidence level
+      if (confidence >= 80) {
+        confidenceBar.style.background = 'linear-gradient(90deg, #10b981, #34d399)';  // Green
+      } else if (confidence >= 50) {
+        confidenceBar.style.background = 'linear-gradient(90deg, #f59e0b, #fbbf24)';  // Yellow/Orange
+      } else {
+        confidenceBar.style.background = 'linear-gradient(90deg, #ef4444, #f87171)';  // Red
+      }
+      
+    } catch (error) {
+      console.error('Live prediction error:', error);
+      livePredictionText.textContent = 'Analysis failed';
+    } finally {
+      isProcessing = false;
+    }
+  }
+  
+  // Update the results tab with prediction data
+  function updateResultsTab(data) {
+    // Update prediction text
+    const predictionText = document.querySelector('.prediction-text');
+    if (predictionText) {
+      predictionText.textContent = data.prediction;
+    }
+    
+    // Update image
+    const resultImage = document.querySelector('.result-image');
+    if (resultImage && data.image_url) {
+      resultImage.src = data.image_url;
+    }
+    
+    // Update probabilities table
+    const probabilityResults = document.querySelector('.probability-results');
+    if (probabilityResults && data.probabilities) {
+      if (typeof data.probabilities === 'string') {
+        probabilityResults.innerHTML = `<pre>${data.probabilities}</pre>`;
+      } else if (typeof data.probabilities === 'object') {
+        let tableHTML = `
+          <div class="probability-table">
+            <table class="w-full">
+              <thead>
+                <tr>
+                  <th class="text-left p-2">Condition</th>
+                  <th class="text-right p-2">Probability</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+        
+        for (const [condition, prob] of Object.entries(data.probabilities)) {
+          tableHTML += `
+            <tr class="border-t border-opacity-10">
+              <td class="text-left p-2">${condition}</td>
+              <td class="text-right p-2">
+                <div class="probability-bar-container">
+                  <div class="probability-bar" data-width="${prob}"></div>
+                  <span class="probability-text">${prob}</span>
+                </div>
+              </td>
+            </tr>
+          `;
+        }
+        
+        tableHTML += `
+              </tbody>
+            </table>
+          </div>
+        `;
+        
+        probabilityResults.innerHTML = tableHTML;
+        
+        // Set width for probability bars
+        document.querySelectorAll('.probability-bar').forEach(bar => {
+          const width = bar.getAttribute('data-width');
+          if (width) {
+            const match = width.match(/(\d+(\.\d+)?)/);
+            if (match && match[1]) {
+              bar.style.width = `${parseFloat(match[1])}%`;
+            }
+          }
+        });
+      }
+    }
+    
+    // Update AI analysis
+    const aiAnalysisText = document.querySelector('.ai-analysis-text');
+    if (aiAnalysisText && data.ai_analysis) {
+      if (typeof data.ai_analysis === 'string') {
+        aiAnalysisText.innerHTML = `
+          <div class="formatted-analysis">
+            ${data.ai_analysis}
+          </div>
+        `;
+      }
+    }
+  }
+  
+  // Handle window unload to clean up camera resources
+  window.addEventListener('beforeunload', () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+  });
 });
 </script>
 {% endblock %}

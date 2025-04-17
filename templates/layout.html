@@ -277,11 +277,11 @@
     left: 0;
     width: 100%;
     z-index: 100;
-    background: linear-gradient(135deg, rgba(20, 22, 28, 0.92), rgba(10, 12, 18, 0.96));
-    border-bottom: 1px solid rgba(255, 138, 0, 0.15);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    background: linear-gradient(135deg, rgba(18, 20, 26, 0.95), rgba(8, 10, 16, 0.98));
+    border-bottom: 1px solid rgba(255, 138, 0, 0.2);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     transition: all 0.3s ease;
   }
   
@@ -294,7 +294,7 @@
   .nav-content {
     display: flex;
     align-items: center;
-    height: 70px;
+    height: 75px;
     position: relative;
     white-space: nowrap;
   }
@@ -304,15 +304,15 @@
     display: flex;
     align-items: center;
     flex-shrink: 0;
-    margin-right: 1.5rem;
+    margin-right: 2rem;
     position: relative;
     z-index: 2;
   }
   
   .logo-img {
-    height: 40px;
-    max-width: 100px;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    height: 42px;
+    max-width: 110px;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
   
@@ -321,9 +321,9 @@
   }
   
   .logo-text {
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    margin-left: 0.65rem;
+    margin-left: 0.75rem;
     text-decoration: none;
     background: linear-gradient(90deg, #ff8a00, #ff5f00);
     -webkit-background-clip: text;
@@ -363,9 +363,9 @@
   /* Improved text contrast and visibility */
   .nav-item {
     position: relative;
-    padding: 0.45rem 0.85rem;
+    padding: 0.5rem 0.95rem;
     color: rgba(255, 255, 255, 0.85);
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     font-weight: 500;
     text-decoration: none;
     border-radius: 8px;
@@ -373,7 +373,7 @@
     overflow: hidden;
     display: flex;
     align-items: center;
-    min-height: 36px;
+    min-height: 38px;
     white-space: nowrap;
     flex-shrink: 0;
     letter-spacing: 0.3px;
@@ -381,7 +381,7 @@
   }
   
   .nav-item i {
-    margin-right: 6px;
+    margin-right: 8px;
     font-size: 0.95rem;
     color: rgba(255, 138, 0, 0.9);
     transition: all 0.3s ease;
@@ -1371,6 +1371,9 @@
       
       <!-- Desktop Navigation Menu -->
       <nav class="nav-menu">
+        <a href="{{ url_for('chatbot_page') }}" class="nav-item {% if request.endpoint == 'chatbot_page' %}active{% endif %}">
+          <i class="fas fa-robot"></i> Aura AI
+        </a>
         <a href="{{ url_for('predict') }}" class="nav-item {% if request.endpoint == 'predict' %}active{% endif %}">
           <i class="fas fa-camera"></i> Face Analysis
         </a>
@@ -1416,6 +1419,9 @@
   
   <!-- Mobile Dropdown Menu -->
   <div id="mobile-dropdown" class="mobile-dropdown">
+    <a href="{{ url_for('chatbot_page') }}" class="mobile-nav-item {% if request.endpoint == 'chatbot_page' %}active{% endif %}">
+      <i class="fas fa-robot"></i> Aura AI
+    </a>
     <a href="{{ url_for('bookappointment') }}" class="mobile-nav-item {% if request.endpoint == 'bookappointment' or request.endpoint == 'consultation' %}active{% endif %}">
       <i class="fas fa-calendar-plus"></i> Book Appointment
     </a>
@@ -1430,9 +1436,6 @@
     </a>
     <a href="{{ url_for('profile') }}" class="mobile-nav-item {% if request.endpoint == 'profile' %}active{% endif %}">
       <i class="fas fa-user-circle"></i> Profile
-    </a>
-    <a href="{{ url_for('chatbot_page') }}" class="mobile-nav-item {% if request.endpoint == 'chatbot_page' %}active{% endif %}">
-      <i class="fas fa-robot"></i> Virtual Assistant
     </a>
     
     {% if session.get('is_doctor') %}

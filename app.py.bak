@@ -1412,19 +1412,13 @@ Just provide the closing sentence, nothing else.
     
     return answer
 
-def get_conversation_history(user_id=None, limit=10, offset=0):
-    """Gets the conversation history for a user or session.
-    
-    Args:
-        user_id: The user or session ID
-        limit: Maximum number of messages to retrieve (default 10)
-        offset: Number of messages to skip (for pagination)
-    """
+def get_conversation_history(user_id=None):
+    """Gets the conversation history for a user or session."""
     with get_db_connection() as conn:
         if user_id:
             history = conn.execute(
-                "SELECT role, text FROM conversations WHERE user_id = ? ORDER BY timestamp DESC LIMIT ? OFFSET ?", 
-                (user_id, limit, offset)
+                "SELECT role, text FROM conversations WHERE user_id = ? ORDER BY timestamp", 
+                (user_id,)
             ).fetchall()
         else:
             # For non-logged-in users, use session ID
@@ -1434,14 +1428,11 @@ def get_conversation_history(user_id=None, limit=10, offset=0):
                 session['session_id'] = session_id
                 
             history = conn.execute(
-                "SELECT role, text FROM conversations WHERE user_id = ? ORDER BY timestamp DESC LIMIT ? OFFSET ?", 
-                (session_id, limit, offset)
+                "SELECT role, text FROM conversations WHERE user_id = ? ORDER BY timestamp", 
+                (session_id,)
             ).fetchall()
         
-        # Convert to list of dictionaries and reverse to get chronological order
-        history_list = [dict(h) for h in history]
-        history_list.reverse()
-        return history_list
+        return [dict(h) for h in history]
 
 def save_conversation_message(role, text, user_id=None):
     """Saves a message to the conversation history."""
@@ -1478,10 +1469,7 @@ def clear_conversation_history(user_id=None):
 
 # Updated build_conversation_prompt to support advanced context handling
 def build_conversation_prompt(history, user_input):
-    """Builds a conversation prompt for the chatbot, including conversation history and user input.
-    
-    To reduce token usage, we'll only use the most recent messages for context.
-    """
+    """Builds a conversation prompt for the chatbot, including conversation history and user input."""
     
     # Basic system prompt that defines the AI's behavior
     prompt = """
@@ -1505,14 +1493,10 @@ Instead of: "Recommended treatment is benzoyl peroxide."
 Say: "I'd suggest trying a gentle cleanser with benzoyl peroxide, which works wonders for clearing those pesky breakouts. Start with a 2.5% formula to see how your skin responds."
 """
     
-    # Add conversation history - limit to the most recent messages
-    # This reduces token usage while still maintaining conversational context
-    MAX_HISTORY_MESSAGES = 10  # Adjust this value as needed
-    
+    # Add conversation history
     if history:
-        recent_history = history[-MAX_HISTORY_MESSAGES:] if len(history) > MAX_HISTORY_MESSAGES else history
         prompt += "\nPrevious conversation:\n"
-        for msg in recent_history:
+        for msg in history:
             if msg['role'] == 'user':
                 prompt += f"User: {msg['text']}\n"
             else:
@@ -2395,8 +2379,8 @@ def chatbot():
         # Save the user's message
         save_conversation_message("user", original_input, user_id or session_id)
         
-        # Load limited conversation history from database (just enough for context)
-        conversation_history = get_conversation_history(user_id or session_id, limit=10, offset=0)
+        # Load conversation history from database
+        conversation_history = get_conversation_history(user_id or session_id)
         
         # Handle special case: clear chat request
         if user_input.lower() in ["clear chat", "start new chat", "reset chat"]:
@@ -2711,10 +2695,6 @@ def submit_chatbot_feedback():
 @app.route("/get_conversation_history", methods=["GET"])
 def get_conversation_history_route():
     try:
-        # Get pagination parameters
-        limit = request.args.get('limit', 5, type=int)
-        offset = request.args.get('offset', 0, type=int)
-        
         # Get conversation from database if user is logged in
         user_id = None
         if "username" in session:
@@ -2728,55 +2708,12 @@ def get_conversation_history_route():
             session_id = str(uuid.uuid4())
             session['session_id'] = session_id
         
-        # Get limited history from database
-        history = get_conversation_history(user_id or session_id, limit, offset)
-        
-        # Get total message count for pagination
-        with get_db_connection() as conn:
-            total_count = conn.execute(
-                "SELECT COUNT(*) as count FROM conversations WHERE user_id = ?", 
-                (user_id or session_id,)
-            ).fetchone()['count']
-        
-        return jsonify({
-            "messages": history,
-            "total_count": total_count,
-            "has_more": total_count > (offset + limit)
-        })
+        # Get history from database
+        history = get_conversation_history(user_id or session_id)
+        return jsonify(history)
     except Exception as e:
         print("Error fetching conversation history:", str(e))
-        return jsonify({"messages": [], "total_count": 0, "has_more": False}), 500
-
-@app.route("/load_more_history", methods=["GET"])
-def load_more_history():
-    try:
-        # Get pagination parameters
-        limit = request.args.get('limit', 10, type=int)
-        offset = request.args.get('offset', 0, type=int)
-        
-        # Get user ID or session ID
-        user_id = None
-        if "username" in session:
-            user = get_user(session.get("username"))
-            if user:
-                user_id = user["id"]
-        
-        # Ensure session_id exists for non-logged in users
-        session_id = session.get('session_id')
-        if not session_id:
-            session_id = str(uuid.uuid4())
-            session['session_id'] = session_id
-        
-        # Get older messages from database
-        history = get_conversation_history(user_id or session_id, limit, offset)
-        
-        return jsonify({
-            "messages": history,
-            "offset": offset + limit
-        })
-    except Exception as e:
-        print("Error loading more history:", str(e))
-        return jsonify({"messages": [], "offset": offset}), 500
+        return jsonify([]), 500
 
 @app.route("/set_language", methods=["POST"])
 def set_language():
@@ -2815,7 +2752,7 @@ def chatbot_page():
         user_language = session.get("preferred_language")
     
     # Supported languages for the UI
-    ui_supported_languages = [
+    supported_languages = [
         {"code": "en", "name": "English"},
         {"code": "es", "name": "Español"},
         {"code": "fr", "name": "Français"},
@@ -2834,7 +2771,7 @@ def chatbot_page():
     return render_template(
         "chatbot.html", 
         current_language=user_language,
-        supported_languages=ui_supported_languages
+        supported_languages=supported_languages
     )
 
 @app.route("/clear_conversation", methods=["POST"])
@@ -2925,7 +2862,7 @@ def translate_text_endpoint():
         if not text:
             return jsonify({"error": "No text provided"}), 400
         
-        if target_language not in supported_languages.keys():
+        if target_language not in supported_languages:
             return jsonify({"error": f"Unsupported language: {target_language}"}), 400
         
         # Special handling for Tamil and Hindi can now use the same smart translation
