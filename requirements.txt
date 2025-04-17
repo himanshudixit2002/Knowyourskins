@@ -6,7 +6,7 @@ jinja2==3.1.2
 SQLAlchemy==2.0.19
 
 # Data processing and scientific libraries
-opencv-python==4.8.0.74
+opencv-python==4.8.1.78
 pandas==1.5.3
 numpy==1.26.3
 tensorflow==2.16.1
