@@ -282,20 +282,22 @@
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
+    transition: box-shadow 0.3s ease, background 0.3s ease;
+    will-change: box-shadow, background;
   }
   
   .nav-container {
     max-width: 1280px;
     margin: 0 auto;
     padding: 0 1.5rem;
+    height: 70px; /* Set fixed height for consistency */
   }
   
   .nav-content {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 70px;
+    height: 100%;
     position: relative;
   }
   
@@ -306,6 +308,8 @@
     flex-shrink: 0;
     position: relative;
     z-index: 2;
+    margin-right: 20px; /* Add space between logo and navigation */
+    overflow: hidden; /* Contain the shimmer effect */
   }
   
   .logo-img {
@@ -331,6 +335,8 @@
     letter-spacing: 0.5px;
     transition: all 0.3s ease;
     text-shadow: 0 2px 10px rgba(255, 138, 0, 0.25);
+    position: relative; /* For shimmer positioning */
+    z-index: 1;
   }
   
   .logo-container:hover .logo-text {
@@ -342,13 +348,11 @@
   .nav-menu {
     display: flex;
     align-items: center;
-    gap: 8px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding: 0 10px;
+    gap: 12px; /* Consistent spacing between nav items */
     margin-left: auto;
+    height: 100%;
+    position: relative;
+    overflow: visible;
   }
   
   .nav-menu::-webkit-scrollbar {
@@ -357,7 +361,7 @@
   
   .nav-item {
     position: relative;
-    padding: 7px 12px;
+    padding: 8px 14px; /* Consistent padding */
     color: rgba(255, 255, 255, 0.85);
     font-size: 0.9rem;
     font-weight: 500;
@@ -368,6 +372,7 @@
     align-items: center;
     white-space: nowrap;
     letter-spacing: 0.2px;
+    height: 36px; /* Fixed height for all nav items */
   }
   
   .nav-item i {
@@ -375,6 +380,8 @@
     font-size: 0.95rem;
     color: rgba(255, 138, 0, 0.9);
     transition: all 0.3s ease;
+    width: 16px; /* Fixed width for icons */
+    text-align: center;
   }
   
   .nav-item::before {
@@ -458,6 +465,7 @@
     min-height: 42px;
     align-items: center;
     justify-content: center;
+    margin-left: 10px; /* Add space between button and other elements */
   }
   
   .mobile-menu-btn:hover, .mobile-menu-btn:focus {
@@ -509,7 +517,7 @@
   
   /* Mobile Nav Items */
   .mobile-nav-item {
-    margin-bottom: 8px;
+    margin-bottom: 10px; /* Consistent spacing */
     position: relative;
     padding: 12px 15px;
     color: var(--text-light);
@@ -528,7 +536,7 @@
     margin-right: 12px;
     font-size: 1rem;
     color: var(--primary);
-    width: 20px;
+    width: 24px; /* Fixed width for consistent alignment */
     text-align: center;
   }
   
@@ -759,6 +767,10 @@
     .logo-text {
       font-size: 1.1rem;
     }
+    
+    .nav-menu {
+      gap: 8px;
+    }
   }
   
   @media (max-width: 768px) {
@@ -774,6 +786,10 @@
       height: 65px;
     }
     
+    .nav-container {
+      height: 65px;
+    }
+    
     .main-header {
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     }
@@ -784,6 +800,7 @@
     
     .main-content {
       margin-top: 80px;
+      min-height: calc(100vh - 80px - 300px);
     }
     
     .mobile-nav-item:last-child {
@@ -810,6 +827,10 @@
     
     .mobile-dropdown.active {
       padding: 12px;
+    }
+    
+    .main-content {
+      padding: 1rem;
     }
   }
 
@@ -1090,6 +1111,79 @@
     20% { opacity: 0.8; }
     100% { transform: translate(20px, -20px); opacity: 0; }
   }
+
+  /* Added Professional Header Effects */
+  .nav-menu {
+    position: relative;
+    overflow: visible;
+  }
+  
+  .nav-menu::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, 
+      rgba(255, 138, 0, 0) 0%, 
+      rgba(255, 138, 0, 0.2) 50%, 
+      rgba(255, 138, 0, 0) 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  
+  .nav-content:hover .nav-menu::after {
+    opacity: 1;
+  }
+  
+  /* Enhanced nav item transitions */
+  .nav-menu:hover .nav-item:not(:hover) {
+    opacity: 0.7;
+    transform: translateY(0);
+  }
+  
+  .nav-menu .nav-item {
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                opacity 0.2s ease, 
+                transform 0.2s ease;
+  }
+  
+  /* Subtle shimmer on logo */
+  .logo-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    transform: skewX(-15deg);
+    animation: shimmer 2.5s infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  
+  @keyframes shimmer {
+    0% { transform: translateX(0%) skewX(-15deg); }
+    100% { transform: translateX(200%) skewX(-15deg); }
+  }
+  
+  /* Improved scroll behavior */
+  .main-header {
+    transition: box-shadow 0.3s ease, background 0.3s ease;
+    will-change: box-shadow, background;
+  }
+  
+  .header-scrolled {
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(to bottom, rgba(10, 12, 18, 0.98), rgba(13, 15, 21, 0.95));
+  }
 </style>
 </head>
 <body>
@@ -1133,20 +1227,21 @@
           <i class="fas fa-disease"></i> Skin Disease
         </a>
         <a href="{{ url_for('userappoint') }}" class="nav-item {% if request.endpoint == 'userappoint' %}active{% endif %}">
-          <i class="fas fa-calendar-check"></i> My Appointments
-        </a>
-        <a href="{{ url_for('profile') }}" class="nav-item {% if request.endpoint == 'profile' %}active{% endif %}">
-          <i class="fas fa-user-circle"></i> Profile
+          <i class="fas fa-calendar-check"></i> Appointments
         </a>
         <a href="{{ url_for('bookappointment') }}" class="nav-item {% if request.endpoint == 'bookappointment' or request.endpoint == 'consultation' %}active{% endif %}">
-          <i class="fas fa-calendar-plus"></i> Book Appointment
+          <i class="fas fa-calendar-plus"></i> Book
         </a>
         
         {% if session.get('is_doctor') %}
         <a href="{{ url_for('doctor_appointments') }}" class="nav-item {% if request.endpoint == 'doctor_appointments' %}active{% endif %}">
-          <i class="fas fa-stethoscope"></i> Doctor Dashboard
+          <i class="fas fa-stethoscope"></i> Doctor
         </a>
         {% endif %}
+        
+        <a href="{{ url_for('profile') }}" class="nav-item {% if request.endpoint == 'profile' %}active{% endif %}">
+          <i class="fas fa-user-circle"></i> Profile
+        </a>
         
         {% if session.get('user_id') %}
         <a href="{{ url_for('logout') }}" class="nav-item {% if request.endpoint == 'logout' %}active{% endif %}">
@@ -1174,14 +1269,14 @@
     <a href="{{ url_for('chatbot_page') }}" class="mobile-nav-item {% if request.endpoint == 'chatbot_page' %}active{% endif %}">
       <i class="fas fa-robot"></i> Aura AI
     </a>
-    <a href="{{ url_for('bookappointment') }}" class="mobile-nav-item {% if request.endpoint == 'bookappointment' or request.endpoint == 'consultation' %}active{% endif %}">
-      <i class="fas fa-calendar-plus"></i> Book Appointment
-    </a>
     <a href="{{ url_for('predict') }}" class="mobile-nav-item {% if request.endpoint == 'predict' %}active{% endif %}">
       <i class="fas fa-camera"></i> Face Analysis
     </a>
     <a href="{{ url_for('skin_disease_prediction') }}" class="mobile-nav-item {% if request.endpoint == 'skin_disease_prediction' %}active{% endif %}">
       <i class="fas fa-disease"></i> Skin Disease
+    </a>
+    <a href="{{ url_for('bookappointment') }}" class="mobile-nav-item {% if request.endpoint == 'bookappointment' or request.endpoint == 'consultation' %}active{% endif %}">
+      <i class="fas fa-calendar-plus"></i> Book Appointment
     </a>
     <a href="{{ url_for('userappoint') }}" class="mobile-nav-item {% if request.endpoint == 'userappoint' %}active{% endif %}">
       <i class="fas fa-calendar-check"></i> My Appointments
@@ -1320,81 +1415,79 @@
     
     <!-- Footer Bottom -->
     <div class="footer-bottom">
-      <p>
-        &copy; 2025 KNOWYOURSKINS. All rights reserved. |
-        <a href="{{ url_for('privacy_policy') }}">Privacy Policy</a> |
-        <a href="{{ url_for('terms_of_service') }}">Terms of Service</a>
-      </p>
+      <p>© 2024 KnowYourSkins. All rights reserved. | <a href="{{ url_for('terms_of_service') }}">Terms of Service</a> | <a href="{{ url_for('privacy_policy') }}">Privacy Policy</a></p>
     </div>
   </div>
 </footer>
 
 <script>
   // Improved mobile menu toggle with better animations and reliability
-  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-  const mobileDropdown = document.getElementById('mobile-dropdown');
-  const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
-  let isMenuOpen = false;
-  
-  // Function to toggle the menu state
-  function toggleMenu(open) {
-    isMenuOpen = open !== undefined ? open : !isMenuOpen;
-    
-    mobileDropdown.classList.toggle('active', isMenuOpen);
-    mobileMenuBtn.classList.toggle('active', isMenuOpen);
-    
-    // Change icon based on menu state
-    const icon = mobileMenuBtn.querySelector('i');
-    if (isMenuOpen) {
-      icon.classList.remove('bi-list');
-      icon.classList.add('bi-x-lg');
-    } else {
-      icon.classList.remove('bi-x-lg');
-      icon.classList.add('bi-list');
-    }
-  }
-  
-  mobileMenuBtn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    toggleMenu();
-  });
-  
-  // Close menu when clicking on navigation items
-  mobileNavItems.forEach(item => {
-    item.addEventListener('click', function() {
-      toggleMenu(false);
-    });
-  });
-  
-  // Close mobile menu when clicking outside
-  document.addEventListener('click', function(event) {
-    if (isMenuOpen && !mobileMenuBtn.contains(event.target) && !mobileDropdown.contains(event.target)) {
-      toggleMenu(false);
-    }
-  });
-  
-  // Close menu on window resize (if switching to desktop)
-  window.addEventListener('resize', function() {
-    if (window.innerWidth > 768 && isMenuOpen) {
-      toggleMenu(false);
-    }
-  });
-  
-  // Enhanced interactive button effects
-  document.querySelectorAll('.interactive-btn').forEach(button => {
-    button.addEventListener('mouseenter', function() {
-      this.style.transform = 'translateY(-3px)';
-      this.style.boxShadow = '0 6px 15px rgba(255, 138, 0, 0.3)';
-    });
-    
-    button.addEventListener('mouseleave', function() {
-      this.style.transform = 'translateY(0)';
-      this.style.boxShadow = '';
-    });
-  });
-  
-  // Add active class to current page nav items with proper handling for special routes
   document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileDropdown = document.getElementById('mobile-dropdown');
+    const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+    let isMenuOpen = false;
+    
+    // Function to toggle the menu state
+    function toggleMenu(open) {
+      isMenuOpen = open !== undefined ? open : !isMenuOpen;
+      
+      mobileDropdown.classList.toggle('active', isMenuOpen);
+      mobileMenuBtn.classList.toggle('active', isMenuOpen);
+      
+      // Change icon based on menu state
+      const icon = mobileMenuBtn.querySelector('i');
+      if (isMenuOpen) {
+        icon.classList.remove('bi-list');
+        icon.classList.add('bi-x-lg');
+      } else {
+        icon.classList.remove('bi-x-lg');
+        icon.classList.add('bi-list');
+      }
+    }
+    
+    if (mobileMenuBtn && mobileDropdown) {
+      mobileMenuBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        toggleMenu();
+      });
+      
+      // Close menu when clicking on navigation items
+      mobileNavItems.forEach(item => {
+        item.addEventListener('click', function() {
+          toggleMenu(false);
+        });
+      });
+      
+      // Close mobile menu when clicking outside
+      document.addEventListener('click', function(event) {
+        if (isMenuOpen && !mobileMenuBtn.contains(event.target) && !mobileDropdown.contains(event.target)) {
+          toggleMenu(false);
+        }
+      });
+      
+      // Close menu on window resize (if switching to desktop)
+      window.addEventListener('resize', function() {
+        if (window.innerWidth > 768 && isMenuOpen) {
+          toggleMenu(false);
+        }
+      });
+    }
+    
+    // Enhanced interactive button effects
+    document.querySelectorAll('.interactive-btn').forEach(button => {
+      button.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-3px)';
+        this.style.boxShadow = '0 6px 15px rgba(255, 138, 0, 0.3)';
+      });
+      
+      button.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+        this.style.boxShadow = '';
+      });
+    });
+    
+    // Add active class to current page nav items
     const currentPath = window.location.pathname;
     
     // Handle special case for consultation route which should highlight Book Appointment
@@ -1405,7 +1498,7 @@
       const href = item.getAttribute('href');
       
       // Handle the special case for book appointment / consultation
-      if (item.textContent.trim().includes('Book Appointment') && isConsultation) {
+      if (item.textContent.trim().includes('Book') && isConsultation) {
         item.classList.add('active');
         return;
       }
@@ -1457,7 +1550,19 @@
         });
       }, 1000);
     }
+    
+    // Header scroll effect
+    const header = document.querySelector('.main-header');
+    window.addEventListener('scroll', function() {
+      if (window.scrollY > 50) {
+        header.classList.add('header-scrolled');
+      } else {
+        header.classList.remove('header-scrolled');
+      }
+    });
   });
 </script>
+
+{% block scripts %}{% endblock %}
 </body>
 </html>
