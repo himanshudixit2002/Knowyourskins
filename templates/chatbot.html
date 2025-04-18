@@ -1832,8 +1832,64 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         const lastBotMessage = chatMessages.querySelector('.message-group.bot:last-child .message-bubble.bot');
         if (lastBotMessage) { 
-            ttsBtn.classList.add('speaking'); 
-            speakText(lastBotMessage.textContent.trim(), lastBotMessage.id); 
+            ttsBtn.classList.add('speaking');
+            
+            // Check if we need to obtain a translation first
+            if (currentLanguage !== 'en' && !lastBotMessage.dataset.translatedText) {
+                // Show a loading indicator
+                const oldContent = ttsBtn.innerHTML;
+                ttsBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                
+                // Get the text to translate
+                const textToTranslate = lastBotMessage.dataset.originalText || lastBotMessage.textContent.trim();
+                
+                console.log(`No translated text available for TTS button, fetching it now...`);
+                
+                // Fetch the translation
+                fetch('/translate_text', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        text: textToTranslate,
+                        language: currentLanguage,
+                        prepare_for_speech: true
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Restore the button icon
+                    ttsBtn.innerHTML = oldContent;
+                    
+                    if (data.translated) {
+                        // Store the translated text
+                        lastBotMessage.dataset.translatedText = data.translated;
+                        lastBotMessage.dataset.translatedLang = currentLanguage;
+                        
+                        // Speak the text
+                        speakText(data.translated, lastBotMessage.id);
+                    } else {
+                        console.error("Failed to get translation for TTS button");
+                        showErrorToast(`Could not translate for speech. Playing original message.`);
+                        speakText(textToTranslate, lastBotMessage.id);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching translation for TTS button:", error);
+                    ttsBtn.innerHTML = oldContent;
+                    showErrorToast("Could not prepare speech. Playing original message.");
+                    speakText(textToTranslate, lastBotMessage.id);
+                });
+                
+                return;
+            }
+            
+            // Get the text to speak (translated if available)
+            let textToSpeak = lastBotMessage.textContent.trim();
+            if (currentLanguage !== 'en' && lastBotMessage.dataset.translatedText) {
+                textToSpeak = lastBotMessage.dataset.translatedText;
+            }
+            
+            speakText(textToSpeak, lastBotMessage.id); 
         }
     });
     
@@ -1871,6 +1927,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Check if we have pre-translated text optimized for speech
                 if (messageBubble.dataset.translatedText && currentLanguage !== 'en') {
+                    console.log("Using translated text for speech:", messageBubble.dataset.translatedText);
                     text = messageBubble.dataset.translatedText;
                 }
             }
@@ -1914,7 +1971,28 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Pass auto_translate=false since we've already translated the text
             const encodedText = encodeURIComponent(text);
-            audioElement.src = `/stream_speech?text=${encodedText}&language=${currentLanguage}&auto_translate=false`;
+            
+            // Fix common SSML issues before sending to server
+            let fixedText = encodedText;
+            
+            // Special handling for Hindi
+            if (currentLanguage === 'hi') {
+                // For Hindi, we need to handle the break tags and number formats differently
+                // Remove all say-as tags around numbers for Hindi
+                fixedText = fixedText
+                    .replace(/%3Csay-as%20interpret-as%3D['"]cardinal['"]%3E(\d+)%3C\/say-as%3E/g, '$1')
+                    // Replace any complex break time attributes with simple ones
+                    .replace(/%3Cbreak%20time%3D['"][^'"]+=?['"]%3E/g, '%3Cbreak%20time%3D%220.5s%22/%3E');
+            } else {
+                // Other languages can use standard SSML
+                fixedText = fixedText
+                    .replace(/%3Cbreak%20time%3D%22/g, '%3Cbreak%20time%3D%27')
+                    .replace(/%22%3E/g, '%27%3E')
+                    .replace(/%3Csay-as%20interpret-as%3D%22/g, '%3Csay-as%20interpret-as%3D%27')
+                    .replace(/%22%3E/g, '%27%3E');
+            }
+            
+            audioElement.src = `/stream_speech?text=${fixedText}&language=${currentLanguage}&auto_translate=false`;
             audioElement.load();
             
             // Add to body to maintain reference
@@ -2166,28 +2244,78 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Setup speak buttons for bot messages
     function setupSpeakButtons() {
-        const speakButtons = document.querySelectorAll('.speak-btn:not(.setup)');
-        speakButtons.forEach(btn => {
-            btn.classList.add('setup');
-            btn.addEventListener('click', function() {
-                if (speechSynthesis.speaking) {
-                    speechSynthesis.cancel();
-                    document.querySelectorAll('.speak-btn').forEach(b => b.classList.remove('speaking'));
-                    document.querySelectorAll('.message-bubble').forEach(b => b.classList.remove('speaking'));
-                    document.querySelectorAll('.message-siri-wave').forEach(w => w.classList.remove('active'));
-                    document.querySelectorAll('.siri-wave-container').forEach(w => w.classList.remove('active'));
-                    isSpeaking = false;
-                    return;
-                }
-                
-                const messageBubble = this.closest('.message-bubble');
-                if (!messageBubble) return;
-                
-                document.querySelectorAll('.speak-btn').forEach(b => b.classList.remove('speaking'));
-                this.classList.add('speaking');
-                speakText(messageBubble.textContent.trim(), messageBubble.id);
-            });
+        document.querySelectorAll('.speak-btn').forEach(btn => {
+            btn.removeEventListener('click', handleSpeakButtonClick);
+            btn.addEventListener('click', handleSpeakButtonClick);
         });
+    }
+
+    function handleSpeakButtonClick(e) {
+        // Cancel any ongoing speech
+        if (speechSynthesis.speaking) {
+            speechSynthesis.cancel();
+        }
+        
+        // Find the closest message bubble
+        const messageBubble = e.currentTarget.closest('.message-bubble');
+        if (!messageBubble) return;
+        
+        // Check if we need to obtain a translation first
+        if (currentLanguage !== 'en' && !messageBubble.dataset.translatedText) {
+            // Show a loading indicator in the speak button
+            e.currentTarget.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            // Get the text to translate
+            const textToTranslate = messageBubble.dataset.originalText || messageBubble.textContent.trim();
+            
+            console.log(`No translated text available for ${currentLanguage}, fetching it now...`);
+            
+            // Fetch the translation
+            fetch('/translate_text', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    text: textToTranslate,
+                    language: currentLanguage,
+                    prepare_for_speech: true
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Restore the button icon
+                e.currentTarget.innerHTML = '<i class="fas fa-volume-up"></i>';
+                
+                if (data.translated) {
+                    // Store the translated text
+                    messageBubble.dataset.translatedText = data.translated;
+                    messageBubble.dataset.translatedLang = currentLanguage;
+                    
+                    // Speak the text
+                    speakText(data.translated, messageBubble.id);
+                    e.currentTarget.classList.add('speaking');
+                } else {
+                    console.error("Failed to get translation for TTS");
+                    showErrorToast(`Could not translate to ${getLanguageName(currentLanguage)} for speech.`);
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching translation for TTS:", error);
+                e.currentTarget.innerHTML = '<i class="fas fa-volume-up"></i>';
+                showErrorToast("Could not prepare speech. Please try again.");
+            });
+            
+            return;
+        }
+        
+        // Get the text to speak (translated if available)
+        let textToSpeak = messageBubble.textContent.trim();
+        if (currentLanguage !== 'en' && messageBubble.dataset.translatedText) {
+            textToSpeak = messageBubble.dataset.translatedText;
+        }
+        
+        // Speak the text
+        speakText(textToSpeak, messageBubble.id);
+        e.currentTarget.classList.add('speaking');
     }
 
     // Enhanced smooth scrolling
@@ -2392,7 +2520,114 @@ document.addEventListener('DOMContentLoaded', function() {
         const isAutoTtsDisabled = window.localStorage.getItem('auto_tts_disabled') === 'true';
         const isResponseTypeSilent = response.type === 'silent' || response.type === 'history_load';
         
-        if (!isAutoTtsDisabled && !isResponseTypeSilent && messageText) {
+        if (currentLanguage !== 'en' && messageText) {
+            // For non-English languages, we need to translate both the visible text and TTS
+            console.log(`Non-English language (${currentLanguage}) detected, translating message...`);
+            
+            // Add a translating indicator to the message
+            const messageBubble = document.getElementById(messageId);
+            if (messageBubble) {
+                // Add translating class for styling
+                messageBubble.classList.add('translating');
+                
+                // Add small translating indicator
+                const transIndicator = document.createElement('div');
+                transIndicator.className = 'translating-indicator';
+                transIndicator.innerHTML = `<small>Translating to ${getLanguageName(currentLanguage)}...</small>`;
+                messageBubble.appendChild(transIndicator);
+            }
+            
+            // Get the original English text
+            const textToTranslate = messageText;
+            
+            // Use the translation endpoint optimized for speech
+            fetch('/translate_text', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    text: textToTranslate,
+                    language: currentLanguage,
+                    prepare_for_speech: true
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.translated && messageBubble) {
+                    // Store the translated text for TTS in the message bubble
+                    messageBubble.dataset.translatedText = data.translated;
+                    messageBubble.dataset.translatedLang = currentLanguage;
+                    
+                    // Get display text without SSML tags
+                    let displayText = data.display_text || data.translated;
+                    if (!data.display_text) {
+                        // Remove SSML tags from display text
+                        displayText = displayText.replace(/<break[^>]*>/g, '');
+                        displayText = displayText.replace(/<say-as[^>]*>([^<]*)<\/say-as>/g, '$1');
+                        displayText = displayText.replace(/<\/?(emphasis|prosody|voice|speak)[^>]*>/g, '');
+                    }
+                    
+                    // Keep a backup of the original English message text
+                    if (!messageBubble.dataset.originalText) {
+                        messageBubble.dataset.originalText = textToTranslate;
+                    }
+                    
+                    // Get any existing UI elements we need to preserve
+                    const messageActions = messageBubble.querySelector('.message-actions');
+                    const messageSiriWave = messageBubble.querySelector('.message-siri-wave');
+                    const speakButton = messageBubble.querySelector('.speak-button');
+                    
+                    // Update the content with the translated display text
+                    messageBubble.innerHTML = displayText;
+                    
+                    // Re-add the UI elements if they existed
+                    if (speakButton) messageBubble.appendChild(speakButton);
+                    if (messageActions) messageBubble.appendChild(messageActions);
+                    if (messageSiriWave) messageBubble.appendChild(messageSiriWave);
+                    
+                    // Remove translating class and indicator
+                    messageBubble.classList.remove('translating');
+                    const indicator = messageBubble.querySelector('.translating-indicator');
+                    if (indicator) indicator.remove();
+                    
+                    console.log(`Message translated from English to ${currentLanguage}`);
+                    
+                    // If auto-read is enabled, speak the translated message
+                    if (!isAutoTtsDisabled && !isResponseTypeSilent) {
+                        setTimeout(() => {
+                            speakBotMessage(messageId, data.translated);
+                        }, 300);
+                    }
+                } else {
+                    console.error("Translation failed for message display");
+                    messageBubble.classList.remove('translating');
+                    const indicator = messageBubble.querySelector('.translating-indicator');
+                    if (indicator) indicator.remove();
+                    
+                    // Fall back to English for display, but still try auto-speech if enabled
+                    if (!isAutoTtsDisabled && !isResponseTypeSilent) {
+                        setTimeout(() => {
+                            speakBotMessage(messageId, messageText);
+                        }, 500);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error("Error translating message display:", error);
+                if (messageBubble) {
+                    messageBubble.classList.remove('translating');
+                    const indicator = messageBubble.querySelector('.translating-indicator');
+                    if (indicator) indicator.remove();
+                }
+                
+                // Fall back to English for display, but still try auto-speech if enabled
+                if (!isAutoTtsDisabled && !isResponseTypeSilent && messageText) {
+                    setTimeout(() => {
+                        speakBotMessage(messageId, messageText);
+                    }, 500);
+                }
+            });
+        } else if (!isAutoTtsDisabled && !isResponseTypeSilent && messageText) {
+            // For English, we can speak immediately without translation
             setTimeout(() => {
                 speakBotMessage(messageId, messageText);
             }, 500);
@@ -2559,6 +2794,7 @@ document.addEventListener('DOMContentLoaded', function() {
         scrollBottomBtn.classList.remove('visible');
         newMsgAlert.classList.remove('visible');
     });
+    
     
     newMsgAlert.addEventListener('click', () => {
         scrollToBottom(true);
@@ -2916,6 +3152,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     
                                     // Store the speech-optimized text
                                     messageBubble.dataset.translatedText = speechText;
+                                    messageBubble.dataset.translatedLang = langCode;
                                     
                                     // Remove the indicator
                                     const indicator = messageBubble.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
@@ -2982,177 +3219,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Enhanced translation helper for automatic language detection/correction
     function detectAndFixLanguageText(text) {
-        // Map of language codes to their Unicode script ranges
-        const languageRegexMap = {
-            'ta': /[\u0B80-\u0BFF]/, // Tamil
-            'hi': /[\u0900-\u097F]/, // Hindi
-            'ar': /[\u0600-\u06FF]/, // Arabic
-            'zh-cn': /[\u4E00-\u9FFF]/, // Chinese
-            'ja': /[\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF]/, // Japanese
-            'ko': /[\uAC00-\uD7AF\u1100-\u11FF]/, // Korean
-            'ru': /[\u0400-\u04FF]/ // Russian
-        };
-        
-        // If current language is English or doesn't have a specific character set, don't check
-        if (currentLanguage === 'en' || !languageRegexMap[currentLanguage]) return text;
-        
-        // Find the last bot message bubble to update
-        const lastBotMessage = document.querySelectorAll('.message-group.bot .message-bubble.bot').length > 0 ? 
-            document.querySelector('.message-group.bot:last-child .message-bubble.bot') : null;
-        
-        // Check if text contains characters of current language
-        const hasExpectedChars = languageRegexMap[currentLanguage].test(text);
-        
-        // Generate a unique ID for this translation request
-        const translationId = Date.now().toString();
-        
-        if (!hasExpectedChars) {
-            console.log(`Response doesn't contain ${currentLanguage} characters. Requesting translation...`);
-            
-            // Show loading indicator for translation
-            if (lastBotMessage) {
-                // Store original text before translation
-                if (!lastBotMessage.dataset.originalText) {
-                    lastBotMessage.dataset.originalText = text;
-                }
-                
-                // Add translating class for styling
-                lastBotMessage.classList.add('translating');
-                
-                // Remove any existing translating indicators
-                const existingIndicator = lastBotMessage.querySelector('.translating-indicator');
-                if (existingIndicator) existingIndicator.remove();
-                
-                // Add small translating indicator
-                const transIndicator = document.createElement('div');
-                transIndicator.className = 'translating-indicator';
-                transIndicator.setAttribute('data-translation-id', translationId);
-                transIndicator.innerHTML = `<small>Translating to ${getLanguageName(currentLanguage)}...</small>`;
-                lastBotMessage.appendChild(transIndicator);
-                
-                // Cancel any ongoing speech while translation is in progress
-                if (isSpeaking) {
-                    speechSynthesis.cancel();
-                    document.querySelectorAll('audio.tts-audio').forEach(audio => {
-                        audio.pause();
-                    });
-                }
-            }
-            
-            // Use the generic translation endpoint with smart translation
-            fetch('/translate_text', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    text: text,
-                    language: currentLanguage,
-                    prepare_for_speech: true // Optimize for both display and speech
-                })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Translation request failed with status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.translated) {
-                    // Get the display text without SSML and the speech text with SSML
-                    let displayText = data.display_text || data.translated;
-                    let speechText = data.translated;
-                    
-                    // If we don't have a separate display_text, clean the SSML from translated
-                    if (!data.display_text) {
-                        // Remove SSML tags from display text
-                        displayText = displayText.replace(/<break[^>]*>/g, '');
-                        displayText = displayText.replace(/<say-as[^>]*>([^<]*)<\/say-as>/g, '$1');
-                        displayText = displayText.replace(/<\/?(emphasis|prosody|voice)[^>]*>/g, '');
-                    }
-                    
-                    // Verify the translated text has appropriate characters if possible
-                    const isValidTranslation = !languageRegexMap[currentLanguage] || 
-                        languageRegexMap[currentLanguage].test(displayText);
-                    
-                    if (isValidTranslation) {
-                        // Update the displayed text with translation
-                        if (lastBotMessage) {
-                            lastBotMessage.classList.remove('translating');
-                            
-                            // Get the message ID for speech updates
-                            const messageId = lastBotMessage.id;
-                            
-                            // Re-add the message actions
-                            const actionsHtml = `
-                                <div class="message-actions">
-                                    <button class="message-action-btn tooltip copy-btn" data-tooltip="Copy message">
-                                        <i class="fas fa-copy"></i>
-                                    </button>
-                                    <button class="message-action-btn tooltip speak-btn" data-tooltip="Read aloud">
-                                        <i class="fas fa-volume-up"></i>
-                                    </button>
-                                </div>
-                                <div class="message-siri-wave">
-                                    <div class="message-siri-wave-bar"></div>
-                                    <div class="message-siri-wave-bar"></div>
-                                    <div class="message-siri-wave-bar"></div>
-                                </div>`;
-                            
-                            // Remove translating indicator if exists
-                            const indicator = lastBotMessage.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
-                            if (indicator) indicator.remove();
-                            
-                            // Update content with the cleaned display text
-                            lastBotMessage.innerHTML = displayText + actionsHtml;
-                            
-                            // Setup interaction buttons again
-                            setupCopyButtons();
-                            setupSpeakButtons();
-                            
-                            // Store the original and translated text for TTS
-                            if (!lastBotMessage.dataset.originalText) {
-                                lastBotMessage.dataset.originalText = text;
-                            }
-                            
-                            // Store the speech-optimized text separately
-                            lastBotMessage.dataset.translatedText = speechText;
-                            
-                            // If TTS was speaking, restart it with the correct translated text
-                            if (ttsBtn.classList.contains('speaking')) {
-                                // Small delay to ensure buttons are setup
-                                setTimeout(() => {
-                                    speakText(speechText, messageId);
-                                }, 100);
-                            }
-                        }
-                    } else {
-                        console.warn("Translation received but character verification failed");
-                        if (lastBotMessage) {
-                            lastBotMessage.classList.remove('translating');
-                            const indicator = lastBotMessage.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
-                            if (indicator) indicator.remove();
-                        }
-                        showErrorToast(`Translation to ${getLanguageName(currentLanguage)} may not be perfect.`);
-                    }
-                } else {
-                    console.warn("Translation received but empty or invalid");
-                    if (lastBotMessage) {
-                        lastBotMessage.classList.remove('translating');
-                        const indicator = lastBotMessage.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
-                        if (indicator) indicator.remove();
-                    }
-                }
-            })
-            .catch(error => {
-                console.error(`Error translating to ${currentLanguage}:`, error);
-                if (lastBotMessage) {
-                    lastBotMessage.classList.remove('translating');
-                    const indicator = lastBotMessage.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
-                    if (indicator) indicator.remove();
-                }
-                showErrorToast(`Translation to ${getLanguageName(currentLanguage)} failed. Using original text.`);
-            });
-        }
-        
+        // Skip running translations from this function since we now handle them directly in appendBotMessage
+        console.log("detectAndFixLanguageText called but skipped - translations handled directly");
         return text;
     }
     
@@ -3563,6 +3631,170 @@ document.addEventListener('DOMContentLoaded', function() {
         document.documentElement.style.removeProperty('--vh');
       }
     });
+
+    // Add this function after updateLanguage function
+
+    // Update bot message translations
+    function updateBotMessageTranslations(langCode) {
+        // Get all bot messages
+        const botMessages = document.querySelectorAll('.message-group.bot .message-bubble.bot');
+        
+        if (botMessages.length === 0) return;
+        
+        console.log(`Updating all bot messages for ${langCode} TTS`);
+        
+        // Process each message with a slight delay to avoid overwhelming the server
+        botMessages.forEach((messageBubble, index) => {
+            // Skip if message already has a translation for this language
+            if (messageBubble.dataset.translatedLang === langCode && 
+                messageBubble.dataset.translatedText) {
+                console.log("Message already has translation:", messageBubble.dataset.translatedText);
+                return;
+            }
+            
+            // Get the original text (or current text if no original stored)
+            const originalText = messageBubble.dataset.originalText || messageBubble.textContent.trim();
+            
+            // Don't translate if the message is empty or too short
+            if (!originalText || originalText.length < 2) return;
+            
+            setTimeout(() => {
+                // Add translating class for styling
+                messageBubble.classList.add('translating');
+                
+                // Generate a unique ID for this translation request
+                const translationId = Date.now().toString() + index;
+                
+                // Add small translating indicator
+                const transIndicator = document.createElement('div');
+                transIndicator.className = 'translating-indicator';
+                transIndicator.setAttribute('data-translation-id', translationId);
+                transIndicator.innerHTML = `<small>Preparing TTS for ${getLanguageName(langCode)}...</small>`;
+                messageBubble.appendChild(transIndicator);
+                
+                // Use the translation endpoint optimized for speech
+                fetch('/translate_text', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        text: originalText,
+                        language: langCode,
+                        prepare_for_speech: true
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.translated) {
+                        // Store the speech-optimized text
+                        messageBubble.dataset.translatedText = data.translated;
+                        messageBubble.dataset.translatedLang = langCode;
+                        
+                        console.log(`Updated TTS text for message ${index}:`, data.translated);
+                    }
+                    
+                    // Remove indicator and class
+                    messageBubble.classList.remove('translating');
+                    const indicator = messageBubble.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
+                    if (indicator) indicator.remove();
+                })
+                .catch(error => {
+                    console.error(`Error preparing TTS for ${langCode}:`, error);
+                    messageBubble.classList.remove('translating');
+                    const indicator = messageBubble.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
+                    if (indicator) indicator.remove();
+                });
+            }, index * 300); // Stagger requests to avoid overwhelming the server
+        });
+    }
+
+    // Ensure all bot messages have proper translations for text-to-speech
+    if (langCode !== 'en') {
+        // Update TTS data for all bot messages
+        setTimeout(() => {
+            updateBotMessageTranslations(langCode);
+        }, 1000); // Give the main translation a head start
+    }
+
+    function handleBotResponse(data) {
+        // Clear typing indicator
+        clearTypingIndicator();
+        
+        const botMessageText = data.botMessage;
+        let isNewGroup = true;
+        let messageGroup;
+        
+        // Check if last message group is from bot
+        const lastMessageGroup = chatMessages.querySelector('.message-group:last-child');
+        if (lastMessageGroup && lastMessageGroup.classList.contains('bot')) {
+            isNewGroup = false;
+            messageGroup = lastMessageGroup;
+        }
+        
+        if (isNewGroup) {
+            // Create a new message group
+            messageGroup = document.createElement('div');
+            messageGroup.className = 'message-group bot';
+            
+            // Add bot avatar if it's a new group
+            const avatar = document.createElement('div');
+            avatar.className = 'avatar bot';
+            const avatarImg = document.createElement('img');
+            avatarImg.src = "/static/assets/bot.png";
+            avatarImg.alt = "Bot Avatar";
+            avatar.appendChild(avatarImg);
+            messageGroup.appendChild(avatar);
+            
+            // Create messages container
+            const messagesContainer = document.createElement('div');
+            messagesContainer.className = 'messages';
+            messageGroup.appendChild(messagesContainer);
+            
+            chatMessages.appendChild(messageGroup);
+        }
+        
+        // Add the message bubble
+        const messagesContainer = messageGroup.querySelector('.messages');
+        const messageBubble = document.createElement('div');
+        messageBubble.className = 'message-bubble bot';
+        messageBubble.id = `message-${messageCounter++}`;
+        
+        // Store original text for translation purposes
+        messageBubble.dataset.originalText = botMessageText;
+        
+        // Add text to the message bubble
+        messageBubble.innerHTML = formatBotMessage(botMessageText);
+        
+        // Add siri wave container for the message
+        const siriWaveContainer = document.createElement('div');
+        siriWaveContainer.className = 'siri-wave-container';
+        messageBubble.appendChild(siriWaveContainer);
+        
+        // Add speak button
+        const speakButton = document.createElement('button');
+        speakButton.className = 'speak-button';
+        speakButton.innerHTML = '<i class="fas fa-volume-up"></i>';
+        speakButton.setAttribute('aria-label', 'Speak message');
+        messageBubble.appendChild(speakButton);
+        
+        messagesContainer.appendChild(messageBubble);
+        
+        // Scroll to bottom
+        scrollToBottom();
+        
+        // Log the response for debugging
+        console.log("Bot response:", data);
+        
+        // Handle source attribution if present
+        if (data.sources && data.sources.length > 0) {
+            addSourceAttribution(data.sources, messageGroup);
+        }
+        
+        // Setup speak buttons
+        setupSpeakButtons();
+        
+        // NOTE: We don't need to translate or speak here as it's handled in appendBotMessage
+        // after this function is called
+    }
 });
 </script>
 {% endblock %}

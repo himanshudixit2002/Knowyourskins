@@ -1971,7 +1971,7 @@
                                 <h4 class="ai-section-title"><i class="fas ${section.icon}"></i> ${section.title}</h4>
                                 <div class="ai-section-content">
                                   ${contentSections[key].map(p => `<p class="ai-paragraph">${p}</p>`).join('')}
-                                </div>
+                    </div>
                               </div>
                             `;
                           }
@@ -2084,7 +2084,7 @@
                         <div class="analysis-block-header">
                           <div class="analysis-block-icon">
                             <i class="fas fa-info-circle"></i>
-                          </div>
+                        </div>
                           <h4 class="analysis-block-title">Condition Overview</h4>
                         </div>
                         <div class="analysis-block-content">
@@ -2098,7 +2098,7 @@
                         <div class="analysis-block-header">
                           <div class="analysis-block-icon">
                             <i class="fas fa-clipboard-list"></i>
-                          </div>
+                        </div>
                           <h4 class="analysis-block-title">Common Symptoms</h4>
                         </div>
                         <div class="analysis-block-content">
@@ -2122,7 +2122,7 @@
                         <div class="analysis-block-header">
                           <div class="analysis-block-icon">
                             <i class="fas fa-hand-holding-medical"></i>
-                          </div>
+                        </div>
                           <h4 class="analysis-block-title">Recommendations</h4>
                         </div>
                         <div class="analysis-block-content">
@@ -2330,7 +2330,7 @@ document.addEventListener('DOMContentLoaded', function() {
       aiContentElement.innerHTML = `<p class="ai-paragraph">{{ ai_analysis|safe }}</p>`;
     }
   }
-
+  
   // Highlight the highest probability in the table
   const probabilityTable = document.querySelector('.probability-table table');
   if (probabilityTable) {
@@ -2536,39 +2536,39 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Start the camera
   if (startCameraBtn) {
-    startCameraBtn.addEventListener('click', async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { 
-            width: { ideal: 640 },
-            height: { ideal: 480 },
-            facingMode: 'environment' // Prefer rear camera on mobile
-          }, 
-          audio: false 
-        });
-        
-        videoElement.srcObject = stream;
-        cameraStatus.textContent = 'Camera is active';
-        startCameraBtn.disabled = true;
-        captureCameraBtn.disabled = false;
-        stopCameraBtn.disabled = false;
-        
-        // Start continuous prediction
-        livePrediction.style.display = 'block';
-        predictionInterval = setInterval(performLivePrediction, 1000); // Predict every 1 second
-        
-      } catch (error) {
-        cameraStatus.textContent = `Camera error: ${error.message}`;
-        console.error('Error accessing camera:', error);
-      }
-    });
+  startCameraBtn.addEventListener('click', async () => {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+          facingMode: 'environment' // Prefer rear camera on mobile
+        }, 
+        audio: false 
+      });
+      
+      videoElement.srcObject = stream;
+      cameraStatus.textContent = 'Camera is active';
+      startCameraBtn.disabled = true;
+      captureCameraBtn.disabled = false;
+      stopCameraBtn.disabled = false;
+      
+      // Start continuous prediction
+      livePrediction.style.display = 'block';
+      predictionInterval = setInterval(performLivePrediction, 1000); // Predict every 1 second
+      
+    } catch (error) {
+      cameraStatus.textContent = `Camera error: ${error.message}`;
+      console.error('Error accessing camera:', error);
+    }
+  });
   }
   
   // Stop the camera
   if (stopCameraBtn) {
-    stopCameraBtn.addEventListener('click', () => {
-      stopCamera();
-    });
+  stopCameraBtn.addEventListener('click', () => {
+    stopCamera();
+  });
   }
   
   function stopCamera() {
@@ -2592,50 +2592,50 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Capture a still image from the camera
   if (captureCameraBtn) {
-    captureCameraBtn.addEventListener('click', () => {
-      if (!stream) return;
+  captureCameraBtn.addEventListener('click', () => {
+    if (!stream) return;
+    
+    const ctx = canvasElement.getContext('2d');
+    canvasElement.width = videoElement.videoWidth;
+    canvasElement.height = videoElement.videoHeight;
+    ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+    
+    // Convert canvas to blob and submit to server
+    canvasElement.toBlob((blob) => {
+      const formData = new FormData();
+      formData.append('image', blob, 'camera-capture.jpg');
       
-      const ctx = canvasElement.getContext('2d');
-      canvasElement.width = videoElement.videoWidth;
-      canvasElement.height = videoElement.videoHeight;
-      ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+      // Show loading spinner
+      document.getElementById('loading-spinner').style.display = 'block';
       
-      // Convert canvas to blob and submit to server
-      canvasElement.toBlob((blob) => {
-        const formData = new FormData();
-        formData.append('image', blob, 'camera-capture.jpg');
+      // Send to server for analysis
+      fetch('/skin_disease_prediction', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Prediction data:', data);
+        // Hide loading spinner
+        document.getElementById('loading-spinner').style.display = 'none';
         
-        // Show loading spinner
-        document.getElementById('loading-spinner').style.display = 'block';
+        // Update the results tab with the prediction data
+        updateResultsTab(data);
         
-        // Send to server for analysis
-        fetch('/skin_disease_prediction', {
-          method: 'POST',
-          body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-          console.log('Prediction data:', data);
-          // Hide loading spinner
-          document.getElementById('loading-spinner').style.display = 'none';
-          
-          // Update the results tab with the prediction data
-          updateResultsTab(data);
-          
-          // Show the results tab
-          document.querySelector('.tab-btn[data-tab="results"]').style.display = 'inline-flex';
-          switchTab('results');
-          
-          // Stop the camera when we switch to results
-          stopCamera();
-        })
-        .catch(error => {
-          console.error('Error submitting image:', error);
-          document.getElementById('loading-spinner').style.display = 'none';
-          cameraStatus.textContent = `Error analyzing image: ${error.message}`;
-        });
-      }, 'image/jpeg', 0.95);
-    });
+        // Show the results tab
+        document.querySelector('.tab-btn[data-tab="results"]').style.display = 'inline-flex';
+        switchTab('results');
+        
+        // Stop the camera when we switch to results
+        stopCamera();
+      })
+      .catch(error => {
+        console.error('Error submitting image:', error);
+        document.getElementById('loading-spinner').style.display = 'none';
+        cameraStatus.textContent = `Error analyzing image: ${error.message}`;
+      });
+    }, 'image/jpeg', 0.95);
+  });
   }
   
   // Perform live prediction without capturing (using canvas in background)

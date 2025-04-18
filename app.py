@@ -1,8 +1,19 @@
 import os
+import sys
+
+# Set Google Cloud credentials path at startup - must be done before any Google Cloud imports
+credentials_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "google_cloud_credentials.json")
+if os.path.exists(credentials_path):
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_path
+    print(f"✅ Google Cloud credentials set to: {credentials_path}")
+
 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"  # Allow HTTP for local development
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
+# Continue with regular imports
 import sqlite3
+import re
+import io
 import uuid
 import cv2
 import pandas as pd
@@ -30,7 +41,6 @@ import json
 import jinja2
 import random
 import time
-import re
 from deep_translator import GoogleTranslator
 from textblob import TextBlob
 from langdetect import detect, LangDetectException
@@ -773,6 +783,12 @@ def smart_translate(text, target_language="en", source_language=None, prepare_fo
     # Step 4: Translation with smart processing
     translated_segments = []
     
+    # Log which translation service we're using
+    if have_google_translate:
+        print(f"Using Google Cloud Translation API for {source_language} → {target_language}")
+    else:
+        print(f"Using fallback translation service for {source_language} → {target_language}")
+    
     for segment in final_segments:
         if segment["type"] == "translatable":
             # Only translate segments that need translation
@@ -829,15 +845,30 @@ def smart_translate(text, target_language="en", source_language=None, prepare_fo
         # Create a copy of the text without SSML for display purposes
         display_text = translated_text
         
-        # Add appropriate pauses for speech systems
-        translated_text = translated_text.replace('. ', '. <break time="0.5s"/> ')
-        translated_text = translated_text.replace('? ', '? <break time="0.5s"/> ')
-        translated_text = translated_text.replace('! ', '! <break time="0.5s"/> ')
+        # Check if the text already has SSML tags
+        has_ssml = '<speak>' in translated_text or '</speak>' in translated_text or '<break' in translated_text or '<say-as' in translated_text
         
-        # Spell out abbreviations and numbers if needed
-        if target_language in ["ta", "hi", "ar"]:
-            # These languages often need help with number pronunciation
-            translated_text = re.sub(r'(\d+)', lambda m: f'<say-as interpret-as="cardinal">{m.group(1)}</say-as>', translated_text)
+        if not has_ssml:
+            # Add appropriate pauses for speech systems
+            translated_text = translated_text.replace('. ', '. <break time="0.5s"/> ')
+            translated_text = translated_text.replace('? ', '? <break time="0.5s"/> ')
+            translated_text = translated_text.replace('! ', '! <break time="0.5s"/> ')
+            
+            # Spell out abbreviations and numbers if needed - but handle Hindi differently
+            if target_language in ["ta", "ar"]:
+                # These languages need help with number pronunciation
+                translated_text = re.sub(r'(\d+)', r'<say-as interpret-as="cardinal">\1</say-as>', translated_text)
+            elif target_language == "hi":
+                # Hindi works better with direct numbers than with say-as tags
+                # Just leave the numbers as-is for Hindi
+                pass
+            
+            # Wrap in speak tags if not already present
+            if not translated_text.startswith('<speak>'):
+                translated_text = '<speak>' + translated_text + '</speak>'
+        else:
+            # If it already has SSML, just clean it up
+            translated_text = preprocess_text_for_speech(translated_text, target_language)
         
         # Return both the display text and the speech-optimized text
         return {
@@ -871,7 +902,22 @@ def translate_text(text, target_language="en", source_language=None):
         if source_language == target_language:
             return text
         
-        # First try Google Translator from deep_translator
+        # First try Google Cloud Translation API if available
+        if have_google_translate:
+            try:
+                client = translate.Client()
+                result = client.translate(text, target_language=target_language, source_language=source_language)
+                translated_text = result["translatedText"]
+                
+                # Log the successful translation
+                print(f"✅ Used Google Cloud Translation API: {source_language} → {target_language}")
+                
+                return translated_text
+            except Exception as google_error:
+                print(f"Google Cloud Translation error: {str(google_error)}")
+                # Fall back to other methods if Google Cloud fails
+        
+        # If Google Cloud is not available or failed, try deep_translator
         try:
             # Check if both languages are supported
             if source_language in supported_languages and target_language in supported_languages:
@@ -882,85 +928,57 @@ def translate_text(text, target_language="en", source_language=None):
                         translator = GoogleTranslator(source=source_language, target=target_language)
                         translated_text = translator.translate(text)
                         
-                        # If translation failed, try translating from English to target
-                        if not translated_text or translated_text == text:
-                            # First translate to English if needed
-                            if source_language != "en":
-                                en_translator = GoogleTranslator(source=source_language, target="en")
-                                english_text = en_translator.translate(text)
-                            else:
-                                english_text = text
-                                
-                            # Then translate from English to target language
-                            target_translator = GoogleTranslator(source="en", target=target_language)
-                            translated_text = target_translator.translate(english_text)
+                        # If result looks problematic, try going through English
+                        if len(translated_text) < len(text) / 3:  # Very short result may indicate an error
+                            # Try via English as pivot
+                            en_translator = GoogleTranslator(source=source_language, target='en')
+                            en_text = en_translator.translate(text)
+                            
+                            to_target = GoogleTranslator(source='en', target=target_language)
+                            translated_text = to_target.translate(en_text)
                         
-                        # Verify the output has appropriate script characters
-                        if target_language == "ta":
-                            tamil_regex = re.compile(r'[\u0B80-\u0BFF]')  # Unicode range for Tamil
-                            if not tamil_regex.search(translated_text):
-                                # Try alternate service
-                                raise Exception("No Tamil characters in result")
-                        elif target_language == "hi":
-                            hindi_regex = re.compile(r'[\u0900-\u097F]')  # Unicode range for Hindi
-                            if not hindi_regex.search(translated_text):
-                                # Try alternate service
-                                raise Exception("No Hindi characters in result")
-                        
-                        # Decode HTML entities if any
-                        translated_text = html.unescape(translated_text)
                         return translated_text
                     except Exception as e:
-                        print(f"{target_language} translation error: {str(e)}")
-                        # Continue to fallback methods
-                
-                # Regular translation for other languages
-                translator = GoogleTranslator(source=source_language, target=target_language)
-                translated_text = translator.translate(text)
-                
-                # If we got a result, decode HTML entities and return it
-                if translated_text and translated_text != text:
-                    return html.unescape(translated_text)
-            
-            # If we reached here, the first method failed or wasn't supported
-            print(f"First translation method failed for {source_language} to {target_language}, trying backup method")
-            
-            # Try Google Cloud Translation API if available
-            try:
-                if 'GOOGLE_APPLICATION_CREDENTIALS' in os.environ:
-                    translate_client = translate.Client()
-                    result = translate_client.translate(
-                        text,
-                        target_language=target_language,
-                        source_language=source_language
-                    )
-                    return html.unescape(result["translatedText"])
-            except Exception as e:
-                print(f"Google Cloud Translation error: {str(e)}")
-            
-            # Last resort: try translating through English as an intermediate
-            try:
-                # Step 1: Translate to English
-                if source_language != "en":
-                    to_english = GoogleTranslator(source=source_language, target="en").translate(text)
+                        print(f"Direct translation error: {str(e)}")
+                        # Fall back to English pivot method
+                        try:
+                            # Try via English as pivot
+                            en_translator = GoogleTranslator(source=source_language, target='en')
+                            en_text = en_translator.translate(text)
+                            
+                            to_target = GoogleTranslator(source='en', target=target_language)
+                            translated_text = to_target.translate(en_text)
+                            return translated_text
+                        except Exception as pivot_error:
+                            print(f"Pivot translation error: {str(pivot_error)}")
+                            # Default to direct translation as last resort
+                            translator = GoogleTranslator(source=source_language, target=target_language)
+                            return translator.translate(text)
                 else:
-                    to_english = text
+                    # For other languages, direct translation is usually fine
+                    translator = GoogleTranslator(source=source_language, target=target_language)
+                    return translator.translate(text)
+            else:
+                # If unsupported languages, try to use English as a pivot
+                try:
+                    en_translator = GoogleTranslator(source=source_language, target='en')
+                    en_text = en_translator.translate(text)
                     
-                # Step 2: English to target language
-                translator = GoogleTranslator(source="en", target=target_language)
-                final_translation = translator.translate(to_english)
-                return html.unescape(final_translation)
-            except Exception as e:
-                print(f"Final fallback translation error: {str(e)}")
-                
-            # If all methods fail, return original text
+                    to_target = GoogleTranslator(source='en', target=target_language)
+                    translated_text = to_target.translate(en_text)
+                    return translated_text
+                except Exception as e:
+                    print(f"Pivot translation error: {str(e)}")
+                    # Last resort: try direct translation even with unsupported languages
+                    translator = GoogleTranslator(source='auto', target=target_language)
+                    return translator.translate(text)
+        except Exception as dt_error:
+            print(f"Deep Translator error: {str(dt_error)}")
+            # Last resort: if all else fails, return original text
             return text
-        except Exception as e:
-            print(f"Primary translation error: {str(e)}")
-            return text  # Return original text on error
     except Exception as e:
         print(f"Translation error: {str(e)}")
-        return text  # Return original text on error
+        return text
 
 def analyze_sentiment(text):
     """Analyze sentiment of the input text"""
@@ -2999,7 +3017,7 @@ def stream_speech():
     """Stream the audio file directly with advanced TTS options"""
     try:
         # Get parameters from request
-        text = request.args.get("text")
+        text = request.args.get("text", "")
         language = request.args.get("language", "en")
         auto_translate = request.args.get("auto_translate", "true").lower() == "true"
         
@@ -3014,12 +3032,38 @@ def stream_speech():
         if not text:
             return jsonify({"error": "No text provided"}), 400
             
+        # URL decoding might have created issues with SSML tags
+        # Fix common issues with malformed SSML from URL parameters
+        text = re.sub(r'<break\s+time="([^">]+)">', r'<break time="\1"/>', text)
+        text = re.sub(r'<break\s+time=\\"([^"]+)\\"', r'<break time="\1"', text)
+        text = re.sub(r'<break\s+time="<([^>]+)>"', r'<break time="0.5s"', text)
+        
+        # Fix say-as tags from URL parameters
+        text = re.sub(r'<say-as\s+interpret-as="([^">]*)"([^>/]*)>', r'<say-as interpret-as="\1">', text)
+        text = re.sub(r'<say-as\s+interpret-as=\\"([^"]+)\\"', r'<say-as interpret-as="\1"', text)
+        
+        # Specific fix for Hindi nested tags in break time attributes
+        if language == "hi":
+            # Find all break tags with complex content in time attribute
+            text = re.sub(r'<break\s+time=[\'"]<[^>]*>[^<]*</[^>]*>[^<]*<[^>]*>[^<]*</[^>]*>s?[\'"]/?>', 
+                         r'<break time="0.5s"/>', text)
+            
+            # Don't translate numbers in Hindi for SSML - they cause problems
+            text = re.sub(r'<say-as\s+interpret-as=[\'"]cardinal[\'"]>(\d+)</say-as>', r'\1', text)
+        
         # Translate if needed
         if auto_translate and language != "en":
             translation_result = smart_translate(text, language, prepare_for_speech=True)
             text_for_speech = translation_result.get("translated", text)
         else:
             text_for_speech = text
+        
+        # Preprocess text to ensure SSML is properly formatted
+        # This function fixes malformed SSML tags
+        text_for_speech = preprocess_text_for_speech(text_for_speech, language, emotion)
+        
+        # Log the final SSML for debugging
+        print(f"Final SSML for TTS: {text_for_speech}")
         
         # Configure voice settings
         voice_settings = {
@@ -3419,75 +3463,77 @@ def advanced_text_to_speech(text, language="en", voice_settings=None, emotion=No
     # Default settings if none provided
     if voice_settings is None:
         voice_settings = {
-            "engine": "auto",  # auto, gtts, pyttsx3, google_cloud
+            "engine": "auto",
             "voice": "default",
             "rate": 1.0,
             "pitch": 1.0,
             "volume": 1.0
         }
     
-    # Process text for better speech quality
-    processed_text = preprocess_text_for_speech(text, language, emotion)
+    # Prepare result structure
+    result = {
+        "audio": None,
+        "format": "mp3",
+        "engine": voice_settings.get("engine", "auto"),
+        "text": text,
+        "language": language,
+        "success": False
+    }
     
-    # Select TTS engine based on availability and requirements
-    engine = voice_settings.get("engine", "auto")
-    
-    if engine == "auto":
-        # Auto-select best available engine based on language
-        if language in ["en", "es", "fr", "de", "it"] and have_pyttsx3:
-            engine = "pyttsx3"  # pyttsx3 is best for these languages
-        elif have_google_tts and language in ["ja", "ko", "zh-cn", "hi", "ta", "ar"]:
-            engine = "google_cloud"  # Better for Asian languages
-        else:
-            engine = "gtts"  # Default fallback
-    
-    # Generate speech using the selected engine
-    result = {"engine": engine, "text": processed_text, "language": language}
-    audio_fp = io.BytesIO()
+    # Check if text has SSML - if not, preprocess it
+    has_ssml = text.strip().startswith('<speak>') and text.strip().endswith('</speak>')
+    if not has_ssml:
+        # Add preprocessing for text - but skip if already has SSML
+        text = preprocess_text_for_speech(text, language, emotion)
     
     try:
-        if engine == "pyttsx3" and have_pyttsx3:
-            # Use pyttsx3 for offline TTS with more voice control
+        # Try Google Cloud TTS first (highest quality)
+        if have_google_tts and (result["engine"] in ["auto", "google_cloud"]):
+            try:
+                audio_data = generate_speech_google_cloud(
+                    text, 
+                    language, 
+                    voice=voice_settings.get("voice", "default"),
+                    pitch=voice_settings.get("pitch", 1.0),
+                    speaking_rate=voice_settings.get("rate", 1.0)
+                )
+                
+                # Update result
+                audio_fp = io.BytesIO(audio_data)
+                result["engine"] = "google_cloud"
+                result["format"] = "mp3"
+            except Exception as google_error:
+                print(f"Google Cloud TTS error: {str(google_error)}")
+                raise Exception(str(google_error))
+        
+        # Fallback to pyttsx3 for local TTS
+        elif have_pyttsx3 and (result["engine"] in ["auto", "pyttsx3"]):
+            # Local TTS has limited language support
+            # For non-English, we might need to adjust voice
             audio_data = generate_speech_pyttsx3(
-                processed_text, 
+                text,
                 rate=voice_settings.get("rate", 1.0),
                 volume=voice_settings.get("volume", 1.0),
                 voice=voice_settings.get("voice", "default")
             )
-            audio_fp.write(audio_data)
-            audio_fp.seek(0)
+            
+            # Update result
+            audio_fp = io.BytesIO(audio_data)
+            result["engine"] = "pyttsx3"
             result["format"] = "wav"
-            
-        elif engine == "google_cloud" and have_google_tts:
-            # Use Google Cloud TTS for high-quality voices
-            audio_data = generate_speech_google_cloud(
-                processed_text,
-                language,
-                voice=voice_settings.get("voice", "default"),
-                pitch=voice_settings.get("pitch", 1.0),
-                speaking_rate=voice_settings.get("rate", 1.0)
-            )
-            audio_fp.write(audio_data)
-            audio_fp.seek(0)
-            result["format"] = "mp3"
-            
+        
+        # Final fallback to gTTS
         else:
-            # Fallback to gTTS
-            # Optimize parameters for gTTS
-            slow_speed = False
-            if voice_settings.get("rate", 1.0) < 0.8:
-                slow_speed = True
-                
-            # Map language codes to gTTS supported format
-            lang_map = {
-                "en": "en", "es": "es", "fr": "fr", "de": "de", "it": "it", 
-                "pt": "pt", "ru": "ru", "zh-cn": "zh-CN", "ja": "ja", 
-                "ko": "ko", "ar": "ar", "hi": "hi", "ta": "ta"
-            }
-            tts_lang = lang_map.get(language, "en")
+            # Clean SSML tags for gTTS
+            if has_ssml:
+                # Remove SSML tags for gTTS as it doesn't support them
+                clean_text = re.sub(r'<[^>]+>', '', text)
+                text = clean_text.replace('<speak>', '').replace('</speak>', '')
             
-            # Generate speech with gTTS
-            tts = gTTS(text=processed_text, lang=tts_lang, slow=slow_speed)
+            # For certain languages, we need special handling
+            # Note: gTTS splits text into chunks, which can cause issues with longer texts
+            audio_fp = io.BytesIO()
+            tts = gTTS(text=text, lang=language[:2], slow=False)
             tts.write_to_fp(audio_fp)
             audio_fp.seek(0)
             result["format"] = "mp3"
@@ -3514,7 +3560,9 @@ def advanced_text_to_speech(text, language="en", voice_settings=None, emotion=No
         # Fallback to simple gTTS if all else fails
         try:
             audio_fp = io.BytesIO()
-            tts = gTTS(text=text, lang='en', slow=False)
+            # Remove any SSML tags for gTTS
+            clean_text = re.sub(r'<[^>]+>', '', text)
+            tts = gTTS(text=clean_text, lang='en', slow=False)
             tts.write_to_fp(audio_fp)
             audio_fp.seek(0)
             audio_data = base64.b64encode(audio_fp.read()).decode('utf-8')
@@ -3522,7 +3570,7 @@ def advanced_text_to_speech(text, language="en", voice_settings=None, emotion=No
                 "audio": audio_data,
                 "format": "mp3",
                 "engine": "gtts_fallback",
-                "text": text,
+                "text": clean_text,
                 "language": "en",
                 "success": True,
                 "error": str(e)
@@ -3535,13 +3583,47 @@ def advanced_text_to_speech(text, language="en", voice_settings=None, emotion=No
 
 def preprocess_text_for_speech(text, language, emotion=None):
     """Preprocess text to improve speech quality with better SSML"""
+    # First check if text already contains SSML tags
+    has_ssml = '<speak>' in text or '</speak>' in text or '<break' in text or '<say-as' in text
+    
+    # Fix malformed SSML before anything else
+    if '<' in text and '>' in text:
+        # Fix nested tags in break time attributes - major issue in Hindi
+        text = re.sub(r'<break\s+time=[\'"]<[^>]*>[^<]*</[^>]*>[^<]*<[^>]*>[^<]*</[^>]*>s?[\'"]/?>', r'<break time="0.5s"/>', text)
+        
+        # Fix nested quotes in attributes
+        text = re.sub(r'<break\s+time=\\"([^"]+)\\"', r'<break time="\1"', text)
+        text = re.sub(r'<break\s+time="<([^>]+)>"', r'<break time="0.5s"', text)
+        
+        # Fix common say-as tag issues
+        text = re.sub(r'<say-as\s+interpret-as=\\"([^"]+)\\"', r'<say-as interpret-as="\1"', text)
+        text = re.sub(r'<say-as\s+interpret-as="([^"]*)"([^>]*)>', r'<say-as interpret-as="\1">', text)
+        
+        # Fix incorrectly nested tags
+        text = re.sub(r'<say-as[^>]*>[^<]*<break[^>]*>[^<]*</say-as>', 
+                     lambda m: m.group(0).replace('<break', '</say-as><break').replace('>', '></say-as>'), text)
+    
+    # If it contains SSML, ensure it's properly wrapped in <speak> tags
+    if has_ssml:
+        # Clean up any malformed SSML tags
+        text = re.sub(r'<([^>]+)"([^>]+)"([^>]*)>', r'<\1\'\2\'\3>', text)  # Replace double quotes with single quotes inside tags
+        
+        # Ensure text is wrapped in <speak> tags
+        if not text.startswith('<speak>'):
+            text = '<speak>' + text
+        if not text.endswith('</speak>'):
+            text = text + '</speak>'
+            
+        return text
+    
+    # If no SSML, apply regular processing
     # Clean up any existing SSML tags
     text = re.sub(r'<[^>]+>', '', text)
     
     # Add pauses after punctuation
-    text = text.replace('. ', '... ')
-    text = text.replace('? ', '?.. ')
-    text = text.replace('! ', '!.. ')
+    text = text.replace('. ', '. <break time="0.3s"/> ')
+    text = text.replace('? ', '? <break time="0.3s"/> ')
+    text = text.replace('! ', '! <break time="0.3s"/> ')
     
     # Handle numbers and abbreviations
     text = re.sub(r'(\d+)%', r'\1 percent', text)
@@ -3573,6 +3655,8 @@ def preprocess_text_for_speech(text, language, emotion=None):
         for abbr, expanded in abbreviations.items():
             text = text.replace(abbr, expanded)
     
+    # Wrap in speak tags
+    text = '<speak>' + text + '</speak>'
     return text
 
 def generate_speech_pyttsx3(text, rate=1.0, volume=1.0, voice="default"):
@@ -3614,54 +3698,65 @@ def generate_speech_google_cloud(text, language, voice="default", pitch=1.0, spe
     if not have_google_tts:
         raise ImportError("Google Cloud Text-to-Speech library is not installed")
     
-    client = texttospeech.TextToSpeechClient()
-    
-    # Language code mapping
-    lang_map = {
-        "en": "en-US", "es": "es-ES", "fr": "fr-FR", "de": "de-DE", 
-        "it": "it-IT", "zh-cn": "cmn-CN", "ja": "ja-JP", "ko": "ko-KR",
-        "hi": "hi-IN", "ta": "ta-IN", "ar": "ar-XA"
-    }
-    
-    # Determine language and voice settings
-    language_code = lang_map.get(language, "en-US")
-    
-    # Set the SSML voice gender
-    if voice.lower() == "male":
-        ssml_gender = texttospeech.SsmlVoiceGender.MALE
-    elif voice.lower() == "female":
-        ssml_gender = texttospeech.SsmlVoiceGender.FEMALE
-    else:
-        # Default to neutral
-        ssml_gender = texttospeech.SsmlVoiceGender.NEUTRAL
-    
-    # Select the type of audio file
-    audio_config = texttospeech.AudioConfig(
-        audio_encoding=texttospeech.AudioEncoding.MP3,
-        pitch=pitch * 10 - 10,  # Convert 0.5-1.5 range to -5 to +5
-        speaking_rate=speaking_rate  # 1.0 is normal speed
-    )
-    
-    # Set the text input
-    if '<speak>' in text:
-        input_text = texttospeech.SynthesisInput(ssml=text)
-    else:
-        input_text = texttospeech.SynthesisInput(text=text)
-    
-    # Select voice
-    voice = texttospeech.VoiceSelectionParams(
-        language_code=language_code,
-        ssml_gender=ssml_gender
-    )
-    
-    # Generate speech
-    response = client.synthesize_speech(
-        input=input_text,
-        voice=voice,
-        audio_config=audio_config
-    )
-    
-    return response.audio_content
+    try:
+        # Explicitly create client with environment credentials
+        client = texttospeech.TextToSpeechClient()
+        
+        # Debug - print current credentials status
+        if os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
+            print(f"Using credentials file: {os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')}")
+        
+        # Language code mapping
+        lang_map = {
+            "en": "en-US", "es": "es-ES", "fr": "fr-FR", "de": "de-DE", 
+            "it": "it-IT", "zh-cn": "cmn-CN", "ja": "ja-JP", "ko": "ko-KR",
+            "hi": "hi-IN", "ta": "ta-IN", "ar": "ar-XA"
+        }
+        
+        # Determine language and voice settings
+        language_code = lang_map.get(language, "en-US")
+        
+        # Set the SSML voice gender
+        if voice.lower() == "male":
+            ssml_gender = texttospeech.SsmlVoiceGender.MALE
+        elif voice.lower() == "female":
+            ssml_gender = texttospeech.SsmlVoiceGender.FEMALE
+        else:
+            # Default to neutral
+            ssml_gender = texttospeech.SsmlVoiceGender.NEUTRAL
+        
+        # Select the type of audio file
+        audio_config = texttospeech.AudioConfig(
+            audio_encoding=texttospeech.AudioEncoding.MP3,
+            pitch=pitch * 10 - 10,  # Convert 0.5-1.5 range to -5 to +5
+            speaking_rate=speaking_rate  # 1.0 is normal speed
+        )
+        
+        # Set the text input - check for proper SSML
+        is_ssml = text.strip().startswith('<speak>') and text.strip().endswith('</speak>')
+        
+        if is_ssml:
+            input_text = texttospeech.SynthesisInput(ssml=text)
+        else:
+            input_text = texttospeech.SynthesisInput(text=text)
+        
+        # Select voice
+        voice = texttospeech.VoiceSelectionParams(
+            language_code=language_code,
+            ssml_gender=ssml_gender
+        )
+        
+        # Generate speech
+        response = client.synthesize_speech(
+            input=input_text,
+            voice=voice,
+            audio_config=audio_config
+        )
+        
+        return response.audio_content
+    except Exception as e:
+        print(f"Google Cloud TTS error details: {str(e)}")
+        raise
 
 def post_process_audio(audio_fp, format_type, emotion=None, pitch_shift=1.0):
     """Apply audio post-processing for better voice quality"""
@@ -3868,7 +3963,103 @@ def tts_demo():
         have_audio_processing=have_audio_processing
     )
 
+@app.route("/configure_tts", methods=["POST", "GET"])
+def configure_tts():
+    """Configure Google Cloud TTS credentials"""
+    if request.method == "GET":
+        # Check if credentials are already configured
+        credentials_file = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+        if credentials_file and os.path.exists(credentials_file):
+            return jsonify({"status": "configured", "credentials_file": credentials_file})
+        else:
+            return jsonify({"status": "not_configured"})
+    
+    try:
+        data = request.get_json() if request.is_json else {}
+        
+        # If api_key provided directly (simple method)
+        if "api_key" in data:
+            os.environ["GOOGLE_API_KEY"] = data["api_key"]
+            return jsonify({"success": True, "message": "TTS configured with API key"})
+        
+        # Use the credentials file that we've created
+        credentials_file = os.path.join(os.getcwd(), "google_cloud_credentials.json")
+        if os.path.exists(credentials_file):
+            # Set environment variable to point to the file
+            os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_file
+            
+            # Test if credentials work
+            try:
+                if have_google_tts:
+                    client = texttospeech.TextToSpeechClient()
+                    # Simple test request
+                    response = client.list_voices(language_code="en-US")
+                    return jsonify({
+                        "success": True, 
+                        "message": "TTS configured with service account credentials",
+                        "voices_available": len(response.voices)
+                    })
+                else:
+                    return jsonify({
+                        "success": True, 
+                        "warning": "Credentials configured, but google-cloud-texttospeech is not installed"
+                    })
+            except Exception as e:
+                return jsonify({"success": False, "error": f"Credentials file found but test failed: {str(e)}"})
+        else:
+            return jsonify({"success": False, "error": "Credentials file not found"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)})
+
+# Check if Google Cloud TTS is available
+have_google_tts = False
+try:
+    from google.cloud import texttospeech
+    have_google_tts = True
+    
+    # Credentials should already be set at the top of the file
+    if os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
+        print(f"✅ Google Cloud TTS will use credentials from: {os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')}")
+    elif os.environ.get("GOOGLE_API_KEY"):
+        print(f"✅ Google Cloud TTS will use API key from environment variable")
+    else:
+        print("⚠️ Google Cloud TTS credentials not found. Using fallback TTS engines.")
+        print("  - To configure: POST to /configure_tts with {\"api_key\": \"your_api_key\"}")
+        print("  - Or set GOOGLE_API_KEY environment variable")
+        print("  - Or set GOOGLE_APPLICATION_CREDENTIALS environment variable")
+except ImportError:
+    print("Google Cloud Text-to-Speech not available. Install with: pip install google-cloud-texttospeech")
+
+# Check if Google Cloud Translate is available
+have_google_translate = False
+try:
+    import google.cloud.translate_v2 as translate
+    
+    # Test if credentials are working
+    if os.environ.get("GOOGLE_APPLICATION_CREDENTIALS") or os.environ.get("GOOGLE_API_KEY"):
+        try:
+            client = translate.Client()
+            languages = client.get_languages()
+            have_google_translate = True
+            print(f"✅ Google Cloud Translation API initialized with {len(languages)} supported languages")
+        except Exception as e:
+            print(f"⚠️ Google Cloud Translation API initialization error: {str(e)}")
+            print("  - Translation will fall back to free services")
+    else:
+        print("⚠️ Google Cloud Translation credentials not found. Using fallback translation services.")
+except ImportError:
+    print("Google Cloud Translate not available. Install with: pip install google-cloud-translate")
+
 if __name__ == "__main__":
     create_tables()  # Create tables if they don't exist
-    ensure_database_compatibility()  # Add any missing columns
+    ensure_database_compatibility()  # Ensure database is compatible with current code
+    
+    # Check if the credentials file exists but isn't being recognized
+    credentials_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "google_cloud_credentials.json")
+    if os.path.exists(credentials_file) and not os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
+        print(f"Credentials file found at {credentials_file} but not loaded - setting up environment...")
+        # Use the credentials file that was found
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = credentials_file
+    
+    # Start the app
     app.run(host="0.0.0.0", port=5000, debug=os.getenv("FLASK_DEBUG", "false").lower() == "true")
