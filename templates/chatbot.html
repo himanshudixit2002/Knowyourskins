@@ -3,304 +3,794 @@
 {% block title %}KNOWYOURSKINS AI Chatbot{% endblock %}
 
 {% block content %}
-<!-- Page Title -->
-<div class="content-header">
-  <h1>Virtual Skincare Assistant</h1>
-  <p>Chat with our AI assistant Aura to get personalized skincare advice and recommendations</p>
+<!-- Modern Chatbot Interface -->
+<div class="chatbot-wrapper">
+  <div class="chatbot-header-intro">
+    <h1 class="chatbot-title">Aura <span class="highlight">AI Assistant</span></h1>
+    <p class="chatbot-subtitle">Your personal skincare expert, ready to help with advanced guidance and routine recommendations</p>
+  </div>
+
+  <div class="chatbot-interface">
+    <!-- Sidebar - Visible on larger screens -->
+    <div class="chatbot-sidebar">
+      <div class="sidebar-header">
+        <div class="logo-container">
+          <div class="logo-avatar">
+            <i class="fas fa-robot"></i>
+          </div>
+          <div class="logo-text">
+            <h3>Aura AI</h3>
+            <p class="status"><span class="status-dot"></span> Online</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="sidebar-features">
+        <h4><i class="fas fa-star-half-alt"></i> Capabilities</h4>
+        <ul class="features-list">
+          <li><i class="fas fa-check-circle"></i> Personalized skincare advice</li>
+          <li><i class="fas fa-check-circle"></i> Product recommendations</li>
+          <li><i class="fas fa-check-circle"></i> Skin condition analysis</li>
+          <li><i class="fas fa-check-circle"></i> Multi-language support</li>
+          <li><i class="fas fa-check-circle"></i> Routine building</li>
+        </ul>
+      </div>
+      
+      <div class="language-selector">
+        <h4><i class="fas fa-globe"></i> Language</h4>
+        <select id="languageSelect" class="language-dropdown">
+          {% for lang in supported_languages %}
+          <option value="{{ lang.code }}" {% if lang.code == current_language %}selected{% endif %}>
+            {{ lang.name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <div class="clear-chat">
+        <button id="clearChatButton" class="clear-button">
+          <i class="fas fa-trash-alt"></i> Clear conversation
+        </button>
+      </div>
+    </div>
+    
+    <!-- Main Chat Area -->
+    <div class="chat-container">
+      <!-- Chat Header - Mobile & Desktop -->
+      <div class="chat-header">
+        <div class="chat-header-left">
+          <!-- Mobile Only: Menu Toggle -->
+          <button id="sidebarToggle" class="sidebar-toggle">
+            <i class="fas fa-bars"></i>
+          </button>
+          
+          <div class="chat-avatar">
+            <i class="fas fa-robot chat-avatar-icon"></i>
+          </div>
+          <div class="chat-title">
+            <h2>Aura</h2>
+            <div class="chat-status">
+              <div class="status-indicator"></div>
+              <span>Ready to help with your skin concerns</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="chat-header-right">
+          <button id="voiceButton" class="header-button" title="Voice Mode">
+            <i class="fas fa-microphone"></i>
+          </button>
+          <button id="refreshButton" class="header-button" title="Refresh">
+            <i class="fas fa-sync-alt"></i>
+          </button>
+          <button id="settingsButton" class="header-button" title="Settings">
+            <i class="fas fa-cog"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Chat Messages Area -->
+      <div id="chatMessages" class="chat-messages">
+        <!-- Welcome Message -->
+        <div class="message-group bot">
+          <div class="message-bubble bot">
+            <p>Hello! I'm Aura, your virtual skincare assistant. How can I help you today?</p>
+          </div>
+          
+          <!-- Initial Suggestion Chips -->
+          <div class="suggestion-chips">
+            <div class="suggestion-chip">How to treat acne?</div>
+            <div class="suggestion-chip">Recommend a moisturizer</div>
+            <div class="suggestion-chip">Best ingredients for aging skin</div>
+            <div class="suggestion-chip">Help with my skincare routine</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Typing Indicator (Hidden by default) -->
+      <div id="typingIndicator" class="typing-indicator-container" style="display: none;">
+        <div class="typing-indicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+
+      <!-- New Messages Alert -->
+      <div id="newMessagesAlert" class="new-messages-alert">
+        <i class="fas fa-arrow-down"></i>
+        <span>New messages</span>
+      </div>
+
+      <!-- Scroll to Bottom Button -->
+      <button id="scrollBottomBtn" class="scroll-bottom-btn">
+        <i class="fas fa-chevron-down"></i>
+      </button>
+
+      <!-- Chat Input Area -->
+      <div class="chat-input-container">
+        <!-- Suggestion Categories -->
+        <div class="suggestion-categories">
+          <button class="category-btn active">All</button>
+          <button class="category-btn">Acne</button>
+          <button class="category-btn">Anti-Aging</button>
+          <button class="category-btn">Sensitive Skin</button>
+          <button class="category-btn">Products</button>
+          <button class="category-btn">Routines</button>
+        </div>
+        
+        <div class="chat-input-wrapper">
+          <textarea id="chatInput" class="chat-input" placeholder="Ask me about your skincare concerns..." rows="1"></textarea>
+          <button id="attachButton" class="attach-button" title="Attach image">
+            <i class="fas fa-paperclip"></i>
+          </button>
+          <button id="sendButton" class="send-button" title="Send message">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <style>
-  /* Import Google Fonts */
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
-  /* ================= Main Layout ================= */
-  .container-main {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    min-height: calc(100vh - 90px - 250px);
-    padding: 0.5rem;
-    position: relative;
-    z-index: 2;
+  /* ================= Base Styles & Variables ================= */
+  :root {
+    --primary: #ff8a00;
+    --primary-light: #ffb347;
+    --primary-dark: #e67300;
+    --primary-transparent: rgba(255, 138, 0, 0.2);
+    --accent: #ff4d00;
+    --text-light: #f8f8f8;
+    --text-dark: #333333;
+    --bg-dark: #121212;
+    --bg-darker: #0a0a0a;
+    --bg-light: #1e1e1e;
+    --card-bg: rgba(25, 30, 40, 0.95);
+    --card-bg-lighter: rgba(40, 45, 55, 0.95);
+    --border-color: rgba(255, 138, 0, 0.3);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.3);
+    --border-radius-sm: 8px;
+    --border-radius-md: 12px;
+    --border-radius-lg: 18px;
   }
-  .chat-container {
-    width: 100%;
-    max-width: 1000px;
-    height: calc(100vh - 220px);
-    min-height: 600px;
-    margin: 0.75rem auto 1.5rem;
-    background: rgba(25, 30, 40, 0.9);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+
+  /* ================= Page Layout & Container ================= */
+  .chatbot-wrapper {
     display: flex;
     flex-direction: column;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+
+  .chatbot-header-intro {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  .chatbot-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(to right, #ffffff, var(--primary-light));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .chatbot-title .highlight {
+    color: var(--primary);
+    -webkit-text-fill-color: var(--primary);
+  }
+
+  .chatbot-subtitle {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.8);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .chatbot-interface {
+    display: flex;
+    height: calc(100vh - 220px);
+    min-height: 600px;
+    border-radius: var(--border-radius-lg);
     overflow: hidden;
+    box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255, 255, 255, 0.05);
     position: relative;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 138, 0, 0.1);
-    border-radius: 24px;
-    opacity: 0.95;
-    transform: translateY(10px);
-    transition: all 0.4s ease-out;
   }
-  .chat-container.loaded {
-    opacity: 1;
-    transform: translateY(0);
+
+  /* ================= Sidebar Styles ================= */
+  .chatbot-sidebar {
+    width: 300px;
+    background: var(--card-bg);
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    z-index: 50;
+    transition: transform 0.3s ease-in-out;
   }
+
+  .sidebar-header {
+    margin-bottom: 2rem;
+  }
+
+  .logo-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .logo-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 15px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    box-shadow: 0 4px 10px rgba(255, 138, 0, 0.3);
+  }
+
+  .logo-text h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #10b981;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+  }
+
+  .status-dot::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-color: #10b981;
+    animation: pulse 1.5s infinite;
+  }
+
+  .sidebar-features {
+    margin-bottom: 2rem;
+  }
+
+  .sidebar-features h4 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary-light);
+  }
+
+  .features-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .features-list li {
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .features-list li i {
+    color: var(--primary);
+    font-size: 0.8rem;
+  }
+
+  .language-selector {
+    margin-bottom: 2rem;
+  }
+
+  .language-selector h4 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary-light);
+  }
+
+  .language-dropdown {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: var(--border-radius-sm);
+    background: var(--card-bg-lighter);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 0.9rem;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23ffffff' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: calc(100% - 12px) center;
+    padding-right: 2.5rem;
+    transition: all 0.2s ease;
+  }
+
+  .language-dropdown:hover {
+    border-color: var(--primary-transparent);
+  }
+
+  .language-dropdown:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px var(--primary-transparent);
+  }
+
+  .clear-button {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: var(--border-radius-sm);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .clear-button:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .clear-button:active {
+    transform: scale(0.98);
+  }
+
+  /* Mobile sidebar toggle */
+  .sidebar-toggle {
+    display: none;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    margin-right: 0.5rem;
+  }
+
+  /* ================= Chat Container ================= */
+  .chat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--card-bg);
+    position: relative;
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+  }
+
   .chat-container::before {
     content: '';
     position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: radial-gradient(circle at top right, rgba(255, 138, 0, 0.15), transparent 70%);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at top right, rgba(255, 138, 0, 0.1), transparent 70%);
     pointer-events: none;
     z-index: 0;
-    border-radius: 24px;
   }
   
   /* ================= Chat Header ================= */
   .chat-header {
     padding: 1rem 1.5rem;
-    background: rgba(20, 25, 35, 0.9);
+    background: rgba(15, 20, 30, 0.95);
     border-bottom: 1px solid rgba(255, 138, 0, 0.2);
     display: flex;
     align-items: center;
     justify-content: space-between;
     position: relative;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-sm);
     z-index: 10;
   }
-  .chat-header-left { display: flex; align-items: center; }
-  .chat-avatar {
-    width: 42px; height: 42px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #FF9F5A, #FF7A00);
-    display: flex; align-items: center; justify-content: center;
-    margin-right: 0.75rem;
-    box-shadow: 0 4px 10px rgba(255, 159, 90, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-    flex-shrink: 0;
-    position: relative; overflow: hidden;
+
+  .chat-header-left {
+    display: flex;
+    align-items: center;
   }
+
+  .chat-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary-light), var(--primary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.75rem;
+    box-shadow: 0 4px 10px rgba(255, 159, 90, 0.3);
+    position: relative;
+    overflow: hidden;
+  }
+
   .chat-avatar::after {
     content: '';
-    position: absolute; top: -10px; left: -10px;
+    position: absolute;
+    top: -10px;
+    left: -10px;
     width: calc(100% + 20px);
     height: calc(100% + 20px);
     background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.2), transparent);
     animation: shine 3s infinite linear;
     transform: rotate(45deg);
   }
+
   @keyframes shine {
     0% { transform: translateX(-100%) rotate(45deg); }
     100% { transform: translateX(100%) rotate(45deg); }
   }
-  .chat-avatar-icon { font-size: 22px; color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-  .chat-title { display: flex; flex-direction: column; }
-  .chat-title h2 {
-    margin: 0; font-size: 1.25rem; font-weight: 600;
-    color: white; margin-bottom: 0.25rem;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+
+  .chat-avatar-icon {
+    font-size: 22px;
+    color: white;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   }
+
+  .chat-title {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chat-title h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 0.25rem;
+  }
+
   .chat-status {
-    display: flex; align-items: center; font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.7);
   }
+
   .status-indicator {
-    width: 6px; height: 6px;
+    width: 6px;
+    height: 6px;
     background-color: #10b981;
     border-radius: 50%;
     margin-right: 0.5rem;
     position: relative;
   }
+
   .status-indicator::after {
     content: '';
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background-color: #10b981;
     border-radius: 50%;
     animation: pulse 1.5s infinite;
   }
-  @keyframes pulse {
-    0% { transform: scale(1); opacity: 1; }
-    100% { transform: scale(2.5); opacity: 0; }
+
+  .chat-header-right {
+    display: flex;
+    gap: 0.5rem;
   }
-  .chat-header-right { display: flex; gap: 0.5rem; }
+
   .header-button {
-    width: 38px; height: 38px;
+    width: 38px;
+    height: 38px;
     border-radius: 10px;
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.05);
-    color: rgba(255,255,255,0.7);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.2s ease;
-    position: relative; overflow: hidden;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
   }
+
   .header-button:hover {
-    background: rgba(255,138,0,0.2);
+    background: rgba(255, 138, 0, 0.2);
     color: white;
     transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
   }
-  .header-button:active { transform: scale(0.95); }
-  .header-button::before {
-    content: '';
-    position: absolute; top: 0; left: -100%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-    transition: all 0.5s ease;
-  }
-  .header-button:hover::before { left: 100%; }
 
-  /* ================= Header Button States ================= */
-  .header-button.disabled {
-    opacity: 0.6;
-    background: rgba(255,255,255,0.05);
+  .header-button:active {
+    transform: scale(0.95);
   }
+
+  .header-button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
   .header-button.disabled:hover {
-    background: rgba(255,255,255,0.08);
+    background: rgba(255, 255, 255, 0.1);
     transform: none;
+  }
+
+  /* Add active state styling for voice button */
+  .header-button.active {
+    background: rgba(255, 0, 0, 0.2);
+    color: white;
+    animation: pulse-recording 1.5s infinite;
+  }
+
+  @keyframes pulse-recording {
+    0% { background-color: rgba(255, 0, 0, 0.2); }
+    50% { background-color: rgba(255, 0, 0, 0.4); }
+    100% { background-color: rgba(255, 0, 0, 0.2); }
   }
 
   /* ================= Chat Messages ================= */
   .chat-messages {
     flex: 1;
-    padding: 1.25rem;
+    padding: 1.5rem;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 1.5rem;
     scrollbar-width: thin;
-    scrollbar-color: rgba(255,138,0,0.3) transparent;
+    scrollbar-color: rgba(255, 138, 0, 0.3) transparent;
     -webkit-overflow-scrolling: touch;
     position: relative;
     z-index: 5;
   }
-  .chat-messages::-webkit-scrollbar { width: 5px; }
-  .chat-messages::-webkit-scrollbar-track { background: transparent; }
+
+  .chat-messages::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .chat-messages::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
   .chat-messages::-webkit-scrollbar-thumb {
-    background-color: rgba(255,138,0,0.3);
+    background-color: rgba(255, 138, 0, 0.3);
     border-radius: 3px;
   }
+
   .message-group {
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
-    max-width: 80%;
-    animation: fadeIn 0.3s ease-out forwards;
+    gap: 0.5rem;
+    max-width: 85%;
+    animation: fadeIn 0.4s ease-out forwards;
     position: relative;
   }
+
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
   }
-  .message-group.bot { align-self: flex-start; }
-  .message-group.user { align-self: flex-end; }
+
+  .message-group.bot {
+    align-self: flex-start;
+  }
+
+  .message-group.user {
+    align-self: flex-end;
+  }
 
   .message-bubble {
-    padding: 0.8rem 1rem;
-    border-radius: 18px;
+    padding: 1rem 1.25rem;
+    border-radius: var(--border-radius-lg);
     font-size: 0.95rem;
-    line-height: 1.5;
+    line-height: 1.6;
     word-break: break-word;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    box-shadow: var(--shadow-sm);
     transition: all 0.25s ease;
     position: relative;
     z-index: 1;
     width: fit-content;
     max-width: 100%;
   }
-  .loaded .message-bubble { animation-play-state: running; }
-  .message-bubble:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-  .message-bubble.bot {
-    background: rgba(40,45,55,0.85);
-    color: rgba(255,255,255,0.95);
-    border-bottom-left-radius: 4px;
-    border-left: 1px solid rgba(255,255,255,0.15);
-    border-top: 1px solid rgba(255,255,255,0.15);
+
+  .message-bubble:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
   }
+
+  .message-bubble.bot {
+    background: var(--card-bg-lighter);
+    color: rgba(255, 255, 255, 0.95);
+    border-bottom-left-radius: 4px;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
   .message-bubble.user {
-    background: linear-gradient(135deg, #FF9F5A, #FF7A00);
+    background: linear-gradient(135deg, var(--primary-light), var(--primary));
     color: white;
     border-bottom-right-radius: 4px;
-    box-shadow: 0 4px 15px rgba(255,159,90,0.3);
+    box-shadow: 0 4px 15px rgba(255, 159, 90, 0.3);
   }
-  .bot-avatar {
-    width: 34px; height: 34px;
-    border-radius: 10px;
-    overflow: hidden;
-    margin-right: 0.5rem;
-    flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-  .bot-avatar img { width: 100%; height: 100%; object-fit: cover; }
-  .message-header { display: flex; align-items: center; margin-bottom: 0.25rem; }
-  .message-sender { font-weight: 600; font-size: 0.8rem; color: rgba(255,255,255,0.9); }
-  .message-time { font-size: 0.7rem; color: rgba(255,255,255,0.6); margin-left: 0.5rem; }
 
   /* ================= Typing Indicator ================= */
+  .typing-indicator-container {
+    padding: 0 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
   .typing-indicator {
     display: flex;
     align-items: center;
     gap: 0.25rem;
     padding: 0.75rem 1rem;
-    background: rgba(255,255,255,0.1);
-    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius-lg);
     width: fit-content;
-    margin-top: 0.5rem;
     border-bottom-left-radius: 4px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    box-shadow: var(--shadow-sm);
   }
+
   .typing-dot {
     width: 6px;
     height: 6px;
-    background: rgba(255,255,255,0.7);
+    background: rgba(255, 255, 255, 0.8);
     border-radius: 50%;
     animation: typingBounce 1.5s infinite;
   }
-  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+  .typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
   @keyframes typingBounce {
     0%, 60%, 100% { transform: translateY(0); }
     30% { transform: translateY(-5px); }
   }
   
-  /* ================= Chat Input Area ================= */
+  /* ================= New Messages & Scroll Buttons ================= */
+  .new-messages-alert {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary);
+    color: white;
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 100;
+    animation: fadeInUp 0.3s ease-out;
+  }
+
+  .new-messages-alert.visible {
+    display: flex;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translate(-50%, 10px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
+
+  .scroll-bottom-btn {
+    position: absolute;
+    bottom: 80px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.2s ease;
+    z-index: 100;
+  }
+
+  .scroll-bottom-btn.visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .scroll-bottom-btn:hover {
+    background: var(--primary-light);
+    transform: scale(1.1);
+  }
+
+  /* ================= Input Area ================= */
   .chat-input-container {
     padding: 1.25rem;
-    background: rgba(20,25,35,0.9);
-    border-top: 1px solid rgba(255,138,0,0.2);
+    background: rgba(15, 20, 30, 0.95);
+    border-top: 1px solid rgba(255, 138, 0, 0.2);
     position: relative; 
     z-index: 10;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
   }
 
   .chat-input-wrapper {
     display: flex;
     align-items: center;
-    background: rgba(40,45,55,0.9);
-    border-radius: 18px;
+    background: var(--card-bg-lighter);
+    border-radius: var(--border-radius-lg);
     padding: 0.25rem 0.25rem 0.25rem 1.2rem;
     transition: all 0.3s ease;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1),
-                0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+                var(--shadow-sm);
     position: relative;
     overflow: hidden;
   }
 
   .chat-input-wrapper:focus-within {
-    background: rgba(45,50,65,0.95);
-    box-shadow: 0 0 0 2px rgba(255,159,90,0.3),
-                inset 0 0 0 1px rgba(255,255,255,0.1),
-                0 5px 15px rgba(0,0,0,0.1);
+    background: rgba(45, 50, 65, 0.95);
+    box-shadow: 0 0 0 2px rgba(255, 159, 90, 0.3),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+                var(--shadow-md);
     transform: translateY(-2px);
-  }
-
-  .chat-input-wrapper::before {
-    content: '';
-    position: absolute; 
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: radial-gradient(circle at top right, rgba(255,138,0,0.15), transparent 70%);
-    pointer-events: none;
   }
 
   .chat-input {
@@ -311,7 +801,7 @@
     color: white;
     font-size: 0.95rem;
     padding: 0.7rem 0;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Inter', 'Poppins', sans-serif;
     min-height: 24px;
     max-height: 100px;
     resize: none;
@@ -320,19 +810,39 @@
   }
 
   .chat-input::placeholder { 
-    color: rgba(255,255,255,0.5); 
+    color: rgba(255, 255, 255, 0.5);
     transition: all 0.2s ease;
   }
 
   .chat-input:focus::placeholder {
-    color: rgba(255,255,255,0.3);
+    color: rgba(255, 255, 255, 0.3);
+  }
+
+  .attach-button {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: 0.5rem;
+  }
+
+  .attach-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
   }
 
   .send-button {
-    width: 42px; 
-    height: 42px;
+    width: 44px;
+    height: 44px;
     border-radius: 14px;
-    background: linear-gradient(135deg, #FF9F5A, #FF7A00);
+    background: linear-gradient(135deg, var(--primary-light), var(--primary));
     border: none;
     color: white;
     display: flex; 
@@ -340,7 +850,7 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 10px rgba(255,159,90,0.3);
+    box-shadow: 0 4px 10px rgba(255, 159, 90, 0.3);
     flex-shrink: 0;
     position: relative;
     overflow: hidden;
@@ -348,7 +858,7 @@
 
   .send-button:hover { 
     transform: translateY(-3px); 
-    box-shadow: 0 6px 15px rgba(255,159,90,0.4);
+    box-shadow: 0 6px 15px rgba(255, 159, 90, 0.4);
     background: linear-gradient(135deg, #FFB07A, #FF8A20);
   }
 
@@ -359,9 +869,11 @@
   .send-button::before {
     content: '';
     position: absolute; 
-    top: 0; left: -100%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
     transition: all 0.5s ease;
   }
 
@@ -374,48 +886,35 @@
     display: flex; 
     flex-wrap: wrap; 
     gap: 0.6rem; 
-    margin-top: 1rem; 
+    margin-top: 0.75rem;
     animation: fadeIn 0.5s ease-out;
   }
 
   .suggestion-chip {
-    background: rgba(40,45,55,0.95);
-    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(40, 45, 55, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 16px;
     padding: 0.5rem 0.9rem;
     font-size: 0.85rem;
-    color: rgba(255,255,255,0.9);
+    color: rgba(255, 255, 255, 0.9);
     cursor: pointer;
     transition: all 0.3s ease;
     white-space: nowrap;
     touch-action: manipulation;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-sm);
     position: relative;
     overflow: hidden;
   }
 
   .suggestion-chip:hover {
-    background: rgba(255,138,0,0.2);
-    border-color: rgba(255,138,0,0.3);
+    background: rgba(255, 138, 0, 0.2);
+    border-color: rgba(255, 138, 0, 0.3);
     transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    box-shadow: var(--shadow-md);
   }
 
   .suggestion-chip:active { 
     transform: scale(0.95); 
-  }
-
-  .suggestion-chip::before {
-    content: '';
-    position: absolute; 
-    top: 0; left: -100%;
-    width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-    transition: all 0.5s ease;
-  }
-
-  .suggestion-chip:hover::before { 
-    left: 100%; 
   }
 
   .suggestion-categories {
@@ -436,3365 +935,979 @@
   }
 
   .category-btn {
-    background: rgba(40,45,55,0.8);
-    border: 1px solid rgba(255,138,0,0.3);
+    background: rgba(40, 45, 55, 0.8);
+    border: 1px solid rgba(255, 138, 0, 0.3);
     border-radius: 12px;
     padding: 0.4rem 0.7rem;
     font-size: 0.8rem;
-    color: rgba(255,255,255,0.8);
+    color: rgba(255, 255, 255, 0.8);
     cursor: pointer;
     transition: all 0.25s ease;
     white-space: nowrap;
     flex-shrink: 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-sm);
   }
 
   .category-btn.active {
-    background: rgba(255,138,0,0.25);
+    background: rgba(255, 138, 0, 0.25);
     color: #FFAF7A;
-    border-color: rgba(255,138,0,0.5);
+    border-color: rgba(255, 138, 0, 0.5);
     font-weight: 500;
-    box-shadow: 0 3px 6px rgba(255,138,0,0.2);
+    box-shadow: 0 3px 6px rgba(255, 138, 0, 0.2);
   }
 
   .category-btn:hover:not(.active) {
-    background: rgba(255,255,255,0.08);
+    background: rgba(255, 255, 255, 0.08);
     transform: translateY(-2px);
-    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+    box-shadow: var(--shadow-sm);
   }
-  
-  /* ================= New Message & Scroll ================= */
-  .new-messages-alert {
-    position: absolute;
-    bottom: 20px; left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255,138,0,0.9);
-    color: white;
-    border-radius: 20px;
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
-    cursor: pointer;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-    display: none;
-    align-items: center;
-    gap: 0.5rem;
-    z-index: 100;
-    animation: fadeInUp 0.3s ease-out;
-  }
-  .new-messages-alert.visible { display: flex; }
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translate(-50%, 10px); }
-    to { opacity: 1; transform: translate(-50%, 0); }
-  }
-  .scroll-bottom-btn {
-    position: absolute;
-    bottom: 20px; right: 20px;
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    background: rgba(255,138,0,0.9);
-    color: white;
-    border: none;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-    z-index: 20;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.3s;
-    pointer-events: none;
-  }
-  .scroll-bottom-btn.visible {
-    opacity: 1; transform: translateY(0);
-    pointer-events: all;
-  }
-  .scroll-bottom-btn:hover {
-    background: #FF7A00;
-    transform: translateY(-2px);
-  }
-  
-  /* ================= Product Card (Enhanced) ================= */
-  .product-card {
-    background: rgba(255,255,255,0.1);
-    border-radius: 12px;
-    padding: 1rem;
-    margin: 0.7rem 0;
-    border: 1px solid rgba(255,255,255,0.15);
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: column;
-  }
-  .product-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 15px rgba(0,0,0,0.15);
-    background: rgba(255,255,255,0.15);
-  }
-  .product-title {
-    font-weight: 600;
+
+  /* ================= Image upload preview styles ================= */
+  .image-preview-container {
+    margin-top: 0.5rem;
     margin-bottom: 0.5rem;
-    color: rgba(255,255,255,0.95);
-    position: relative;
-    padding-bottom: 0.4rem;
-  }
-  .product-title::after {
-    content: '';
-    position: absolute; bottom: 0; left: 0;
-    width: 40px; height: 2px;
-    background: rgba(255,138,0,0.5);
-  }
-  .product-detail {
-    font-size: 0.85rem;
-    color: rgba(255,255,255,0.8);
-    margin-bottom: 0.4rem;
-  }
-  .product-ingredients {
-    font-size: 0.8rem;
-    font-style: italic;
-    color: rgba(255,255,255,0.7);
-    line-height: 1.4;
-  }
-  
-  /* ================= Feedback UI (Enhanced) ================= */
-  .feedback-ui {
-    background: rgba(255,255,255,0.05);
-    border-radius: 10px;
-    padding: 0.8rem;
-    margin-top: 0.75rem;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-  .feedback-question {
-    color: rgba(255,255,255,0.8);
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-  }
-  .feedback-buttons {
-    display: flex;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-  }
-  .feedback-btn {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.15);
-    color: rgba(255,255,255,0.8);
-    border-radius: 16px;
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .feedback-btn:hover {
-    background: rgba(255,138,0,0.1);
-    border-color: rgba(255,138,0,0.3);
-  }
-  .feedback-btn.selected {
-    background: rgba(255,138,0,0.2);
-    border-color: rgba(255,138,0,0.5);
-    color: white;
-  }
-  .feedback-input {
-    width: 100%;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 8px;
-    padding: 0.6rem;
-    color: white;
-    font-size: 0.85rem;
-    resize: vertical;
-    min-height: 60px;
-    margin-bottom: 0.5rem;
-    transition: all 0.2s ease;
-  }
-  .feedback-input:focus {
-    background: rgba(255,255,255,0.1);
-    border-color: rgba(255,138,0,0.3);
-    outline: none;
-  }
-  .feedback-submit {
-    align-self: flex-end;
-    padding: 0.5rem 1rem;
-    background: linear-gradient(135deg, #FF9F5A, #FF7A00);
-    border: none;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: all 0.2s ease;
-  }
-  .feedback-submit:hover {
-    background: rgba(255,138,0,0.9);
-    transform: translateY(-2px);
-  }
-  
-  /* ================= Voice Recording & TTS ================= */
-  .voice-recording-indicator {
-    position: absolute;
-    bottom: 80px;
-    left: 50%;
-    transform: translateX(-50%) translateY(10px);
-    background: rgba(255,0,0,0.7);
-    padding: 8px 16px;
-    border-radius: 20px;
-    display: none;
-    align-items: center;
-    gap: 10px;
-    color: white;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-    z-index: 100;
-    transition: all 0.3s ease-in-out;
-    opacity: 0;
-  }
-  .voice-recording-indicator.active {
-    display: flex;
-    transform: translateX(-50%) translateY(0);
-    opacity: 1;
-  }
-  .recording-pulse {
-    width: 12px;
-    height: 12px;
-    background-color: white;
-    border-radius: 50%;
-    animation: pulse-recording 1.5s infinite;
-  }
-  @keyframes pulse-recording {
-    0% { box-shadow: 0 0 0 0 rgba(255,0,0,0.4); }
-    70% { box-shadow: 0 0 0 6px rgba(255,0,0,0); }
-    100% { box-shadow: 0 0 0 0 rgba(255,0,0,0); }
-  }
-  .mic-btn.recording, #voiceInputBtn.recording {
-    background-color: rgba(255,74,74,0.2) !important;
-    color: #ff4a4a !important;
-    animation: pulse-recording 1.5s infinite !important;
-  }
-  .speak-btn.speaking,
-  #ttsBtn.speaking {
-    color: #4a90e2 !important;
-    background-color: rgba(74,144,226,0.2) !important;
-    animation: pulse-speaking 1.5s infinite !important;
-  }
-  @keyframes pulse-speaking {
-    0% { background-color: rgba(74,144,226,0.2); box-shadow: 0 0 0 0 rgba(74,144,226,0.4); }
-    70% { background-color: rgba(74,144,226,0.3); box-shadow: 0 0 0 6px rgba(74,144,226,0); }
-    100% { background-color: rgba(74,144,226,0.2); box-shadow: 0 0 0 0 rgba(74,144,226,0); }
-  }
-  
-  /* ================= Miscellaneous ================= */
-  .tooltip { position: relative; }
-  .tooltip::after {
-    content: attr(data-tooltip);
-    position: absolute; bottom: 100%; left: 50%;
-    transform: translateX(-50%);
-    background: rgba(30,35,45,0.95);
-    color: white;
-    font-size: 0.75rem;
-    padding: 0.3rem 0.6rem;
-    border-radius: 6px;
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.2s;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
-  }
-  .tooltip:hover::after {
-    opacity: 1;
-    transform: translateX(-50%) translateY(-5px);
-  }
-  
-  /* ================= Responsive Adjustments ================= */
-  @media (min-width: 640px) {
-    .chat-container {
-      width: 95%;
-      max-width: 950px;
-      height: calc(100vh - 230px);
-      min-height: 600px;
-      margin: 1rem auto 1.5rem;
-      border-radius: 24px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05);
-    }
-    .chat-header { padding: 1.25rem 1.5rem; border-radius: 24px 24px 0 0; }
-    .chat-avatar { width: 46px; height: 46px; }
-    .chat-title h2 { font-size: 1.35rem; }
-    .chat-status { font-size: 0.85rem; }
-    .chat-messages { padding: 1.5rem; gap: 1.5rem; }
-    .message-bubble { padding: 0.9rem 1.2rem; font-size: 1rem; }
-    .bot-avatar { width: 36px; height: 36px; }
-    .message-sender { font-size: 0.85rem; }
-    .message-time { font-size: 0.75rem; }
-    .chat-input-container { padding: 1.25rem 1.5rem; border-radius: 0 0 24px 24px; }
-    .chat-input { font-size: 1rem; padding: 0.7rem 0; }
-    .send-button { width: 46px; height: 46px; }
-    .suggestion-chips { gap: 0.75rem; margin-top: 1rem; }
-    .suggestion-chip { padding: 0.5rem 1rem; font-size: 0.9rem; }
-  }
-  @media (min-width: 1024px) {
-    .chat-container {
-      width: 90%;
-      max-width: 1100px;
-      min-height: 700px;
-      margin: 1.5rem auto 2rem;
-      border-radius: 28px;
-    }
-    .chat-header { padding: 1.5rem 2rem; border-radius: 28px 28px 0 0; }
-    .chat-avatar { width: 48px; height: 48px; margin-right: 1rem; }
-    .chat-avatar-icon { font-size: 24px; }
-    .chat-title h2 { font-size: 1.5rem; }
-    .chat-status { font-size: 0.9rem; }
-    .status-indicator { width: 8px; height: 8px; }
-    .header-button { width: 42px; height: 42px; }
-    .chat-messages { padding: 2rem; gap: 1.75rem; }
-    .message-group { max-width: 75%; }
-    .message-bubble { padding: 1rem 1.35rem; font-size: 1rem; }
-    .bot-avatar { width: 38px; height: 38px; margin-right: 0.75rem; }
-    .message-sender { font-size: 0.9rem; }
-    .message-time { font-size: 0.8rem; }
-    .chat-input-container { padding: 1.5rem 2rem; border-radius: 0 0 28px 28px; }
-    .chat-input-wrapper { padding: 0.25rem 0.25rem 0.25rem 1.25rem; }
-    .chat-input { font-size: 1rem; padding: 0.75rem 0; }
-    .send-button { width: 48px; height: 48px; }
-    .suggestion-chips { gap: 0.85rem; margin-top: 1.25rem; }
-    .suggestion-chip { padding: 0.6rem 1.1rem; font-size: 0.95rem; }
-  }
-  @media (max-width: 768px) {
-    .container-main { 
-      padding: 0; 
-      min-height: calc(100vh - 140px - 250px); 
-    }
-    .chat-container {
-      width: 98%;
-      height: calc(100vh - 180px);
-      min-height: 500px;
-      margin: 0.5rem auto 0.75rem;
-      border-radius: 16px;
-    }
-    .chat-header { 
-      padding: 0.85rem 1.25rem; 
-      border-radius: 16px 16px 0 0; 
-    }
-    .chat-avatar {
-      width: 38px;
-      height: 38px;
-    }
-    .chat-title h2 {
-      font-size: 1.15rem;
-    }
-    .chat-messages {
-      padding: 1rem 0.75rem;
-      gap: 0.75rem;
-    }
-    .message-group {
-      max-width: 85%;
-    }
-    .chat-input-container { 
-      padding: 0.85rem 1rem; 
-      border-radius: 0 0 16px 16px; 
-    }
-    .suggestion-chips {
-      gap: 0.5rem;
-      margin-top: 0.75rem;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      padding-bottom: 0.5rem;
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    .suggestion-chips::-webkit-scrollbar {
-      display: none;
-    }
-    .suggestion-chip {
-      padding: 0.4rem 0.7rem;
-      font-size: 0.8rem;
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-  }
-  @media (max-width: 480px) {
-    .content-header h1 { 
-      font-size: 1.75rem; 
-      margin-bottom: 0.3rem;
-    }
-    .content-header p { 
-      font-size: 0.9rem; 
-      padding: 0 0.5rem; 
-      margin-top: 0.3rem;
-    }
-    .container-main { 
-      padding: 0; 
-      min-height: calc(100vh - 120px - 230px); 
-    }
-    .chat-container {
-      width: 100%;
-      height: calc(100vh - 170px);
-      min-height: 450px;
-      margin: 0.25rem auto 0.5rem;
-      border-radius: 12px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 138, 0, 0.1);
-    }
-    .chat-header { 
-      padding: 0.7rem 0.9rem; 
-      border-radius: 12px 12px 0 0; 
-    }
-    .chat-title h2 { 
-      font-size: 1rem; 
-    }
-    .chat-avatar { 
-      width: 34px; 
-      height: 34px; 
-      margin-right: 0.5rem;
-    }
-    .chat-avatar-icon {
-      font-size: 18px;
-    }
-    .chat-status {
-      font-size: 0.75rem;
-    }
-    .header-button {
-      width: 34px;
-      height: 34px;
-    }
-    .suggestion-categories { 
-      gap: 0.35rem; 
-      margin-bottom: 0.5rem;
-    }
-    .category-btn { 
-      padding: 0.35rem 0.6rem; 
-      font-size: 0.75rem; 
-      border-radius: 10px;
-    }
-    .suggestion-chip { 
-      padding: 0.35rem 0.6rem; 
-      font-size: 0.75rem; 
-      border-radius: 14px;
-    }
-    .dynamic-suggestion {
-      padding: 0.35rem 0.6rem;
-      font-size: 0.75rem;
-      border-radius: 14px;
-    }
-    .chat-input-container { 
-      padding: 0.65rem 0.75rem 0.75rem; 
-      border-radius: 0 0 12px 12px; 
-    }
-    .chat-input-wrapper {
-      padding: 0.2rem 0.2rem 0.2rem 0.9rem;
-      border-radius: 16px;
-    }
-    .chat-input {
-      font-size: 0.9rem;
-      padding: 0.6rem 0;
-    }
-    .send-button {
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-    }
-    .input-action-btn {
-      width: 32px;
-      height: 32px;
-      margin-right: 6px;
-    }
-    .message-group { 
-      max-width: 92%; 
-      gap: 0.3rem;
-    }
-    .message-bubble {
-      padding: 0.7rem 0.9rem;
-      font-size: 0.9rem;
-      border-radius: 16px;
-    }
-    .message-bubble.bot {
-      border-bottom-left-radius: 4px;
-    }
-    .message-bubble.user {
-      border-bottom-right-radius: 4px;
-    }
-    .message-header {
-      margin-bottom: 0.2rem;
-    }
-    .bot-avatar, .user-avatar {
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
-    }
-    .message-sender {
-      font-size: 0.75rem;
-    }
-    .message-time {
-      font-size: 0.65rem;
-    }
-    .message-actions {
-      right: 0.5rem;
-      bottom: -1.4rem;
-      gap: 0.3rem;
-    }
-    .message-action-btn {
-      width: 24px;
-      height: 24px;
-      font-size: 0.75rem;
-    }
-    
-    /* Fix typing indicator for mobile */
-    .typing-indicator {
-      padding: 0.6rem 0.8rem;
-    }
-    .typing-dot {
-      width: 5px;
-      height: 5px;
-    }
+    max-width: 250px;
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  /* iOS fixes */
-  @supports (-webkit-touch-callout: none) {
-    .chat-container { 
-      height: calc(100vh - 230px); 
-      max-height: calc(100vh - 230px);
-    }
-    
-    @media (max-width: 768px) { 
-      .chat-container { 
-        height: calc(100vh - 200px);
-        max-height: calc(100vh - 200px);
-      } 
-    }
-    
-    @media (max-width: 480px) { 
-      .chat-container { 
-        height: calc(100vh - 180px);
-        max-height: calc(100vh - 180px);
-      } 
-    }
-    
-    /* Fix safe area insets for modern iOS devices */
-    .chat-input-container {
-      padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0));
-    }
-    
-    @media (max-width: 480px) {
-      .chat-input-container {
-        padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0));
-      }
-    }
-  }
-
-  /* Fix for notched devices */
-  @supports (padding: env(safe-area-inset-bottom)) {
-    .chat-input-container {
-      padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0));
-    }
-    
-    @media (max-width: 768px) { 
-      .chat-input-container { 
-        padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0)); 
-      } 
-    }
-    
-    @media (max-width: 480px) { 
-      .chat-input-container { 
-        padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0)); 
-      } 
-    }
-  }
-
-  /* ================= Other Components: Tool Suggestions, Image Analysis, etc. ================= */
-  .analysis-result {
-    background: rgba(255,255,255,0.1);
-    border-radius: 12px;
-    padding: 1rem;
-    margin: 0.8rem 0;
-    border: 1px solid rgba(255,255,255,0.15);
-  }
-  .analysis-image-container { width: 100%; max-height: 300px; overflow: hidden; margin-bottom: 0.5rem; }
-  .analysis-image {
-    width: 100%;
-    object-fit: contain;
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
-  }
-  .analysis-section {
-    padding: 0.8rem;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-  }
-  .analysis-section:last-child { border-bottom: none; }
-  .analysis-title { font-weight: 600; color: rgba(255,138,0,0.9); margin-bottom: 0.5rem; font-size: 0.95rem; }
-  .analysis-text { color: rgba(255,255,255,0.9); font-size: 0.9rem; line-height: 1.4; }
-  .detected-conditions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-  .condition-tag {
-    background: rgba(255,138,0,0.2);
-    color: rgba(255,255,255,0.9);
-    border: 1px solid rgba(255,138,0,0.3);
-    border-radius: 16px;
-    padding: 0.3rem 0.7rem;
-    font-size: 0.85rem;
-    display: inline-flex;
-    align-items: center;
-  }
-  /* Tool Suggestions */
-  .tool-suggestions { display: flex; flex-wrap: wrap; gap: 1rem; }
-  .tool-suggestion {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    background: rgba(255,255,255,0.1);
-    border-radius: 8px;
-    padding: 0.75rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-  .tool-suggestion:hover { background: rgba(255,138,0,0.15); transform: translateY(-3px); }
-  .tool-icon i { font-size: 1.5rem; color: #FF9F5A; }
-  .tool-info { display: flex; flex-direction: column; }
-  .tool-name { font-weight: 600; }
-  .tool-description { font-size: 0.85rem; color: rgba(255,255,255,0.8); }
-
-  /* ================= Language Selector ================= */
-  .language-selector {
-    position: relative;
-    z-index: 10;
-    margin-right: 0.75rem;
-  }
-  .language-selector-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.15);
-    color: rgba(255,255,255,0.9);
-    padding: 6px 10px;
-    font-size: 0.9rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    min-height: 36px;
-    min-width: 36px;
-  }
-  .language-selector-btn:hover { background: rgba(255,255,255,0.2); }
-  .language-dropdown {
-    position: absolute;
-    top: 110%;
-    right: 0;
-    width: 200px;
-    background: rgba(25,30,40,0.95);
-    border-radius: 10px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-    display: none;
-    padding: 8px 0;
-    overflow-y: auto;
-    max-height: 300px;
-    z-index: 1000;
-    backdrop-filter: blur(10px);
-    margin-top: 5px;
-  }
-  .language-dropdown.active { display: block; animation: fadeIn 0.2s ease-out forwards; }
-  .language-option {
-    padding: 10px 12px;
-    cursor: pointer;
-    color: white;
-    font-size: 14px;
-    transition: background 0.2s;
-    min-height: 40px;
-    display: flex;
-    align-items: center;
-  }
-  .language-option:hover { background: rgba(255,138,0,0.2); }
-  .language-option.selected { background: rgba(255,138,0,0.3); font-weight: 500; }
-
-  /* Translation indicator styling */
-  .translating-indicator {
-    margin-top: 8px;
-    padding: 4px 8px;
-    background-color: rgba(255, 138, 0, 0.15);
-    border-radius: 4px;
-    animation: pulse 1.5s infinite;
-    display: inline-block;
-  }
-
-  .translating-indicator small {
-    color: rgba(255, 255, 255, 0.8);
-    font-size: 0.8rem;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-
-  .translating-indicator small::before {
-    content: "";
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background-color: #ff8a00;
-    animation: pulse 1.5s infinite;
-  }
-
-  .message-bubble.translating {
-    opacity: 0.8;
-  }
-
-  @keyframes pulse {
-    0% { opacity: 0.6; }
-    50% { opacity: 1; }
-    100% { opacity: 0.6; }
-  }
-  
-  @media (max-width: 480px) {
-    .language-selector-btn {
-      padding: 4px 8px;
-      font-size: 12px;
-      min-height: 32px;
-      min-width: 32px;
-    }
-    .language-dropdown {
-      min-width: 160px;
-      max-height: 260px;
-      right: -5px;
-    }
-    .language-option {
-      padding: 8px 10px;
-      font-size: 13px;
-      min-height: 36px;
-    }
-  }
-  
-  /* ================= Image Upload & Previews ================= */
-  .image-upload-container {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%; max-width: 450px;
-    background: rgba(30,35,45,0.95);
-    backdrop-filter: blur(15px);
-    border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,138,0,0.2);
-    z-index: 100;
-    animation: fadeInScale 0.3s ease-out forwards;
-    display: none;
-  }
-  @keyframes fadeInScale {
-    from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
-    to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  }
-  .image-upload-btn {
-    background: rgba(255,138,0,0.7);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 0.75rem 1rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 0.9rem;
-    width: 100%;
-    text-align: center;
-    margin-bottom: 1rem;
-  }
-  .image-upload-btn:hover { background: rgba(255,138,0,0.9); transform: translateY(-2px); }
   .image-preview {
     width: 100%;
     max-height: 200px;
-    object-fit: contain;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    background: rgba(0,0,0,0.2);
-    border: 1px solid rgba(255,255,255,0.1);
-    display: none;
-  }
-  
-  /* ================= Voice & Input Action Buttons ================= */
-  .input-action-btn {
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.15);
-    color: rgba(255,255,255,0.7);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-right: 8px;
-  }
-  .input-action-btn:hover {
-    background: rgba(255,138,0,0.2);
-    color: white;
-    transform: translateY(-2px);
-  }
-  .input-action-btn:active { transform: scale(0.95); }
-  
-  /* Mobile adjustments for voice and image buttons */
-  @media (max-width: 480px) {
-    .voice-recording-indicator {
-      bottom: 70px;
-      padding: 6px 12px;
-      border-radius: 16px;
-      gap: 8px;
-      font-size: 0.85rem;
-    }
-    
-    .recording-pulse {
-      width: 10px;
-      height: 10px;
-    }
-    
-    .image-upload-container {
-      width: 95%;
-      padding: 1.25rem;
-    }
-    
-    .image-upload-btn {
-      padding: 0.6rem 0.9rem;
-      font-size: 0.85rem;
-      margin-bottom: 0.75rem;
-    }
-    
-    .image-preview {
-      max-height: 180px;
-    }
-    
-    .uploaded-image {
-      max-width: 160px;
-      max-height: 160px;
-    }
-    
-    .chat-image-preview {
-      max-width: 160px;
-      max-height: 140px;
-    }
-  }
-  
-  /* ================= Image Preview in Chat ================= */
-  .chat-image-preview {
-    max-width: 180px;
-    background: linear-gradient(135deg, var(--primary), var(--primary-light));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    position: relative;
-    display: inline-block;
-    text-shadow: 0 2px 10px rgba(255, 138, 0, 0.2);
-  }
-  
-  .content-header p {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1.1rem;
-    line-height: 1.5;
-    max-width: 600px;
-    margin: 0 auto;
-  }
-  
-  @media (max-width: 768px) {
-    .content-header {
-      padding: 1.5rem 1rem 1.25rem;
-    }
-    
-    .content-header h1 {
-      font-size: 1.9rem;
-      margin-bottom: 0.5rem;
-    }
-    
-    .content-header p {
-      font-size: 1rem;
-      padding: 0 0.5rem;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .content-header {
-      padding: 1.25rem 0.75rem 1rem;
-      margin-bottom: 0.5rem;
-    }
-    
-    .content-header h1 {
-      font-size: 1.6rem;
-      margin-bottom: 0.4rem;
-    }
-    
-    .content-header p {
-      font-size: 0.9rem;
-      line-height: 1.4;
-      padding: 0 0.25rem;
-    }
-  }
-
-  /* ================= Dynamic Suggestions ================= */
-  .dynamic-suggestions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-    margin-top: 0.7rem;
-    max-width: 90%;
-  }
-
-  .dynamic-suggestion {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 16px;
-    padding: 0.5rem 0.85rem;
-    font-size: 0.85rem;
-    color: rgba(255,255,255,0.9);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    white-space: nowrap;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .dynamic-suggestion:hover {
-    background: rgba(255,138,0,0.2);
-    border-color: rgba(255,138,0,0.3);
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  }
-
-  .dynamic-suggestion:active {
-    transform: scale(0.95);
-  }
-
-  @media (max-width: 768px) {
-    .dynamic-suggestions {
-      gap: 0.5rem;
-      margin-top: 0.6rem;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      padding-bottom: 0.5rem;
-      max-width: 100%;
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-      -webkit-overflow-scrolling: touch;
-    }
-    
-    .dynamic-suggestions::-webkit-scrollbar {
-      display: none;
-    }
-    
-    .dynamic-suggestion {
-      padding: 0.4rem 0.75rem;
-      font-size: 0.8rem;
-      flex-shrink: 0;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .dynamic-suggestions {
-      gap: 0.4rem;
-      margin-top: 0.5rem;
-    }
-    
-    .dynamic-suggestion {
-      padding: 0.35rem 0.65rem;
-      font-size: 0.75rem;
-      min-height: 32px;
-      display: flex;
-      align-items: center;
-    }
-  }
-
-  /* Fix for virtual keyboard on mobile */
-  .chat-container.keyboard-open {
-    height: calc(var(--vh, 1vh) * 70);
-    max-height: 500px;
-    min-height: 300px;
-  }
-
-  @media (max-width: 480px) {
-    .chat-container.keyboard-open {
-      height: calc(var(--vh, 1vh) * 65);
-      max-height: 450px;
-      min-height: 280px;
-    }
-  }
-
-  /* User Avatar Styling */
-  .user-avatar {
-    width: 34px; 
-    height: 34px;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-right: 0.5rem;
-    flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    position: relative;
-    background: linear-gradient(135deg, #6e8efb, #a777e3);
-    border: 1px solid rgba(255,255,255,0.2);
-  }
-
-  .user-avatar img {
-    width: 100%;
-    height: 100%;
     object-fit: cover;
   }
 
-  @media (max-width: 480px) {
-    .bot-avatar, .user-avatar {
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
+  /* ================= Responsive Design ================= */
+  @media (max-width: 992px) {
+    .chatbot-sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      transform: translateX(-100%);
+      box-shadow: var(--shadow-lg);
+      z-index: 1000;
     }
     
-    .user-avatar img {
+    .sidebar-toggle {
+    display: flex;
+    }
+    
+    .chatbot-sidebar.active {
+      transform: translateX(0);
+    }
+    
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(2px);
+      z-index: 999;
+      display: none;
+    }
+    
+    .sidebar-overlay.active {
+      display: block;
+    }
+    
+    .chatbot-title {
+      font-size: 2rem;
+    }
+    
+    .chatbot-subtitle {
+      font-size: 1rem; 
+    }
+    }
+    
+    @media (max-width: 768px) { 
+    .chatbot-wrapper {
+      padding: 0.5rem;
+    }
+    
+    .chatbot-interface {
+        height: calc(100vh - 180px);
+    }
+    
+    .chatbot-header-intro {
+      margin-bottom: 1rem;
+    }
+    
+    .chatbot-title {
+      font-size: 1.75rem;
+    }
+    
+    .chatbot-subtitle {
+    font-size: 0.9rem;
+    }
+    
+    .chat-header {
+    padding: 0.75rem 1rem;
+    }
+    
+    .chat-title h2 {
+    font-size: 1.1rem;
+    }
+    
+    .chat-status span {
+      display: none;
+    }
+    
+    .chat-messages {
+    padding: 1rem;
+    }
+    
+    .message-group {
+      max-width: 92%;
+    }
+    
+    .message-bubble {
+      padding: 0.8rem 1rem;
+    font-size: 0.9rem;
+    }
+    
+    .chat-input-container {
+      padding: 0.75rem;
+    }
+    
+    .suggestion-chip {
+      padding: 0.4rem 0.7rem;
+    font-size: 0.8rem;
     }
   }
-
-  @media (min-width: 640px) and (max-width: 1023px) {
-    .user-avatar, .bot-avatar {
+  
+  @media (max-width: 480px) {
+    .chatbot-title {
+      font-size: 1.5rem;
+    }
+    
+    .chatbot-subtitle {
+      font-size: 0.85rem;
+    }
+    
+    .chat-avatar {
       width: 36px;
       height: 36px;
     }
-  }
-
-  @media (min-width: 1024px) {
-    .user-avatar, .bot-avatar {
+    
+    .chat-avatar-icon {
+      font-size: 18px;
+    }
+    
+    .header-button {
+    width: 34px; 
+    height: 34px;
+    }
+    
+    .chat-title h2 {
+      font-size: 1rem;
+    }
+    
+    .message-bubble {
+      padding: 0.75rem 0.9rem;
+    font-size: 0.85rem;
+    }
+    
+    .suggestion-chips {
+      gap: 0.4rem;
+    }
+    
+    .suggestion-chip {
+      padding: 0.35rem 0.6rem;
+      font-size: 0.75rem;
+    }
+    
+    .send-button, .attach-button {
       width: 38px;
       height: 38px;
     }
   }
+
+  /* Speaker button styling */
+  .speaker-button {
+    background: none;
+    border: none;
+    color: #777;
+    cursor: pointer;
+    padding: 5px;
+    margin-left: 5px;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    opacity: 0.7;
+    position: relative;
+    top: 2px;
+  }
+
+  .speaker-button:hover {
+    background-color: #f0f0f0;
+    color: #4a6cf7;
+    opacity: 1;
+  }
+
+  .speaker-button:active {
+    background-color: #e6e6e6;
+    transform: scale(0.95);
+  }
+
+  .speaker-button i {
+    font-size: 14px;
+  }
 </style>
 
-<div class="container-main">
-  <div class="chat-container">
-    <!-- Chat Header -->
-    <div class="chat-header">
-      <div class="chat-header-left">
-        <div class="chat-avatar">
-          <span class="chat-avatar-icon">✨</span>
-        </div>
-        <div class="chat-title">
-          <h2>Aura</h2>
-          <div class="chat-status">
-            <span class="status-indicator"></span>
-            <span>Online</span>
-          </div>
-        </div>
-      </div>
-      <div class="chat-header-right">
-        <!-- Language Selector -->
-        <div class="language-selector">
-          <button class="language-selector-btn" id="languageBtn">
-            <i class="fas fa-globe"></i>
-            <span id="currentLanguage">{{ current_language|upper }}</span>
-          </button>
-          <div class="language-dropdown" id="languageDropdown">
-            <!-- Reordering languages to have Hindi and Tamil near the top after English -->
-            <div class="language-option {% if current_language == 'en' %}selected{% endif %}" data-lang="en">
-              English
-            </div>
-            <div class="language-option {% if current_language == 'hi' %}selected{% endif %}" data-lang="hi">
-              Hindi
-            </div>
-            <div class="language-option {% if current_language == 'ta' %}selected{% endif %}" data-lang="ta">
-              Tamil
-            </div>
-            {% for lang in supported_languages %}
-            {% if lang.code != 'en' and lang.code != 'hi' and lang.code != 'ta' %}
-            <div class="language-option {% if lang.code == current_language %}selected{% endif %}" data-lang="{{ lang.code }}">
-              {{ lang.name }}
-            </div>
-            {% endif %}
-            {% endfor %}
-          </div>
-        </div>
-        <button id="clearChatBtn" class="header-button tooltip" data-tooltip="Clear chat">
-          <i class="fas fa-broom"></i>
-        </button>
-        <button id="autoTtsBtn" class="header-button tooltip" data-tooltip="Toggle auto-speech">
-          <i class="fas fa-volume-up"></i>
-        </button>
-      </div>
-    </div>
-
-    <!-- Chat Messages -->
-    <div class="chat-messages" id="chatMessages">
-      <!-- Bot Welcome Message -->
-      <div class="message-group bot">
-        <div class="message-header">
-          <div class="bot-avatar">
-            <img src="{{ url_for('static', filename='assets/bot.png') }}" alt="Bot Avatar">
-          </div>
-          <div>
-            <span class="message-sender">Aura</span>
-            <span class="message-time">Just now</span>
-          </div>
-        </div>
-        <div class="message-bubble bot">
-          Hello! I'm Aura, your virtual skincare assistant. I'm here to help with all your skincare questions and concerns. How can I assist you today?
-          <div class="message-actions">
-            <button class="message-action-btn tooltip copy-btn" data-tooltip="Copy message">
-              <i class="fas fa-copy"></i>
-            </button>
-          </div>
-        </div>
-        <div class="dynamic-suggestions">
-          <div class="dynamic-suggestion" onclick="sendSuggestion(this)">What's my skin type?</div>
-          <div class="dynamic-suggestion" onclick="sendSuggestion(this)">How to treat acne?</div>
-          <div class="dynamic-suggestion" onclick="sendSuggestion(this)">Recommend skincare routine</div>
-          <div class="dynamic-suggestion" onclick="sendSuggestion(this)">Book an appointment</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- New Messages Notification -->
-    <div class="new-messages-alert" id="newMsgAlert">
-      <i class="fas fa-arrow-down"></i>
-      <span>New messages</span>
-    </div>
-
-    <!-- Scroll to bottom button -->
-    <button class="scroll-bottom-btn" id="scrollBottomBtn">
-      <i class="fas fa-arrow-down"></i>
-    </button>
-
-    <!-- Chat Input Area -->
-    <div class="chat-input-container">
-      <!-- Suggestion Categories -->
-      <div class="suggestion-categories">
-        <button class="category-btn active" data-category="common">Common</button>
-        <button class="category-btn" data-category="skin-types">Skin Types</button>
-        <button class="category-btn" data-category="conditions">Conditions</button>
-        <button class="category-btn" data-category="products">Products</button>
-      </div>
-
-      <div class="chat-input-wrapper">
-        <button class="input-action-btn tooltip mic-btn" id="voiceInputBtn" data-tooltip="Voice input">
-          <i class="fas fa-microphone"></i>
-        </button>
-        <button class="input-action-btn tooltip image-btn" id="imageUploadBtn" data-tooltip="Upload image">
-          <i class="fas fa-image"></i>
-        </button>
-        <textarea id="chatInput" class="chat-input" placeholder="Type your message here..." rows="1"></textarea>
-        <button class="input-action-btn tooltip" id="ttsBtn" data-tooltip="Read aloud">
-          <i class="fas fa-volume-up"></i>
-        </button>
-        <button class="send-button" id="sendBtn" title="Send Message">
-          <i class="fas fa-paper-plane"></i>
-        </button>
-      </div>
-      
-      <!-- Hidden file input -->
-      <input type="file" id="imageFileInput" accept="image/*" style="display: none;">
-
-      <!-- Voice recording indicator -->
-      <div class="voice-recording-indicator" id="voiceRecordingIndicator">
-        <div class="recording-pulse"></div>
-        <span>Listening...</span>
-        <button class="stop-recording-btn" id="stopRecordingBtn">
-          <i class="fas fa-stop"></i>
-        </button>
-      </div>
-
-      <!-- Suggestion Chips -->
-      <div class="suggestion-chips" id="suggestionChips">
-        <div class="suggestion-chip" onclick="sendSuggestion(this)">What's my skin type?</div>
-        <div class="suggestion-chip" onclick="sendSuggestion(this)">How to treat acne?</div>
-        <div class="suggestion-chip" onclick="sendSuggestion(this)">Make an appointment</div>
-        <div class="suggestion-chip" onclick="sendSuggestion(this)">Recommended products</div>
-        <div class="suggestion-chip" onclick="sendSuggestion(this)">Skincare routine</div>
-      </div>
-    </div>
-  </div>
-</div>
-
+{% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Element references
+    // DOM Elements
+    const chatContainer = document.querySelector('.chat-container');
     const chatMessages = document.getElementById('chatMessages');
     const chatInput = document.getElementById('chatInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const clearChatBtn = document.getElementById('clearChatBtn');
-    const autoTtsBtn = document.getElementById('autoTtsBtn');
+    const sendButton = document.getElementById('sendButton');
+    const attachButton = document.getElementById('attachButton');
+    const voiceButton = document.getElementById('voiceButton');
+    const refreshButton = document.getElementById('refreshButton');
+    const clearChatButton = document.getElementById('clearChatButton');
     const scrollBottomBtn = document.getElementById('scrollBottomBtn');
-    const newMsgAlert = document.getElementById('newMsgAlert');
-    const languageBtn = document.getElementById('languageBtn');
-    const languageDropdown = document.getElementById('languageDropdown');
-    const languageOptions = document.querySelectorAll('.language-option');
-    const currentLanguageDisplay = document.getElementById('currentLanguage');
-    const voiceInputBtn = document.getElementById('voiceInputBtn');
-    const imageUploadBtn = document.getElementById('imageUploadBtn');
-    const imageFileInput = document.getElementById('imageFileInput');
-    const ttsBtn = document.getElementById('ttsBtn');
-    const voiceRecordingIndicator = document.getElementById('voiceRecordingIndicator');
-    const stopRecordingBtn = document.getElementById('stopRecordingBtn');
-    const chatContainer = document.querySelector('.chat-container');
-
-    // Setup speech recognition and synthesis
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const speechSynthesis = window.speechSynthesis;
-    let recognition = null;
-    if (SpeechRecognition) {
-        recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = '{{ current_language }}';
-    } else {
-        voiceInputBtn.style.display = 'none';
-    }
+    const newMessagesAlert = document.getElementById('newMessagesAlert');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const suggestionChips = document.querySelectorAll('.suggestion-chip');
+    const categoryBtns = document.querySelectorAll('.category-btn');
+    const languageSelect = document.getElementById('languageSelect');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.chatbot-sidebar');
+    const settingsButton = document.getElementById('settingsButton');
     
-    let currentUploadedImage = null;
-    let currentLanguage = "{{ current_language }}";
-    let isSpeaking = false;
-    let isProcessing = false;
+    // Create sidebar overlay for mobile
+    const sidebarOverlay = document.createElement('div');
+    sidebarOverlay.className = 'sidebar-overlay';
+    document.body.appendChild(sidebarOverlay);
     
-    // Check if auto TTS is disabled (from localStorage)
-    const isAutoTtsDisabled = window.localStorage.getItem('auto_tts_disabled') === 'true';
-    if (isAutoTtsDisabled) {
-        autoTtsBtn.classList.add('disabled');
-        autoTtsBtn.querySelector('i').classList.remove('fa-volume-up');
-        autoTtsBtn.querySelector('i').classList.add('fa-volume-mute');
-        autoTtsBtn.setAttribute('data-tooltip', 'Enable auto-speech');
-    }
+    // Initialize the chat
+    initChat();
     
-    // Setup auto TTS toggle button
-    autoTtsBtn.addEventListener('click', () => {
-        const isCurrentlyDisabled = window.localStorage.getItem('auto_tts_disabled') === 'true';
-        
-        if (isCurrentlyDisabled) {
-            // Enable auto TTS
-            window.localStorage.removeItem('auto_tts_disabled');
-            autoTtsBtn.classList.remove('disabled');
-            autoTtsBtn.querySelector('i').classList.remove('fa-volume-mute');
-            autoTtsBtn.querySelector('i').classList.add('fa-volume-up');
-            autoTtsBtn.setAttribute('data-tooltip', 'Disable auto-speech');
-            showToast('Auto speech enabled', 'success');
-        } else {
-            // Disable auto TTS
-            window.localStorage.setItem('auto_tts_disabled', 'true');
-            autoTtsBtn.classList.add('disabled');
-            autoTtsBtn.querySelector('i').classList.remove('fa-volume-up');
-            autoTtsBtn.querySelector('i').classList.add('fa-volume-mute');
-            autoTtsBtn.setAttribute('data-tooltip', 'Enable auto-speech');
-            showToast('Auto speech disabled', 'info');
-            
-            // Stop any ongoing speech
-            if (speechSynthesis.speaking) {
-                speechSynthesis.cancel();
-            }
-            
-            // Stop any active audio elements
-            document.querySelectorAll('audio.tts-audio').forEach(audio => {
-                audio.pause();
-                audio.remove();
-            });
-            
-            // Reset UI state
-            ttsBtn.classList.remove('speaking');
-            document.querySelectorAll('.speak-btn').forEach(b => b.classList.remove('speaking'));
-            document.querySelectorAll('.message-bubble').forEach(b => b.classList.remove('speaking'));
-            document.querySelectorAll('.message-siri-wave').forEach(w => w.classList.remove('active'));
-            document.querySelectorAll('.siri-wave-container').forEach(w => w.classList.remove('active'));
-            isSpeaking = false;
-        }
-    });
-
-    // Show loading state
-    function showLoading() {
-        chatContainer.classList.add('loading');
-        sendBtn.disabled = true;
-        sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    }
-
-    // Hide loading state
-    function hideLoading() {
-        chatContainer.classList.remove('loading');
-        sendBtn.disabled = false;
-        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
-    }
-
-    // Utility: throttle function
-    function throttle(func, delay) {
-        let lastCall = 0;
-        return function(...args) {
-            const now = Date.now();
-            if (now - lastCall < delay) return;
-            lastCall = now;
-            return func(...args);
-        };
-    }
-
-    // Enhanced scroll handling with smooth animations
-    const throttledScrollHandler = throttle(() => {
-        const isScrolledToBottom = isAtBottom();
-        if (isScrolledToBottom) {
-            scrollBottomBtn.classList.remove('visible');
-            newMsgAlert.classList.remove('visible');
-        } else {
-            scrollBottomBtn.classList.add('visible');
-        }
-    }, 100);
-
-    function isAtBottom() {
-        return (chatMessages.scrollHeight - chatMessages.clientHeight) <= (chatMessages.scrollTop + 100);
-    }
-
-    // Voice input handling with improved UI feedback
-    if (recognition) {
-        voiceInputBtn.addEventListener('click', () => {
-            chatInput.value = '';
-            if (voiceRecordingIndicator.classList.contains('active')) {
-                stopVoiceRecognition();
-            } else {
-                startVoiceRecognition();
-            }
-        });
-
-        stopRecordingBtn.addEventListener('click', stopVoiceRecognition);
-
-        recognition.onresult = (event) => {
-            const transcript = Array.from(event.results)
-                .map(result => result[0].transcript)
-                .join('');
-            
-            chatInput.value = transcript;
-            autoResizeInput();
-            
-            if (event.results[0].isFinal) {
-                setTimeout(() => {
-                    if (voiceRecordingIndicator.classList.contains('active') && chatInput.value.trim()) {
-                        stopVoiceRecognition();
-                        sendMessage();
-                    }
-                }, 1000);
-            }
-        };
-
-        recognition.onend = () => {
-            stopVoiceRecognition();
-        };
-
-        recognition.onerror = (event) => {
-            console.error("Speech recognition error:", event.error);
-            stopVoiceRecognition();
-            showErrorToast("Voice recognition failed. Please try again.");
-        };
-    }
-
-    // Improved voice recognition
-    function startVoiceRecognition() {
-        try {
-            if (recognition && !isProcessing) {
-                recognition.lang = getRecognitionLanguage(currentLanguage);
-                recognition.start();
-                voiceRecordingIndicator.classList.add('active');
-                voiceInputBtn.classList.add('recording');
-                chatInput.setAttribute('placeholder', 'Listening...');
-            }
-        } catch (error) {
-            console.error("Error starting speech recognition:", error);
-            voiceRecordingIndicator.classList.remove('active');
-            voiceInputBtn.classList.remove('recording');
-            showErrorToast("Could not start voice recognition.");
-        }
-    }
-
-    function stopVoiceRecognition() {
-        try { 
-            if (recognition) recognition.stop(); 
-        } catch (error) { 
-            console.error("Error stopping recognition:", error); 
-        }
-        voiceRecordingIndicator.classList.remove('active');
-        voiceInputBtn.classList.remove('recording');
-        chatInput.setAttribute('placeholder', "Type your message here...");
-    }
-
-    // Show toast notification
-    function showToast(message, type = 'info') {
-        const toast = document.createElement('div');
-        toast.className = `toast-notification ${type}`;
-        toast.innerHTML = message;
-        document.body.appendChild(toast);
-        
+    function initChat() {
+      // Add loaded class to enable animations
+      setTimeout(() => {
+        chatContainer.classList.add('loaded');
+      }, 100);
+      
+      // Load previous chat history
+      loadChatHistory();
+      
+      // Auto focus input on desktop
+      if (window.innerWidth > 768) {
         setTimeout(() => {
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }, 100);
+          chatInput.focus();
+        }, 500);
+      }
+      
+      // Scroll to bottom initially
+      scrollToBottom();
     }
-
-    function showErrorToast(message) {
-        showToast(message, 'error');
-    }
-
-    // Text-to-speech functionality with better control
-    ttsBtn.addEventListener('click', () => {
-        if (speechSynthesis.speaking) { 
-            speechSynthesis.cancel(); 
-            ttsBtn.classList.remove('speaking'); 
-            document.querySelectorAll('.message-bubble').forEach(b => b.classList.remove('speaking'));
-            document.querySelectorAll('.message-siri-wave').forEach(w => w.classList.remove('active'));
-            document.querySelectorAll('.siri-wave-container').forEach(w => w.classList.remove('active'));
-            isSpeaking = false;
+    
+    // Event Listeners
+    sendButton.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+      
+      // Auto resize textarea
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+    });
+    
+    // File upload functionality
+    attachButton.addEventListener('click', function() {
+      // Create a file input element
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*';
+      fileInput.style.display = 'none';
+      document.body.appendChild(fileInput);
+      
+      fileInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+          const file = this.files[0];
+          
+          // Show image preview in chat
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const imagePreviewContainer = document.createElement('div');
+            imagePreviewContainer.className = 'image-preview-container';
             
-            // Stop any active audio elements playing server-side TTS
-            document.querySelectorAll('audio.tts-audio').forEach(audio => {
-                audio.pause();
-                audio.remove();
-            });
-            return; 
-        }
-        const lastBotMessage = chatMessages.querySelector('.message-group.bot:last-child .message-bubble.bot');
-        if (lastBotMessage) { 
-            ttsBtn.classList.add('speaking');
+            const imagePreview = document.createElement('img');
+            imagePreview.className = 'image-preview';
+            imagePreview.src = e.target.result;
             
-            // Check if we need to obtain a translation first
-            if (currentLanguage !== 'en' && !lastBotMessage.dataset.translatedText) {
-                // Show a loading indicator
-                const oldContent = ttsBtn.innerHTML;
-                ttsBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            imagePreviewContainer.appendChild(imagePreview);
+            
+            // Add to chat as user message
+            const messageGroup = document.createElement('div');
+            messageGroup.className = 'message-group user';
+            
+            const messageBubble = document.createElement('div');
+            messageBubble.className = 'message-bubble user';
+            messageBubble.innerHTML = '<p>Image uploaded:</p>';
+            messageBubble.appendChild(imagePreviewContainer);
+            
+            messageGroup.appendChild(messageBubble);
+            chatMessages.appendChild(messageGroup);
+            scrollToBottom();
+          };
+          reader.readAsDataURL(file);
+          
+          // Queue the image upload and analysis
+          queueCommand(() => {
+            return new Promise((resolve, reject) => {
+              // Convert image to base64
+              const reader = new FileReader();
+              reader.readAsDataURL(file);
+              reader.onloadend = function() {
+                const base64data = reader.result;
                 
-                // Get the text to translate
-                const textToTranslate = lastBotMessage.dataset.originalText || lastBotMessage.textContent.trim();
+                // Show typing indicator
+                typingIndicator.style.display = 'block';
+                scrollToBottom();
                 
-                console.log(`No translated text available for TTS button, fetching it now...`);
-                
-                // Fetch the translation
-                fetch('/translate_text', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        text: textToTranslate,
-                        language: currentLanguage,
-                        prepare_for_speech: true
-                    })
+                fetch('/face_analysis', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    image_data: base64data,
+                    language: languageSelect.value
+                  })
                 })
                 .then(response => response.json())
                 .then(data => {
-                    // Restore the button icon
-                    ttsBtn.innerHTML = oldContent;
-                    
-                    if (data.translated) {
-                        // Store the translated text
-                        lastBotMessage.dataset.translatedText = data.translated;
-                        lastBotMessage.dataset.translatedLang = currentLanguage;
-                        
-                        // Speak the text
-                        speakText(data.translated, lastBotMessage.id);
-                    } else {
-                        console.error("Failed to get translation for TTS button");
-                        showErrorToast(`Could not translate for speech. Playing original message.`);
-                        speakText(textToTranslate, lastBotMessage.id);
-                    }
+                  // Hide typing indicator
+                  typingIndicator.style.display = 'none';
+                  
+                  // Process response
+                  if (data.error) {
+                    addMessage("Error analyzing image: " + data.error, 'bot');
+                    resolve();
+                    return;
+                  }
+                  
+                  // Display analysis result
+                  if (data.analysis) {
+                    addMessage(data.analysis, 'bot');
+                  } else {
+                    addMessage("Based on your image, I can help with your skin concerns.", 'bot');
+                  }
+                  
+                  // Display product recommendations if available
+                  if (data.recommendations && data.recommendations.length > 0) {
+                    setTimeout(() => {
+                      const recommendationsText = "Recommended products based on the analysis:\n- " + 
+                        data.recommendations.join("\n- ");
+                      addMessage(recommendationsText, 'bot');
+                      
+                      // Add suggestions chips
+                      const suggestions = [
+                        "Tell me more about " + (data.detected_classes ? data.detected_classes[0] : "skin care"),
+                        "How to treat " + (data.detected_classes ? data.detected_classes[0] : "my skin"),
+                        "Book an appointment"
+                      ];
+                      addSuggestions(suggestions);
+                    }, 500);
+                  }
+                  
+                  resolve();
                 })
                 .catch(error => {
-                    console.error("Error fetching translation for TTS button:", error);
-                    ttsBtn.innerHTML = oldContent;
-                    showErrorToast("Could not prepare speech. Playing original message.");
-                    speakText(textToTranslate, lastBotMessage.id);
+                  console.error('Error:', error);
+                  typingIndicator.style.display = 'none';
+                  addMessage("Sorry, I encountered an error: " + error.message, 'bot');
+                  reject(error);
                 });
-                
-                return;
-            }
-            
-            // Get the text to speak (translated if available)
-            let textToSpeak = lastBotMessage.textContent.trim();
-            if (currentLanguage !== 'en' && lastBotMessage.dataset.translatedText) {
-                textToSpeak = lastBotMessage.dataset.translatedText;
-            }
-            
-            speakText(textToSpeak, lastBotMessage.id); 
+              };
+            });
+          });
         }
+        document.body.removeChild(fileInput);
+      });
+      
+      fileInput.click();
     });
     
-    function speakText(text, messageId = null) {
-        if (!speechSynthesis) return;
-        
-        // Cancel any ongoing speech synthesis
-        speechSynthesis.cancel();
-        
-        // Stop any active audio elements playing server-side TTS
-        document.querySelectorAll('audio.tts-audio').forEach(audio => {
-            audio.pause();
-            audio.remove();
-        });
-        
-        isSpeaking = true;
-        
-        // Find Siri-wave containers to activate
-        let siriWave = null;
-        let messageSiriWave = null;
-        
-        if (messageId) {
-            const messageBubble = document.getElementById(messageId);
-            if (messageBubble) {
-                messageBubble.classList.add('speaking');
-                messageSiriWave = messageBubble.querySelector('.message-siri-wave');
-                if (messageSiriWave) messageSiriWave.classList.add('active');
-                
-                // Find the closest siri-wave-container
-                const container = document.querySelector('.siri-wave-container');
-                if (container) {
-                    container.classList.add('active');
-                    siriWave = container;
-                }
-                
-                // Check if we have pre-translated text optimized for speech
-                if (messageBubble.dataset.translatedText && currentLanguage !== 'en') {
-                    console.log("Using translated text for speech:", messageBubble.dataset.translatedText);
-                    text = messageBubble.dataset.translatedText;
-                }
-            }
-        }
-        
-        // For certain languages like Tamil or Hindi, we should use server-side TTS
-        const serverSideTTSLanguages = ['ta', 'hi', 'ar']; // Languages that need server-side TTS
-        
-        // Check if we should use server-side TTS instead of browser TTS
-        if (serverSideTTSLanguages.includes(currentLanguage)) {
-            console.log(`Using server-side TTS for ${currentLanguage}`);
-            
-            // Create an audio element to play the server-generated speech
-            const audioElement = new Audio();
-            audioElement.className = 'tts-audio';
-            
-            // Set up event handlers to clean up after playback
-            audioElement.onended = () => {
-                isSpeaking = false;
-                ttsBtn.classList.remove('speaking');
-                document.querySelectorAll('.message-bubble').forEach(b => b.classList.remove('speaking'));
-                document.querySelectorAll('.message-siri-wave').forEach(w => w.classList.remove('active'));
-                document.querySelectorAll('.siri-wave-container').forEach(w => w.classList.remove('active'));
-                audioElement.remove(); // Remove the element when done
-            };
-            
-            // Show loading indicator for TTS generation
-            if (messageId) {
-                const messageBubble = document.getElementById(messageId);
-                if (messageBubble) {
-                    // Remove any existing loading indicators first
-                    const existingIndicator = messageBubble.querySelector('.tts-loading-indicator');
-                    if (existingIndicator) existingIndicator.remove();
-                    
-                    const loadingIndicator = document.createElement('div');
-                    loadingIndicator.className = 'tts-loading-indicator';
-                    loadingIndicator.innerHTML = '<small>Generating speech...</small>';
-                    messageBubble.appendChild(loadingIndicator);
-                }
-            }
-            
-            // Pass auto_translate=false since we've already translated the text
-            const encodedText = encodeURIComponent(text);
-            
-            // Fix common SSML issues before sending to server
-            let fixedText = encodedText;
-            
-            // Special handling for Hindi
-            if (currentLanguage === 'hi') {
-                // For Hindi, we need to handle the break tags and number formats differently
-                // Remove all say-as tags around numbers for Hindi
-                fixedText = fixedText
-                    .replace(/%3Csay-as%20interpret-as%3D['"]cardinal['"]%3E(\d+)%3C\/say-as%3E/g, '$1')
-                    // Replace any complex break time attributes with simple ones
-                    .replace(/%3Cbreak%20time%3D['"][^'"]+=?['"]%3E/g, '%3Cbreak%20time%3D%220.5s%22/%3E');
-            } else {
-                // Other languages can use standard SSML
-                fixedText = fixedText
-                    .replace(/%3Cbreak%20time%3D%22/g, '%3Cbreak%20time%3D%27')
-                    .replace(/%22%3E/g, '%27%3E')
-                    .replace(/%3Csay-as%20interpret-as%3D%22/g, '%3Csay-as%20interpret-as%3D%27')
-                    .replace(/%22%3E/g, '%27%3E');
-            }
-            
-            audioElement.src = `/stream_speech?text=${fixedText}&language=${currentLanguage}&auto_translate=false`;
-            audioElement.load();
-            
-            // Add to body to maintain reference
-            document.body.appendChild(audioElement);
-            
-            audioElement.oncanplaythrough = () => {
-                // Remove loading indicator if present
-                const loadingIndicator = document.querySelector('.tts-loading-indicator');
-                if (loadingIndicator) loadingIndicator.remove();
-                
-                // Play the audio
-                audioElement.play().catch(error => {
-                    console.error('Error playing audio:', error);
-                    isSpeaking = false;
-                    ttsBtn.classList.remove('speaking');
-                    document.querySelectorAll('.message-bubble').forEach(b => b.classList.remove('speaking'));
-                    document.querySelectorAll('.message-siri-wave').forEach(w => w.classList.remove('active'));
-                    document.querySelectorAll('.siri-wave-container').forEach(w => w.classList.remove('active'));
-                    audioElement.remove();
-                    showErrorToast('Could not play speech. Please try again.');
-                });
-            };
-            
-            audioElement.onerror = () => {
-                console.error('Error loading audio file');
-                // Remove loading indicator if present
-                const loadingIndicator = document.querySelector('.tts-loading-indicator');
-                if (loadingIndicator) loadingIndicator.remove();
-                
-                isSpeaking = false;
-                ttsBtn.classList.remove('speaking');
-                document.querySelectorAll('.message-bubble').forEach(b => b.classList.remove('speaking'));
-                document.querySelectorAll('.message-siri-wave').forEach(w => w.classList.remove('active'));
-                document.querySelectorAll('.siri-wave-container').forEach(w => w.classList.remove('active'));
-                audioElement.remove();
-                showErrorToast('Could not generate speech. Please try again.');
-            };
-            
-            return;
-        }
-        
-        // Continue with browser TTS for other languages
-        const voices = speechSynthesis.getVoices();
-        
-        // Find the best voice for the current language
-        let bestVoice = null;
-        let voiceFound = false;
-        
-        // Map with more comprehensive language codes
-        const languageToVoiceMap = {
-            'en': ['en-US', 'en-GB', 'en-AU', 'en-IN', 'en-ZA'],
-            'es': ['es-ES', 'es-MX', 'es-US'],
-            'fr': ['fr-FR', 'fr-CA'],
-            'de': ['de-DE'],
-            'it': ['it-IT'],
-            'pt': ['pt-BR', 'pt-PT'],
-            'ru': ['ru-RU'],
-            'zh-cn': ['zh-CN', 'zh-TW', 'zh-HK'],
-            'ja': ['ja-JP'],
-            'ko': ['ko-KR'],
-            'ar': ['ar', 'ar-SA'],
-            'hi': ['hi-IN', 'hi'],
-            'ta': ['ta-IN', 'ta']
-        };
-        
-        // Try to find a voice for the current language
-        if (languageToVoiceMap[currentLanguage]) {
-            // First try: exact match with preferred language codes
-            for (const langCode of languageToVoiceMap[currentLanguage]) {
-                const matchedVoice = voices.find(voice => voice.lang === langCode);
-                if (matchedVoice) {
-                    bestVoice = matchedVoice;
-                    voiceFound = true;
-                    console.log(`Found exact voice match: ${bestVoice.name} (${bestVoice.lang})`);
-                    break;
-                }
-            }
-            
-            // Second try: partial match (startsWith)
-            if (!voiceFound) {
-                for (const langCode of languageToVoiceMap[currentLanguage]) {
-                    const matchedVoice = voices.find(voice => voice.lang.startsWith(langCode.split('-')[0]));
-                    if (matchedVoice) {
-                        bestVoice = matchedVoice;
-                        voiceFound = true;
-                        console.log(`Found partial voice match: ${bestVoice.name} (${bestVoice.lang})`);
-                        break;
-                    }
-                }
-            }
-            
-            // Third try: name-based match for special cases
-            if (!voiceFound) {
-                // Special case for Hindi
-                if (currentLanguage === 'hi') {
-                    const hindiVoice = voices.find(voice => 
-                        voice.name.toLowerCase().includes('hindi') || 
-                        voice.name.toLowerCase().includes('indian')
-                    );
-                    if (hindiVoice) {
-                        bestVoice = hindiVoice;
-                        voiceFound = true;
-                        console.log(`Found Hindi voice by name: ${bestVoice.name}`);
-                    }
-                }
-                // Special case for Tamil
-                else if (currentLanguage === 'ta') {
-                    const tamilVoice = voices.find(voice => 
-                        voice.name.toLowerCase().includes('tamil') || 
-                        voice.name.toLowerCase().includes('indian')
-                    );
-                    if (tamilVoice) {
-                        bestVoice = tamilVoice;
-                        voiceFound = true;
-                        console.log(`Found Tamil voice by name: ${bestVoice.name}`);
-                    }
-                }
-            }
-        }
-        
-        // If no voice found, use default voice (usually English)
-        if (!voiceFound) {
-            console.log(`No voice found for ${currentLanguage}, using default voice`);
-            bestVoice = voices[0]; // Default to first available voice
-        }
-        
-        // Clean up the text by removing any SSML tags for browser TTS
-        let cleanText = text;
-        // Remove SSML tags that the browser's TTS doesn't understand
-        cleanText = cleanText.replace(/<break[^>]*>/g, '');
-        cleanText = cleanText.replace(/<say-as[^>]*>([^<]*)<\/say-as>/g, '$1');
-        cleanText = cleanText.replace(/<\/?(emphasis|prosody|voice)[^>]*>/g, '');
-        
-        // Create and configure the utterance
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        if (bestVoice) utterance.voice = bestVoice;
-        utterance.lang = bestVoice ? bestVoice.lang : (languageToVoiceMap[currentLanguage] ? languageToVoiceMap[currentLanguage][0] : 'en-US');
-        utterance.volume = 0.8;
-        utterance.rate = currentLanguage === 'ta' ? 0.8 : 1.0; // Slow down Tamil speech
-        utterance.pitch = 1.0;
-        
-        // Handle the end of speech
-        utterance.onend = () => {
-            isSpeaking = false;
-            ttsBtn.classList.remove('speaking');
-            document.querySelectorAll('.message-bubble').forEach(b => b.classList.remove('speaking'));
-            document.querySelectorAll('.message-siri-wave').forEach(w => w.classList.remove('active'));
-            document.querySelectorAll('.siri-wave-container').forEach(w => w.classList.remove('active')); 
-        };
-        
-        utterance.onerror = (e) => {
-            console.error("TTS error:", e);
-            isSpeaking = false;
-            ttsBtn.classList.remove('speaking');
-            document.querySelectorAll('.message-bubble').forEach(b => b.classList.remove('speaking'));
-            document.querySelectorAll('.message-siri-wave').forEach(w => w.classList.remove('active'));
-            document.querySelectorAll('.siri-wave-container').forEach(w => w.classList.remove('active'));
-            showErrorToast('Error during text-to-speech conversion');
-        }
-        
-        // Start speaking
-        speechSynthesis.speak(utterance);
-    }
-
-    // New function to speak bot messages automatically (Siri-like behavior)
-    function speakBotMessage(messageId, text) {
-        // Only auto-speak if user hasn't manually turned it off
-        if (window.localStorage.getItem('auto_tts_disabled') === 'true') {
-            return;
-        }
-        
-        // Add a small delay to ensure translations have completed
-        setTimeout(() => {
-            // Stop any ongoing speech
-            if (speechSynthesis.speaking) {
-                speechSynthesis.cancel();
-            }
-            
-            // Stop any active audio elements playing server-side TTS
-            document.querySelectorAll('audio.tts-audio').forEach(audio => {
-                audio.pause();
-                audio.remove();
-            });
-            
-            // Find the message bubble and speak button
-            const messageBubble = document.getElementById(messageId);
-            if (messageBubble) {
-                const speakBtn = messageBubble.querySelector('.speak-btn');
-                if (speakBtn) speakBtn.classList.add('speaking');
-                
-                // Use the translated text if available (after translation completes)
-                if (messageBubble.dataset.translatedText) {
-                    text = messageBubble.dataset.translatedText;
-                }
-                
-                // Speak the text
-                speakText(text, messageId);
-            }
-        }, 800); // Wait for potential translations to complete
-    }
-
-    // Auto-resize input with improved behavior
-    function autoResizeInput() {
+    // Settings button functionality
+    settingsButton.addEventListener('click', function() {
+      // For now, just show language options and clear chat
+      sidebar.classList.add('active');
+      sidebarOverlay.classList.add('active');
+    });
+    
+    // Suggestion chips click event
+    suggestionChips.forEach(chip => {
+      chip.addEventListener('click', function() {
+        chatInput.value = this.textContent;
+        chatInput.focus();
+        // Auto resize textarea
         chatInput.style.height = 'auto';
         chatInput.style.height = (chatInput.scrollHeight) + 'px';
-        const maxHeight = parseInt(getComputedStyle(chatInput).lineHeight) * 5;
-        chatInput.style.overflowY = (chatInput.scrollHeight > maxHeight) ? 'auto' : 'hidden';
-    }
-    
-    chatInput.addEventListener('input', autoResizeInput);
-
-    // Time formatting
-    function getCurrentTime() {
-        const now = new Date();
-        let hours = now.getHours(), minutes = now.getMinutes();
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12 || 12;
-        minutes = minutes < 10 ? '0' + minutes : minutes;
-        return `${hours}:${minutes} ${ampm}`;
-    }
-
-    // Interactive buttons
-    function setupCopyButtons() {
-        const copyButtons = document.querySelectorAll('.copy-btn:not(.setup)');
-        copyButtons.forEach(btn => {
-            btn.classList.add('setup');
-            btn.addEventListener('click', function() {
-                const messageBubble = this.closest('.message-bubble');
-                if (!messageBubble) return;
-                
-                navigator.clipboard.writeText(messageBubble.textContent.trim())
-                    .then(() => {
-                    const originalTooltip = this.getAttribute('data-tooltip');
-                    this.setAttribute('data-tooltip', 'Copied!');
-                        this.classList.add('copied');
-                        
-                        setTimeout(() => {
-                            this.setAttribute('data-tooltip', originalTooltip);
-                            this.classList.remove('copied');
-                        }, 2000);
-                    })
-                    .catch(err => {
-                        console.error('Copy error:', err);
-                        showErrorToast("Couldn't copy to clipboard");
+        // Auto-submit the message
+        sendMessage();
                     });
             });
-        });
-    }
-
-    // Setup speak buttons for bot messages
-    function setupSpeakButtons() {
-        document.querySelectorAll('.speak-btn').forEach(btn => {
-            btn.removeEventListener('click', handleSpeakButtonClick);
-            btn.addEventListener('click', handleSpeakButtonClick);
-        });
-    }
-
-    function handleSpeakButtonClick(e) {
-        // Cancel any ongoing speech
-        if (speechSynthesis.speaking) {
-            speechSynthesis.cancel();
-        }
-        
-        // Find the closest message bubble
-        const messageBubble = e.currentTarget.closest('.message-bubble');
-        if (!messageBubble) return;
-        
-        // Check if we need to obtain a translation first
-        if (currentLanguage !== 'en' && !messageBubble.dataset.translatedText) {
-            // Show a loading indicator in the speak button
-            e.currentTarget.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            
-            // Get the text to translate
-            const textToTranslate = messageBubble.dataset.originalText || messageBubble.textContent.trim();
-            
-            console.log(`No translated text available for ${currentLanguage}, fetching it now...`);
-            
-            // Fetch the translation
-            fetch('/translate_text', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    text: textToTranslate,
-                    language: currentLanguage,
-                    prepare_for_speech: true
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Restore the button icon
-                e.currentTarget.innerHTML = '<i class="fas fa-volume-up"></i>';
-                
-                if (data.translated) {
-                    // Store the translated text
-                    messageBubble.dataset.translatedText = data.translated;
-                    messageBubble.dataset.translatedLang = currentLanguage;
-                    
-                    // Speak the text
-                    speakText(data.translated, messageBubble.id);
-                    e.currentTarget.classList.add('speaking');
-                } else {
-                    console.error("Failed to get translation for TTS");
-                    showErrorToast(`Could not translate to ${getLanguageName(currentLanguage)} for speech.`);
-                }
-            })
-            .catch(error => {
-                console.error("Error fetching translation for TTS:", error);
-                e.currentTarget.innerHTML = '<i class="fas fa-volume-up"></i>';
-                showErrorToast("Could not prepare speech. Please try again.");
-            });
-            
-            return;
-        }
-        
-        // Get the text to speak (translated if available)
-        let textToSpeak = messageBubble.textContent.trim();
-        if (currentLanguage !== 'en' && messageBubble.dataset.translatedText) {
-            textToSpeak = messageBubble.dataset.translatedText;
-        }
-        
-        // Speak the text
-        speakText(textToSpeak, messageBubble.id);
-        e.currentTarget.classList.add('speaking');
-    }
-
-    // Enhanced smooth scrolling
-    function scrollToBottom(smooth = true) {
-        requestAnimationFrame(() => {
-            if (smooth) {
-                chatMessages.scrollTo({
-                    top: chatMessages.scrollHeight,
-                    behavior: 'smooth'
-                });
-            } else {
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }
-        });
-    }
     
-    function scrollToBottomWithCheck() {
-        const isScrolledToBottom = isAtBottom();
-        if (isScrolledToBottom) {
-            scrollToBottom();
-        } else {
-            newMsgAlert.classList.add('visible');
-            scrollBottomBtn.classList.add('visible');
-        }
-    }
-
-    // Append user message with enhanced animation
-    function appendUserMessage(message) {
-        const messageGroup = document.createElement('div');
-        messageGroup.classList.add('message-group', 'user');
-        messageGroup.innerHTML = `
-            <div class="message-header">
-              <div class="user-avatar">
-                <img src="https://ui-avatars.com/api/?name=User&background=6e8efb&color=fff&size=100" alt="User Avatar">
-              </div>
-              <div>
-                <span class="message-sender">You</span>
-                <span class="message-time">${getCurrentTime()}</span>
-              </div>
-            </div>
-            <div class="message-bubble user">
-              ${message}
-              <div class="message-actions">
-                <button class="message-action-btn tooltip copy-btn" data-tooltip="Copy message">
-                  <i class="fas fa-copy"></i>
-                </button>
-              </div>
-            </div>
-        `;
+    // Category buttons click event
+    categoryBtns.forEach(btn => {
+      btn.addEventListener('click', function() {
+        // Remove active class from all buttons
+        categoryBtns.forEach(b => b.classList.remove('active'));
+        // Add active class to clicked button
+        this.classList.add('active');
         
-        // Add with fade-in animation
-        messageGroup.style.opacity = '0';
-        messageGroup.style.transform = 'translateY(10px)';
+        // Get the category filter
+        const category = this.textContent.toLowerCase();
+        if (category === 'all') return;
+        
+        // Show category-specific suggestions
+        const suggestions = getCategorySuggestions(category);
+        if (suggestions.length > 0) {
+          // Add as bot message
+          const messageGroup = document.createElement('div');
+          messageGroup.className = 'message-group bot';
+          
+          // Create suggestions
+          const suggestionChips = document.createElement('div');
+          suggestionChips.className = 'suggestion-chips';
+          
+          suggestions.forEach(suggestion => {
+            const chip = document.createElement('div');
+            chip.className = 'suggestion-chip';
+            chip.textContent = suggestion;
+            chip.addEventListener('click', function() {
+              chatInput.value = this.textContent;
+              sendMessage();
+            });
+            suggestionChips.appendChild(chip);
+          });
+          
+          messageGroup.appendChild(suggestionChips);
         chatMessages.appendChild(messageGroup);
-        
-        requestAnimationFrame(() => {
-            messageGroup.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-            messageGroup.style.opacity = '1';
-            messageGroup.style.transform = 'translateY(0)';
-        });
-        
-        setupCopyButtons();
         scrollToBottom();
-        newMsgAlert.classList.remove('visible');
-    }
-    
-    // Append user image message with enhanced UI
-    function appendUserImageMessage(imageData) {
-        const group = document.createElement('div');
-        group.classList.add('message-group', 'user');
-        group.innerHTML = `
-            <div class="message-header">
-              <div class="user-avatar">
-                <img src="https://ui-avatars.com/api/?name=User&background=6e8efb&color=fff&size=100" alt="User Avatar">
-              </div>
-              <div>
-                <span class="message-sender">You</span>
-                <span class="message-time">${getCurrentTime()}</span>
-              </div>
-            </div>
-            <div class="message-bubble user">
-              <div class="uploaded-image-container">
-                <img src="${imageData}" alt="Uploaded Image" class="uploaded-image">
-                <span class="image-caption">Image for skin analysis</span>
-              </div>
-            </div>
-        `;
-        
-        group.style.opacity = '0';
-        group.style.transform = 'translateY(10px)';
-        chatMessages.appendChild(group);
-        
-        requestAnimationFrame(() => {
-            group.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-            group.style.opacity = '1';
-            group.style.transform = 'translateY(0)';
-        });
-        
-        scrollToBottom();
-        newMsgAlert.classList.remove('visible');
-    }
-
-    // Append bot message with enhanced animation and interactivity
-    function appendBotMessage(response) {
-        if (!response) { 
-            console.error("Empty response received"); 
-            return; 
         }
-        
-        const group = document.createElement('div');
-        group.classList.add('message-group', 'bot');
-        let html = `
-          <div class="message-header">
-            <div class="bot-avatar">
-              <img src="${window.location.origin}/static/assets/bot.png" alt="Bot Avatar">
-              <div class="siri-wave-container" id="siri-wave-${Date.now()}">
-                <div class="siri-wave">
-                  <div class="siri-wave-bar"></div>
-                  <div class="siri-wave-bar"></div>
-                  <div class="siri-wave-bar"></div>
-                  <div class="siri-wave-bar"></div>
-                  <div class="siri-wave-bar"></div>
-                </div>
-              </div>
-            </div>
-            <div>
-              <span class="message-sender">Aura</span>
-              <span class="message-time">${getCurrentTime()}</span>
-            </div>
-          </div>`;
-          
-        let messageText = response.botReply || response.text || "";
-        
-        // Special handling for Tamil language - check if response actually contains Tamil characters
-        if (currentLanguage === 'ta') {
-            // We'll check for Tamil characters after rendering
-            console.log("Checking for Tamil characters in response...");
-        }
-        
-        let messageId = "msg-" + Date.now();
-        if (messageText) {
-          html += `
-            <div class="message-bubble bot" id="${messageId}">
-              ${messageText}
-              <div class="message-siri-wave">
-                <div class="message-siri-wave-bar"></div>
-                <div class="message-siri-wave-bar"></div>
-                <div class="message-siri-wave-bar"></div>
-              </div>
-              <div class="message-actions">
-                <button class="message-action-btn tooltip copy-btn" data-tooltip="Copy message">
-                  <i class="fas fa-copy"></i>
-                </button>
-                <button class="message-action-btn tooltip speak-btn" data-tooltip="Read aloud">
-                  <i class="fas fa-volume-up"></i>
-                </button>
-              </div>
-            </div>`;
-        }
-        
-        // Append additional content based on response type
-        let additional = '';
-        if (response.type === 'image_analysis' && response.analysis) additional += createImageAnalysisResult(response.analysis);
-        if (response.suggestions && response.suggestions.length) additional += createSuggestions(response.suggestions);
-        
-        html += additional;
-        group.innerHTML = html;
-        
-        // Add with staggered fade-in animation
-        group.style.opacity = '0';
-        group.style.transform = 'translateY(10px)';
-        chatMessages.appendChild(group);
-        
-        requestAnimationFrame(() => {
-            group.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-            group.style.opacity = '1';
-            group.style.transform = 'translateY(0)';
-            
-            // Stagger animation for any child elements
-            Array.from(group.querySelectorAll('.message-bubble, .analysis-result, .dynamic-suggestions')).forEach((el, i) => {
-                el.style.opacity = '0';
-                el.style.transform = 'translateY(10px)';
-                el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                setTimeout(() => {
-                    el.style.opacity = '1';
-                    el.style.transform = 'translateY(0)';
-                }, 100 + (i * 150));
             });
         });
         
-        setupCopyButtons();
-        setupSpeakButtons();
-        scrollToBottomWithCheck();
-        
-        // Check if message needs translation
-        if (messageText) {
-            detectAndFixLanguageText(messageText);
-        }
-        
-        // Only auto-read the message if auto TTS is not disabled
-        // and if this is not a silenced message type
-        const isAutoTtsDisabled = window.localStorage.getItem('auto_tts_disabled') === 'true';
-        const isResponseTypeSilent = response.type === 'silent' || response.type === 'history_load';
-        
-        if (currentLanguage !== 'en' && messageText) {
-            // For non-English languages, we need to translate both the visible text and TTS
-            console.log(`Non-English language (${currentLanguage}) detected, translating message...`);
-            
-            // Add a translating indicator to the message
-            const messageBubble = document.getElementById(messageId);
-            if (messageBubble) {
-                // Add translating class for styling
-                messageBubble.classList.add('translating');
-                
-                // Add small translating indicator
-                const transIndicator = document.createElement('div');
-                transIndicator.className = 'translating-indicator';
-                transIndicator.innerHTML = `<small>Translating to ${getLanguageName(currentLanguage)}...</small>`;
-                messageBubble.appendChild(transIndicator);
-            }
-            
-            // Get the original English text
-            const textToTranslate = messageText;
-            
-            // Use the translation endpoint optimized for speech
-            fetch('/translate_text', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    text: textToTranslate,
-                    language: currentLanguage,
-                    prepare_for_speech: true
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.translated && messageBubble) {
-                    // Store the translated text for TTS in the message bubble
-                    messageBubble.dataset.translatedText = data.translated;
-                    messageBubble.dataset.translatedLang = currentLanguage;
-                    
-                    // Get display text without SSML tags
-                    let displayText = data.display_text || data.translated;
-                    if (!data.display_text) {
-                        // Remove SSML tags from display text
-                        displayText = displayText.replace(/<break[^>]*>/g, '');
-                        displayText = displayText.replace(/<say-as[^>]*>([^<]*)<\/say-as>/g, '$1');
-                        displayText = displayText.replace(/<\/?(emphasis|prosody|voice|speak)[^>]*>/g, '');
-                    }
-                    
-                    // Keep a backup of the original English message text
-                    if (!messageBubble.dataset.originalText) {
-                        messageBubble.dataset.originalText = textToTranslate;
-                    }
-                    
-                    // Get any existing UI elements we need to preserve
-                    const messageActions = messageBubble.querySelector('.message-actions');
-                    const messageSiriWave = messageBubble.querySelector('.message-siri-wave');
-                    const speakButton = messageBubble.querySelector('.speak-button');
-                    
-                    // Update the content with the translated display text
-                    messageBubble.innerHTML = displayText;
-                    
-                    // Re-add the UI elements if they existed
-                    if (speakButton) messageBubble.appendChild(speakButton);
-                    if (messageActions) messageBubble.appendChild(messageActions);
-                    if (messageSiriWave) messageBubble.appendChild(messageSiriWave);
-                    
-                    // Remove translating class and indicator
-                    messageBubble.classList.remove('translating');
-                    const indicator = messageBubble.querySelector('.translating-indicator');
-                    if (indicator) indicator.remove();
-                    
-                    console.log(`Message translated from English to ${currentLanguage}`);
-                    
-                    // If auto-read is enabled, speak the translated message
-                    if (!isAutoTtsDisabled && !isResponseTypeSilent) {
-                        setTimeout(() => {
-                            speakBotMessage(messageId, data.translated);
-                        }, 300);
-                    }
-                } else {
-                    console.error("Translation failed for message display");
-                    messageBubble.classList.remove('translating');
-                    const indicator = messageBubble.querySelector('.translating-indicator');
-                    if (indicator) indicator.remove();
-                    
-                    // Fall back to English for display, but still try auto-speech if enabled
-                    if (!isAutoTtsDisabled && !isResponseTypeSilent) {
-                        setTimeout(() => {
-                            speakBotMessage(messageId, messageText);
-                        }, 500);
-                    }
-                }
-            })
-            .catch(error => {
-                console.error("Error translating message display:", error);
-                if (messageBubble) {
-                    messageBubble.classList.remove('translating');
-                    const indicator = messageBubble.querySelector('.translating-indicator');
-                    if (indicator) indicator.remove();
-                }
-                
-                // Fall back to English for display, but still try auto-speech if enabled
-                if (!isAutoTtsDisabled && !isResponseTypeSilent && messageText) {
-                    setTimeout(() => {
-                        speakBotMessage(messageId, messageText);
-                    }, 500);
-                }
-            });
-        } else if (!isAutoTtsDisabled && !isResponseTypeSilent && messageText) {
-            // For English, we can speak immediately without translation
-            setTimeout(() => {
-                speakBotMessage(messageId, messageText);
-            }, 500);
-        }
-    }
-
-    // Send message with improved error handling and UX
-    async function sendMessage() {
-        const msg = chatInput.value.trim();
-        if (!msg || isProcessing) return;
-        
-        isProcessing = true;
-        appendUserMessage(msg);
-        chatInput.value = '';
-        chatInput.style.height = '';
-        chatInput.focus();
-        
-        try {
-            showTypingIndicator();
-            showLoading();
-            
-            const response = await fetch('/chatbot', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userInput: msg })
-            });
-            
-            if (!response.ok) {
-                throw new Error(`Server returned ${response.status}: ${response.statusText}`);
-            }
-            
-            const data = await response.json();
-            // Calculate realistic typing delay based on message length
-            const minDelay = 800;
-            const maxDelay = 2500;
-            const typingSpeed = 15; // chars per 100ms
-            const messageLength = data.botReply ? data.botReply.length : 0;
-            const calculatedDelay = Math.min(maxDelay, minDelay + (messageLength / typingSpeed * 100));
-            
-            setTimeout(() => {
-                removeTypingIndicator();
-                appendBotMessage(data);
-                isProcessing = false;
-                hideLoading();
-            }, calculatedDelay);
-            
-        } catch (error) {
-            console.error('Error sending message:', error);
-            removeTypingIndicator();
-            appendBotMessage({ 
-                botReply: "I'm having trouble connecting. Please try again later.", 
-                type: "error" 
-            });
-            showErrorToast("Connection error. Please check your internet connection.");
-            isProcessing = false;
-            hideLoading();
-        }
-    }
-
-    // Improved typing indicator
-    function showTypingIndicator() {
-        removeTypingIndicator();
-        const typing = document.createElement('div');
-        typing.classList.add('message-group', 'bot');
-        typing.id = 'typingIndicator';
-        typing.innerHTML = `
-          <div class="message-header">
-            <div class="bot-avatar">
-              <img src="${window.location.origin}/static/assets/bot.png" alt="Bot Avatar">
-            </div>
-            <div>
-              <span class="message-sender">Aura</span>
-              <span class="message-time">${getCurrentTime()}</span>
-            </div>
-          </div>
-          <div class="typing-indicator">
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
-          </div>`;
-          
-        chatMessages.appendChild(typing);
-        scrollToBottom(false);
-    }
-
-    function removeTypingIndicator() {
-        const t = document.getElementById('typingIndicator');
-        if (t) t.remove();
-    }
-
-    // Enhanced send message handling
-    function handleSendMessage() {
-        if (isProcessing) return;
-        const msg = chatInput.value.trim();
-        if (msg) {
-            sendMessage(msg);
-        }
-    }
-
-    // Add event listeners for input/send
-    chatInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSendMessage();
-        }
-    });
-    
-    sendBtn.addEventListener('click', handleSendMessage);
-
-    // Clear chat with animation
-    clearChatBtn.addEventListener('click', () => {
-        if (isProcessing) return;
-        
-        clearChatBtn.classList.add('active');
-        setTimeout(() => { clearChatBtn.classList.remove('active'); }, 200);
-        
-        // Fade out all messages
-        const messages = chatMessages.querySelectorAll('.message-group');
-        messages.forEach((msg, i) => {
-            msg.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-            msg.style.opacity = '0';
-            msg.style.transform = 'translateY(-10px)';
-        });
-        
-        setTimeout(() => {
-            // Keep only the first welcome message
-            const firstMsg = chatMessages.querySelector('.message-group');
-            chatMessages.innerHTML = '';
-            if (firstMsg) {
-                firstMsg.style.opacity = '0';
-                firstMsg.style.transform = 'translateY(10px)';
-                chatMessages.appendChild(firstMsg);
-                
-                requestAnimationFrame(() => {
-                    firstMsg.style.opacity = '1';
-                    firstMsg.style.transform = 'translateY(0)';
-                });
-            }
-            
-            fetch('/clear_conversation', { method: 'POST', headers: { 'Content-Type': 'application/json' } })
-                .catch(error => console.error('Clear chat error:', error));
-                
-            sendMessage('clear chat');
-        }, 300);
-    });
-
-    // Suggestion click handler with animation
-    window.sendSuggestion = function(chip) {
-        if (isProcessing) return;
-        
-        const message = chip.textContent.trim();
-        chatInput.value = message;
-        
-        // Add highlight animation
-        chip.classList.add('clicked');
-        setTimeout(() => chip.classList.remove('clicked'), 300);
-        
-        handleSendMessage();
-    };
-
-    // Improved scroll events with smooth scrolling
-    scrollBottomBtn.addEventListener('click', () => {
-        scrollToBottom(true);
-        scrollBottomBtn.classList.remove('visible');
-        newMsgAlert.classList.remove('visible');
-    });
-    
-    
-    newMsgAlert.addEventListener('click', () => {
-        scrollToBottom(true);
-        newMsgAlert.classList.remove('visible');
-        scrollBottomBtn.classList.remove('visible');
-    });
-    
-    chatMessages.addEventListener('scroll', throttledScrollHandler);
-
-    // Load chat with visible loading state
-    setTimeout(() => { 
-        document.querySelector('.chat-container').classList.add('loaded'); 
-        // Add staggered animation for existing messages
-        document.querySelectorAll('.message-bubble').forEach((m, i) => { 
-            m.style.animationDelay = `${i * 0.15}s`; 
-        });
-    }, 300);
-
-    // Function definitions 
-    function getRecognitionLanguage(uiLang) {
-      const langMap = { 
-        'en': 'en-US', 
-        'es': 'es-ES', 
-        'fr': 'fr-FR', 
-        'de': 'de-DE', 
-        'it': 'it-IT', 
-        'pt': 'pt-BR', 
-        'ru': 'ru-RU', 
-        'zh-cn': 'zh-CN', 
-        'ja': 'ja-JP', 
-        'ko': 'ko-KR', 
-        'ar': 'ar-SA', 
-        'hi': 'hi-IN',
-        'ta': 'ta-IN'
+    // Generate category-specific suggestions
+    function getCategorySuggestions(category) {
+      const suggestions = {
+        'acne': [
+          'How to treat acne scars?',
+          'Best products for oily acne-prone skin?',
+          'Is my acne hormonal?',
+          'How to prevent breakouts?'
+        ],
+        'anti-aging': [
+          'Best anti-aging ingredients?',
+          'How to reduce fine lines?',
+          'When should I start using retinol?',
+          'Recommend anti-aging routine'
+        ],
+        'sensitive skin': [
+          'Products for sensitive skin',
+          'How to calm skin redness?',
+          'Gentle exfoliation options',
+          'Eczema-friendly moisturizers'
+        ],
+        'products': [
+          'Best moisturizer for dry skin?',
+          'Affordable vitamin C serums?',
+          'Sunscreen recommendations',
+          'Gentle cleanser options'
+        ],
+        'routines': [
+          'Morning routine for combination skin',
+          'Night routine for anti-aging',
+          'Simple 3-step routine',
+          'Product layering order'
+        ]
       };
-      return langMap[uiLang] || 'en-US';
+      
+      return suggestions[category] || [];
     }
-
-    function createImageAnalysisResult(analysis) {
-      let html = `<div class="analysis-result">`;
-      if (analysis.annotated_image) {
-        html += `<div class="analysis-image-container">
-                  <img src="${analysis.annotated_image}" alt="Analysis Result" class="analysis-image">
-                </div>`;
-      }
-      if (analysis.classes && analysis.classes.length) {
-        html += `<div class="analysis-section">
-                  <div class="analysis-title">Detected Skin Conditions:</div>
-                  <div class="detected-conditions">`;
-        analysis.classes.forEach(c => { 
-          html += `<div class="condition-tag">${c}</div>`; 
-        });
-        html += `    </div>
-                  </div>`;
-      }
-      if (analysis.ai_analysis) {
-        html += `<div class="analysis-section">
-                  <div class="analysis-title">Analysis:</div>
-                  <div class="analysis-text">${analysis.ai_analysis}</div>
-                </div>`;
-      }
-      if (analysis.recommendations && analysis.recommendations.length) {
-        html += `<div class="analysis-section">
-                  <div class="analysis-title">Recommendations:</div>`;
-        analysis.recommendations.forEach(rec => {
-          html += `<div class="recommendation-card">
-                    <div class="recommendation-title">${rec.condition}</div>
-                    <div class="recommendation-text">${rec.ai_analysis}</div>`;
-          if (rec.products && rec.products.length) {
-            html += `<div class="product-recommendations">
-                      <div class="product-title">Recommended Products:</div>
-                      <div class="product-list">`;
-            rec.products.forEach(product => {
-              html += `<div class="product-item">
-                        <div class="product-name">${product.Brand} - ${product.Name}</div>
-                        <div class="product-price">Price: ₹${product.Price}</div>
-                        <div class="product-ingredients">Key ingredients: ${product.Ingredients}</div>
-                      </div>`;
-            });
-            html += `    </div>
-                    </div>`;
-          }
-          html += `</div>`;
-        });
-        html += `</div>`;
-      }
-      html += `</div>`;
-      return html;
-    }
-
-    function createSuggestions(suggestions) {
-      if (!suggestions || !suggestions.length) return '';
-      let html = '<div class="dynamic-suggestions">';
-      suggestions.forEach(s => { 
-        html += `<div class="dynamic-suggestion" onclick="sendSuggestion(this)">${s}</div>`; 
-      });
-      html += '</div>';
-      return html;
-    }
-
-    // Image upload handling
-    imageUploadBtn.addEventListener('click', () => { 
-        if (isProcessing) return;
-        imageFileInput.click(); 
+    
+    // Sidebar toggle for mobile
+    sidebarToggle.addEventListener('click', function() {
+      sidebar.classList.add('active');
+      sidebarOverlay.classList.add('active');
     });
     
-    imageFileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file && file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                currentUploadedImage = { data: event.target.result, name: file.name };
-                appendUserImageMessage(currentUploadedImage.data);
-                sendImageMessage(currentUploadedImage.data);
-                imageFileInput.value = '';
-            };
-            reader.readAsDataURL(file);
-        }
+    sidebarOverlay.addEventListener('click', function() {
+      sidebar.classList.remove('active');
+      sidebarOverlay.classList.remove('active');
     });
     
-    async function sendImageMessage(imageData) {
-        if (isProcessing) return;
-        
+    // Scroll event for chat messages
+    chatMessages.addEventListener('scroll', function() {
+      const isAtBottom = chatMessages.scrollHeight - chatMessages.scrollTop <= chatMessages.clientHeight + 100;
+      
+      if (isAtBottom) {
+        scrollBottomBtn.classList.remove('visible');
+      } else {
+        scrollBottomBtn.classList.add('visible');
+      }
+    });
+    
+    // Scroll to bottom button click
+    scrollBottomBtn.addEventListener('click', function() {
+      scrollToBottom();
+    });
+    
+    // New messages alert click
+    newMessagesAlert.addEventListener('click', function() {
+      scrollToBottom();
+      this.classList.remove('visible');
+    });
+    
+    // Clear chat button
+    clearChatButton.addEventListener('click', function() {
+      clearChat();
+    });
+    
+    // Refresh button
+    refreshButton.addEventListener('click', function() {
+      refreshChat();
+    });
+    
+    // Language selector change
+    languageSelect.addEventListener('change', function() {
+      setLanguage(this.value);
+    });
+    
+    // Voice button
+    voiceButton.addEventListener('click', function() {
+      toggleVoiceInput();
+    });
+    
+    // Add command queue and processing state
+    let isProcessing = false;
+    const commandQueue = [];
+
+    // Process the next command in the queue
+    function processNextCommand() {
+      if (commandQueue.length > 0 && !isProcessing) {
         isProcessing = true;
-        showLoading();
-        
-        try {
-            showTypingIndicator();
-            const response = await fetch('/chatbot', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ imageData: imageData.split(',')[1] })
-            });
-            
-            if (!response.ok) {
-                throw new Error('Image processing failed');
-            }
-            
-            const data = await response.json();
-            
-            // Use a realistic delay for analysis to feel natural
-            setTimeout(() => { 
-                removeTypingIndicator(); 
-                appendBotMessage(data); 
-                isProcessing = false;
-                hideLoading();
-            }, 1500);
-            
-        } catch (error) {
-            console.error('Error processing image:', error);
-            removeTypingIndicator();
-            appendBotMessage({ 
-                botReply: "Sorry, I had trouble analyzing that image. Please try again later.", 
-                type: "error" 
-            });
-            showErrorToast("Image analysis failed. Please try again with a clearer image.");
+        const nextCommand = commandQueue.shift();
+        nextCommand.execute()
+          .finally(() => {
             isProcessing = false;
-            hideLoading();
-        }
+            setTimeout(processNextCommand, 100); // Small delay between commands
+          });
+      }
     }
 
-    // Language selector functions
-    async function changeLanguage(langCode) {
-        if (isProcessing) return;
-        
-        try {
-            // Show loading indicator
-            const currentText = currentLanguageDisplay.textContent;
-            currentLanguageDisplay.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            
-            // Update UI immediately to give feedback
-            document.querySelectorAll('.language-option').forEach(o => {
-                o.classList.toggle('selected', o.getAttribute('data-lang') === langCode);
-            });
-            
-            // Cancel any ongoing speech
-            if (speechSynthesis.speaking) {
-                speechSynthesis.cancel();
-                ttsBtn.classList.remove('speaking');
-                document.querySelectorAll('.speak-btn').forEach(b => b.classList.remove('speaking'));
-                document.querySelectorAll('.message-bubble').forEach(b => b.classList.remove('speaking'));
-                document.querySelectorAll('.message-siri-wave').forEach(w => w.classList.remove('active'));
-                document.querySelectorAll('.siri-wave-container').forEach(w => w.classList.remove('active'));
-                isSpeaking = false;
-            }
-            
-            // Stop any active audio elements playing server-side TTS
-            document.querySelectorAll('audio.tts-audio').forEach(audio => {
-                audio.pause();
-                audio.remove();
-            });
-            
-            // Store old language to check if translation is needed
-            const oldLanguage = currentLanguage;
-            
-            // Update current language
-            currentLanguage = langCode;
-            
-            // Update recognition language if active
-            if (recognition) {
-                recognition.lang = getRecognitionLanguage(langCode);
-                if (voiceRecordingIndicator.classList.contains('active')) {
-                    // Restart recognition with new language
-                    try {
-                        recognition.stop();
-                        setTimeout(() => {
-                            recognition.start();
-                        }, 300);
-                    } catch (e) {
-                        console.error("Error restarting recognition:", e);
-                    }
-                }
-            }
-            
-            // Make server request to update language preference
-            const response = await fetch('/set_language', {
+    // Add command to queue
+    function queueCommand(commandFn) {
+      commandQueue.push({
+        execute: commandFn
+      });
+      processNextCommand();
+    }
+
+    // Update sendMessage function to use the queue
+    function sendMessage() {
+      const message = chatInput.value.trim();
+      if (!message) return;
+      
+      // Add user message to chat
+      addMessage(message, 'user');
+      
+      // Clear input and reset height
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      
+      // Queue the API call
+      queueCommand(() => {
+        return new Promise((resolve, reject) => {
+          // Show typing indicator
+          typingIndicator.style.display = 'block';
+          scrollToBottom();
+          
+          // Send message to server
+          fetch('/chatbot', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ language: langCode })
-            });
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+              message: message,
+              language: languageSelect.value
+            }),
+          })
+          .then(response => response.json())
+          .then(data => {
+            // Hide typing indicator
+            typingIndicator.style.display = 'none';
             
-            if (!response.ok) {
-                throw new Error(`Language update failed with status: ${response.status}`);
-            }
-            
-            // Update language display with success
-            currentLanguageDisplay.textContent = langCode.toUpperCase();
-            languageDropdown.classList.remove('active');
-            
-            // Language-specific welcome messages
-            const welcomeMessages = {
-                'en': "Language changed to English. How can I help you with your skincare today?",
-                'es': "Idioma cambiado a Español. ¿Cómo puedo ayudarte con el cuidado de tu piel hoy?",
-                'fr': "Langue changée en Français. Comment puis-je vous aider avec vos soins de la peau aujourd'hui?",
-                'de': "Sprache auf Deutsch geändert. Wie kann ich Ihnen heute mit Ihrer Hautpflege helfen?",
-                'it': "Lingua cambiata in Italiano. Come posso aiutarla con la cura della pelle oggi?",
-                'pt': "Idioma alterado para Português. Como posso ajudá-lo com seus cuidados com a pele hoje?",
-                'ru': "Язык изменен на русский. Как я могу помочь вам с уходом за кожей сегодня?",
-                'zh-cn': "语言已更改为中文。今天我能如何帮助您护理皮肤？",
-                'ja': "言語が日本語に変更されました。今日はスキンケアのお手伝いをどのようにさせていただけますか？",
-                'ko': "언어가 한국어로 변경되었습니다. 오늘 피부 관리를 어떻게 도와 드릴까요?",
-                'ar': "تم تغيير اللغة إلى العربية. كيف يمكنني مساعدتك في العناية ببشرتك اليوم؟",
-                'hi': "भाषा हिंदी में बदल गई है। आज मैं आपकी त्वचा की देखभाल में कैसे मदद कर सकता हूँ?",
-                'ta': "மொழி தமிழுக்கு மாற்றப்பட்டது. இன்று உங்கள் தோல் பராமரிப்பில் நான் எவ்வாறு உதவ முடியும்?"
-            };
-            
-            // Get appropriate welcome message or use a default
-            let welcomeMsg = welcomeMessages[langCode] || `Language changed to ${langCode.toUpperCase()}`;
-            
-            // Create a fake bot message with the welcome
-            const welcomeResponse = {
-                botReply: welcomeMsg,
-                type: "language_change",
-                messageId: `lang-change-${Date.now()}`
-            };
-            
-            // Check if language change message is needed (not on first load)
-            const needsWelcomeMessage = document.querySelectorAll('.message-group').length > 1;
-            
-            if (needsWelcomeMessage) {
-                // Disable auto-TTS for the welcome message
-                const previousSetting = window.localStorage.getItem('auto_tts_disabled');
-                window.localStorage.setItem('auto_tts_disabled', 'true');
-                
-                // Append the message
-                appendBotMessage(welcomeResponse);
-                
-                // Restore previous TTS setting
-                if (previousSetting === null) {
-                    window.localStorage.removeItem('auto_tts_disabled');
-                } else {
-                    window.localStorage.setItem('auto_tts_disabled', previousSetting);
+            // Add bot response to chat
+            if (data.botReply) {
+              addMessage(data.botReply, 'bot');
+              
+              // Add suggestions if available - handle different response formats
+              if (data.suggestions && data.suggestions.length > 0) {
+                addSuggestions(data.suggestions);
+              } else if (data.quickReplies && data.quickReplies.length > 0) {
+                addSuggestions(data.quickReplies);
+              } else if (data.dynamicSuggestions && data.dynamicSuggestions.length > 0) {
+                addSuggestions(data.dynamicSuggestions);
+              }
+              
+              // If there's an intent, we can show category-specific suggestions
+              if (data.intent && data.intent !== "general_question") {
+                const intentCategory = mapIntentToCategory(data.intent);
+                if (intentCategory) {
+                  const suggestions = getCategorySuggestions(intentCategory);
+                  if (suggestions.length > 0) {
+                    addSuggestions(suggestions);
+                  }
                 }
+              }
+            } else if (data.text) {
+              // Alternative response format
+              addMessage(data.text, 'bot');
+            } else if (data.error) {
+              // Error message
+              addMessage("Sorry, I encountered an error: " + data.error, 'bot');
             }
-            
-            // Only translate existing messages if we're not switching to English
-            // and the language actually changed
-            if (langCode !== 'en' && oldLanguage !== langCode) {
-                // Get all bot messages and translate them
-                const messagesToTranslate = document.querySelectorAll('.message-group.bot .message-bubble.bot');
-                
-                if (messagesToTranslate.length > 0) {
-                    // Show a loading toast
-                    showToast(`Translating ${messagesToTranslate.length} messages to ${getLanguageName(langCode)}...`, 'info');
-                    
-                    // Translate with a slight delay between each to avoid overwhelming the server
-                    messagesToTranslate.forEach((messageBubble, index) => {
-                        // Skip translating the welcome message we just added
-                        if (messageBubble.id && messageBubble.id.startsWith('lang-change-')) {
-                            return;
-                        }
-                        
-                        // Get the original text (if we have it) or the current text
-                        const textToTranslate = messageBubble.dataset.originalText || messageBubble.textContent.trim();
-                        
-                        // Add a delay proportional to the message index to avoid overwhelming the server
-                        setTimeout(() => {
-                            // Create a unique translation ID for this message
-                            const translationId = `${Date.now()}-${index}`;
-                            
-                            // Add translating class for styling
-                            messageBubble.classList.add('translating');
-                            
-                            // Remove any existing translating indicators
-                            const existingIndicator = messageBubble.querySelector('.translating-indicator');
-                            if (existingIndicator) existingIndicator.remove();
-                            
-                            // Add small translating indicator
-                            const transIndicator = document.createElement('div');
-                            transIndicator.className = 'translating-indicator';
-                            transIndicator.setAttribute('data-translation-id', translationId);
-                            transIndicator.innerHTML = `<small>Translating...</small>`;
-                            messageBubble.appendChild(transIndicator);
-                            
-                            // Call the translation endpoint directly instead of using detectAndFixLanguageText
-                            fetch('/translate_text', {
+            resolve();
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            typingIndicator.style.display = 'none';
+            addMessage("Sorry, I'm having trouble connecting. Please try again.", 'bot');
+            reject(error);
+          });
+        });
+      });
+    }
+
+    // Update text-to-speech to use the queue
+    function playSpeech(textToSpeak, button) {
+      button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      
+      queueCommand(() => {
+        return new Promise((resolve, reject) => {
+          // Call the text-to-speech API
+          fetch('/text_to_speech', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+            },
                                 body: JSON.stringify({ 
-                                    text: textToTranslate,
-                                    language: langCode,
-                                    prepare_for_speech: true
-                                })
-                            })
-                            .then(response => {
-                                if (!response.ok) {
-                                    throw new Error(`Translation request failed with status: ${response.status}`);
-                                }
-                                return response.json();
-                            })
+              text: textToSpeak,
+              language: languageSelect.value,
+              auto_translate: true
+            }),
+          })
+          .then(response => response.json())
                             .then(data => {
-                                if (data.translated) {
-                                    // Get the display text and speech text
-                                    let displayText = data.display_text || data.translated;
-                                    let speechText = data.translated;
-                                    
-                                    // Clean the display text if needed
-                                    if (!data.display_text) {
-                                        displayText = displayText.replace(/<break[^>]*>/g, '');
-                                        displayText = displayText.replace(/<say-as[^>]*>([^<]*)<\/say-as>/g, '$1');
-                                        displayText = displayText.replace(/<\/?(emphasis|prosody|voice)[^>]*>/g, '');
-                                    }
-                                    
-                                    // Update the message
-                                    messageBubble.classList.remove('translating');
-                                    
-                                    // Get the message actions
-                                    const messageActions = messageBubble.querySelector('.message-actions');
-                                    const messageSiriWave = messageBubble.querySelector('.message-siri-wave');
-                                    
-                                    // Keep the original text for potential future translations
-                                    if (!messageBubble.dataset.originalText) {
-                                        messageBubble.dataset.originalText = textToTranslate;
-                                    }
-                                    
-                                    // Store the speech-optimized text
-                                    messageBubble.dataset.translatedText = speechText;
-                                    messageBubble.dataset.translatedLang = langCode;
-                                    
-                                    // Remove the indicator
-                                    const indicator = messageBubble.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
-                                    if (indicator) indicator.remove();
-                                    
-                                    // Update the content
-                                    messageBubble.innerHTML = displayText;
-                                    
-                                    // Re-add the message actions if they existed
-                                    if (messageActions) messageBubble.appendChild(messageActions);
-                                    if (messageSiriWave) messageBubble.appendChild(messageSiriWave);
-                                    
-                                    // Re-setup the buttons
-                                    setupCopyButtons();
-                                    setupSpeakButtons();
-                                } else {
-                                    // Handle translation failure
-                                    messageBubble.classList.remove('translating');
-                                    const indicator = messageBubble.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
-                                    if (indicator) indicator.remove();
+            if (data.audio) {
+              // Play the audio
+              const audio = new Audio(`data:audio/${data.format};base64,${data.audio}`);
+              audio.onended = () => {
+                // Restore original icon when audio ends
+                button.innerHTML = '<i class="fas fa-volume-up"></i>';
+                resolve();
+              };
+              audio.onerror = () => {
+                // Handle error
+                button.innerHTML = '<i class="fas fa-volume-up"></i>';
+                console.error('Error playing audio');
+                reject(new Error('Error playing audio'));
+              };
+              audio.play();
+            } else if (data.error) {
+              // Handle error
+              button.innerHTML = '<i class="fas fa-volume-up"></i>';
+              console.error('TTS Error:', data.error);
+              reject(new Error(data.error));
                                 }
                             })
                             .catch(error => {
-                                console.error(`Error translating message to ${langCode}:`, error);
-                                messageBubble.classList.remove('translating');
-                                const indicator = messageBubble.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
-                                if (indicator) indicator.remove();
-                            });
-                        }, index * 300);
-                    });
-                }
-            }
-            
-            // Show toast notification
-            showToast(`Language changed to ${getLanguageName(langCode)}`, 'success');
-            
-        } catch (error) { 
-            console.error('Error changing language:', error); 
-            // Restore original language display
-            currentLanguageDisplay.textContent = currentLanguage.toUpperCase();
-            showErrorToast("Couldn't change language. Please try again.");
-        }
-    }
-    
-    // Get full language name from code
-    function getLanguageName(code) {
-        const languageNames = {
-            'en': 'English',
-            'es': 'Spanish',
-            'fr': 'French',
-            'de': 'German',
-            'it': 'Italian',
-            'pt': 'Portuguese',
-            'ru': 'Russian',
-            'zh-cn': 'Chinese',
-            'ja': 'Japanese',
-            'ko': 'Korean',
-            'ar': 'Arabic',
-            'hi': 'Hindi',
-            'ta': 'Tamil'
-        };
-        return languageNames[code] || code.toUpperCase();
-    }
-    
-    // Enhanced translation helper for automatic language detection/correction
-    function detectAndFixLanguageText(text) {
-        // Skip running translations from this function since we now handle them directly in appendBotMessage
-        console.log("detectAndFixLanguageText called but skipped - translations handled directly");
-        return text;
-    }
-    
-    // Setup language dropdown
-    languageBtn.addEventListener('click', () => { 
-        languageDropdown.classList.toggle('active'); 
-    });
-    
-    document.addEventListener('click', (e) => {
-        if (!languageBtn.contains(e.target) && !languageDropdown.contains(e.target)) {
-            languageDropdown.classList.remove('active');
-        }
-    });
-    
-    languageOptions.forEach(opt => {
-        opt.addEventListener('click', () => {
-            const langCode = opt.getAttribute('data-lang');
-            document.querySelectorAll('.language-option').forEach(o => o.classList.remove('selected'));
-            opt.classList.add('selected');
-            changeLanguage(langCode);
+            // Handle error
+            button.innerHTML = '<i class="fas fa-volume-up"></i>';
+            console.error('TTS Fetch Error:', error);
+            reject(error);
+          });
         });
-    });
+      });
+    }
 
-    // Load previous conversation history (with pagination)
-    let currentHistoryOffset = 0;
-    let hasMoreHistory = false;
-    
-    async function loadChatHistory() {
-        try {
-            const res = await fetch('/get_conversation_history?limit=5&offset=0');
-            if (res.ok) {
-                const data = await res.json();
-                const history = data.messages;
-                hasMoreHistory = data.has_more;
-                currentHistoryOffset = 5; // Set for next load
-                
-                if (history.length > 0) {
-                    // Temporarily disable auto-speech during history loading
-                    const originalAutoTtsSetting = window.localStorage.getItem('auto_tts_disabled');
-                    window.localStorage.setItem('auto_tts_disabled', 'true');
-                    
-                    chatMessages.innerHTML = '';
-                    
-                    // Add "Load more" button if there are older messages
-                    if (hasMoreHistory) {
-                        addLoadMoreButton();
-                    }
-                    
-                    // Add messages without auto-speech and mark them as history
-                    history.forEach(msg => {
-                        if (msg.role === 'user') {
-                            appendUserMessage(msg.text);
-                        } else {
-                            appendBotMessage({ 
-                                botReply: msg.text,
-                                type: 'history_load' // Mark as history to prevent auto-speech
-                            });
-                        }
-                    });
-                    
-                    // Translate loaded messages if needed (without auto-speak)
-                    if (currentLanguage !== 'en') {
-                        checkAndTranslateLoadedMessages();
-                    }
-                    
-                    // Restore original auto-speech setting
-                    if (originalAutoTtsSetting === null) {
-                        window.localStorage.removeItem('auto_tts_disabled');
-                    } else {
-                        window.localStorage.setItem('auto_tts_disabled', originalAutoTtsSetting);
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('History load error:', error);
-            appendBotMessage({ 
-                botReply: "I had trouble loading our previous conversation. Let's start fresh!", 
-                type: "error", 
-                needsTypingIndicator: false 
-            });
-        }
-    }
-    
-    // Function to add a "Load More" button at the top of the chat
-    function addLoadMoreButton() {
-        // Create a load more button at the top of the chat history
-        const loadMoreDiv = document.createElement('div');
-        loadMoreDiv.className = 'load-more-container';
-        loadMoreDiv.innerHTML = `
-            <button id="loadMoreBtn" class="load-more-btn">
-                Load earlier messages <span class="loader" style="display:none"></span>
-            </button>
-        `;
+    // Update the addMessage function to use the queued speech function
+    function addMessage(text, sender) {
+      const messageGroup = document.createElement('div');
+      messageGroup.className = `message-group ${sender}`;
+      
+      const messageBubble = document.createElement('div');
+      messageBubble.className = `message-bubble ${sender}`;
+      messageBubble.innerHTML = formatMessage(text);
+      
+      // Add text-to-speech button for bot messages
+      if (sender === 'bot') {
+        const speakerButton = document.createElement('button');
+        speakerButton.className = 'speaker-button';
+        speakerButton.innerHTML = '<i class="fas fa-volume-up"></i>';
+        speakerButton.title = 'Read message aloud';
+        speakerButton.addEventListener('click', function() {
+          // Get the text content from the message
+          const textToSpeak = messageBubble.textContent;
+          playSpeech(textToSpeak, this);
+        });
         
-        // Insert at the beginning of the chat
-        if (chatMessages.firstChild) {
-            chatMessages.insertBefore(loadMoreDiv, chatMessages.firstChild);
+        messageBubble.appendChild(speakerButton);
+      }
+      
+      messageGroup.appendChild(messageBubble);
+      chatMessages.appendChild(messageGroup);
+      
+      // Show new message alert if not at bottom
+      const isAtBottom = chatMessages.scrollHeight - chatMessages.scrollTop <= chatMessages.clientHeight + 100;
+      if (!isAtBottom && sender === 'bot') {
+        newMessagesAlert.classList.add('visible');
         } else {
-            chatMessages.appendChild(loadMoreDiv);
-        }
-        
-        // Add click event
-        document.getElementById('loadMoreBtn').addEventListener('click', loadMoreHistory);
+        scrollToBottom();
+      }
     }
     
-    // Function to load older messages
-    async function loadMoreHistory() {
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-        const loader = loadMoreBtn.querySelector('.loader');
-        
-        try {
-            // Show loading indicator
-            loadMoreBtn.disabled = true;
-            loader.style.display = 'inline-block';
-            
-            const res = await fetch(`/load_more_history?limit=5&offset=${currentHistoryOffset}`);
-            if (res.ok) {
-                const data = await res.json();
-                const olderMessages = data.messages;
-                currentHistoryOffset = data.offset;
-                
-                if (olderMessages.length > 0) {
-                    // Temporarily disable auto-speech during history loading
-                    const originalAutoTtsSetting = window.localStorage.getItem('auto_tts_disabled');
-                    window.localStorage.setItem('auto_tts_disabled', 'true');
-                    
-                    // Create message elements for older messages
-                    const oldMessagesFragment = document.createDocumentFragment();
-                    
-                    olderMessages.forEach(msg => {
-                        const messageGroup = document.createElement('div');
-                        
-                        if (msg.role === 'user') {
-                            messageGroup.className = 'message-group user';
-                            messageGroup.innerHTML = `
-                                <div class="message-bubble user">${msg.text}</div>
-                            `;
-                        } else {
-                            messageGroup.className = 'message-group bot';
-                            messageGroup.innerHTML = `
-                                <div class="message-bubble bot">${msg.text}</div>
-                            `;
-                        }
-                        
-                        oldMessagesFragment.appendChild(messageGroup);
-                    });
-                    
-                    // Insert older messages before the load more button
-                    const loadMoreContainer = loadMoreBtn.parentElement;
-                    loadMoreContainer.parentNode.insertBefore(oldMessagesFragment, loadMoreContainer);
-                    
-                    // Restore original auto-speech setting
-                    if (originalAutoTtsSetting === null) {
-                        window.localStorage.removeItem('auto_tts_disabled');
+    function addSuggestions(suggestions) {
+      // Check if last message group already has suggestions
+      const lastMessageGroup = chatMessages.lastElementChild;
+      if (lastMessageGroup && lastMessageGroup.querySelector('.suggestion-chips')) {
+        return; // Don't add duplicate suggestions to the same message
+      }
+      
+      const suggestionChips = document.createElement('div');
+      suggestionChips.className = 'suggestion-chips';
+      
+      suggestions.forEach(suggestion => {
+        const chip = document.createElement('div');
+        chip.className = 'suggestion-chip';
+        chip.textContent = suggestion;
+        chip.addEventListener('click', function() {
+          chatInput.value = this.textContent;
+          chatInput.focus();
+          sendMessage();
+        });
+        suggestionChips.appendChild(chip);
+      });
+      
+      if (lastMessageGroup && lastMessageGroup.classList.contains('bot')) {
+        lastMessageGroup.appendChild(suggestionChips);
                     } else {
-                        window.localStorage.setItem('auto_tts_disabled', originalAutoTtsSetting);
-                    }
-                }
-                
-                // Remove the load more button if no more messages
-                if (olderMessages.length < 5) {
-                    loadMoreBtn.parentElement.remove();
-                }
-            }
-        } catch (error) {
-            console.error('Error loading more history:', error);
-            // Show error message
-            loadMoreBtn.textContent = 'Error loading messages. Try again';
-            setTimeout(() => {
-                loadMoreBtn.textContent = 'Load earlier messages';
-            }, 3000);
-        } finally {
-            // Hide loading indicator and re-enable button
-            loader.style.display = 'none';
-            loadMoreBtn.disabled = false;
-        }
+        // Create a new message group for suggestions
+        const newMessageGroup = document.createElement('div');
+        newMessageGroup.className = 'message-group bot';
+        newMessageGroup.appendChild(suggestionChips);
+        chatMessages.appendChild(newMessageGroup);
+      }
+      
+      scrollToBottom();
     }
     
-    // Check and translate loaded messages if necessary
-    function checkAndTranslateLoadedMessages() {
-        // Get all bot messages
-        const botMessages = document.querySelectorAll('.message-group.bot .message-bubble.bot');
-        
-        // Skip translation if we're displaying in English
-        if (currentLanguage === 'en') return;
-        
-        // Show a loading toast
-        showToast(`Translating ${botMessages.length} messages to ${getLanguageName(currentLanguage)}...`, 'info');
-        
-        // Map of language codes to their Unicode script ranges
-        const languageRegexMap = {
-            'ta': /[\u0B80-\u0BFF]/, // Tamil
-            'hi': /[\u0900-\u097F]/, // Hindi
-            'ar': /[\u0600-\u06FF]/, // Arabic
-            'zh-cn': /[\u4E00-\u9FFF]/, // Chinese
-            'ja': /[\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF]/, // Japanese
-            'ko': /[\uAC00-\uD7AF\u1100-\u11FF]/, // Korean
-            'ru': /[\u0400-\u04FF]/ // Russian
-        };
-        
-        // Process each message with a delay to avoid overwhelming the server
-        botMessages.forEach((messageBubble, index) => {
-            setTimeout(() => {
-                // Create a unique ID for this translation
-                const translationId = `history-${Date.now()}-${index}`;
-                
-                // Get the text to translate
-                const textToTranslate = messageBubble.textContent.trim();
-                
-                // Skip if this message is already in the target language
-                if (languageRegexMap[currentLanguage] && languageRegexMap[currentLanguage].test(textToTranslate)) {
-                    return;
-                }
-                
-                // Add translating class and indicator
-                messageBubble.classList.add('translating');
-                
-                // Add indicator
-                const transIndicator = document.createElement('div');
-                transIndicator.className = 'translating-indicator';
-                transIndicator.setAttribute('data-translation-id', translationId);
-                transIndicator.innerHTML = `<small>Translating...</small>`;
-                messageBubble.appendChild(transIndicator);
-                
-                // Store original text
-                messageBubble.dataset.originalText = textToTranslate;
-                
-                // Call the translation endpoint
-                fetch('/translate_text', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        text: textToTranslate,
-                        language: currentLanguage,
-                        prepare_for_speech: true
-                    })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Translation request failed with status: ${response.status}`);
-                    }
-                    return response.json();
-                })
+    function formatMessage(text) {
+      // Convert URLs to clickable links
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      text = text.replace(urlRegex, url => `<a href="${url}" target="_blank" class="text-primary hover:underline">${url}</a>`);
+      
+      // Convert line breaks to <br>
+      text = text.replace(/\n/g, '<br>');
+      
+      return text;
+    }
+    
+    function scrollToBottom() {
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      scrollBottomBtn.classList.remove('visible');
+      newMessagesAlert.classList.remove('visible');
+    }
+    
+    function loadChatHistory() {
+      fetch('/get_conversation_history')
+        .then(response => response.json())
                 .then(data => {
-                    if (data.translated) {
-                        // Get the display text and speech text
-                        let displayText = data.display_text || data.translated;
-                        let speechText = data.translated;
-                        
-                        // Clean display text if needed
-                        if (!data.display_text) {
-                            displayText = displayText.replace(/<break[^>]*>/g, '');
-                            displayText = displayText.replace(/<say-as[^>]*>([^<]*)<\/say-as>/g, '$1');
-                            displayText = displayText.replace(/<\/?(emphasis|prosody|voice)[^>]*>/g, '');
-                        }
-                        
-                        // Update the message
-                        messageBubble.classList.remove('translating');
-                        
-                        // Get the message actions and wave
-                        const messageActions = messageBubble.querySelector('.message-actions');
-                        const messageSiriWave = messageBubble.querySelector('.message-siri-wave');
-                        
-                        // Store the speech text
-                        messageBubble.dataset.translatedText = speechText;
-                        
-                        // Remove indicator
-                        const indicator = messageBubble.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
-                        if (indicator) indicator.remove();
-                        
-                        // Update content
-                        messageBubble.innerHTML = displayText;
-                        
-                        // Re-add actions and wave
-                        if (messageActions) messageBubble.appendChild(messageActions);
-                        if (messageSiriWave) messageBubble.appendChild(messageSiriWave);
-                        
-                        // Re-setup buttons
-                        setupCopyButtons();
-                        setupSpeakButtons();
-                    } else {
-                        // Handle failure
-                        messageBubble.classList.remove('translating');
-                        const indicator = messageBubble.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
-                        if (indicator) indicator.remove();
+          if (data.messages && data.messages.length > 0) {
+            // Clear default welcome message
+            chatMessages.innerHTML = '';
+            
+            // Add messages from history
+            data.messages.forEach(msg => {
+              addMessage(msg.text, msg.role);
+            });
                     }
                 })
                 .catch(error => {
-                    console.error(`Error translating history message to ${currentLanguage}:`, error);
-                    messageBubble.classList.remove('translating');
-                    const indicator = messageBubble.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
-                    if (indicator) indicator.remove();
-                });
-            }, index * 300);
+          console.error('Error loading chat history:', error);
         });
     }
     
-    // Initialize the chat
-    loadChatHistory();
-    chatInput.focus();
-
-    // Category button handling 
-    const categoryButtons = document.querySelectorAll('.category-btn');
-    const suggestionChips = document.getElementById('suggestionChips');
-    
-    // Define suggestions for each category
-    const categorySuggestions = {
-        'common': [
-            "What's my skin type?",
-            "How to treat acne?",
-            "Make an appointment",
-            "Recommended products",
-            "Skincare routine"
-        ],
-        'skin-types': [
-            "How to identify oily skin?",
-            "Dry skin care tips",
-            "Combination skin routine",
-            "Products for sensitive skin",
-            "Normal skin maintenance"
-        ],
-        'conditions': [
-            "How to treat acne?",
-            "Rosacea management",
-            "Eczema treatment",
-            "Dark spots solution",
-            "Anti-aging remedies"
-        ],
-        'products': [
-            "Best moisturizers",
-            "Sunscreen recommendations",
-            "Acne treatment products",
-            "Anti-aging serums",
-            "Face wash for oily skin"
-        ]
-    };
-    
-    // Function to update suggestion chips based on selected category
-    function updateSuggestionChips(category) {
-        // Clear current suggestions
-        suggestionChips.innerHTML = '';
-        
-        // Add new suggestions based on category
-        if (categorySuggestions[category]) {
-            categorySuggestions[category].forEach(suggestion => {
-                const chip = document.createElement('div');
-                chip.className = 'suggestion-chip';
-                chip.textContent = suggestion;
-                chip.onclick = function() { sendSuggestion(this); };
-                suggestionChips.appendChild(chip);
-                
-                // Add staggered animation
-                setTimeout(() => {
-                    chip.style.opacity = '0';
-                    chip.style.transform = 'translateY(10px)';
-                    chip.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-                    
-                    requestAnimationFrame(() => {
-                        chip.style.opacity = '1';
-                        chip.style.transform = 'translateY(0)';
-                    });
-                }, 0);
-            });
-        }
-    }
-    
-    // Add click handler to category buttons
-    categoryButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            // Remove active class from all buttons
-            categoryButtons.forEach(btn => btn.classList.remove('active'));
+    function clearChat() {
+      // Confirm before clearing
+      if (confirm('Are you sure you want to clear the conversation?')) {
+        fetch('/clear_conversation', {
+          method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Clear chat messages
+            chatMessages.innerHTML = '';
             
-            // Add active class to clicked button
-            this.classList.add('active');
+            // Add welcome message back
+            addMessage("Hello! I'm Aura, your virtual skincare assistant. How can I help you today?", 'bot');
             
-            // Update suggestion chips
-            const category = this.getAttribute('data-category');
-            updateSuggestionChips(category);
+            // Add default suggestions
+            const suggestions = [
+            "How to treat acne?",
+              "Recommend a moisturizer",
+              "Best ingredients for aging skin",
+              "Help with my skincare routine"
+            ];
+            addSuggestions(suggestions);
+          }
+        })
+        .catch(error => {
+          console.error('Error clearing chat:', error);
         });
-    });
-
-    // Preload speech voices
-    if ('speechSynthesis' in window) {
-        speechSynthesis.getVoices();
-        if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = function() { 
-                console.log(`Loaded ${speechSynthesis.getVoices().length} voices`); 
-            };
-        }
-    }
-    
-    // Handle window resize
-    window.addEventListener('resize', () => { 
-        if (window.innerWidth <= 768) setTimeout(() => scrollToBottom(false), 100); 
-    });
-
-    // Fix for mobile virtual keyboard
-    window.addEventListener('resize', function() {
-      const vh = window.innerHeight;
-      const chatContainer = document.querySelector('.chat-container');
-      
-      // If height is significantly reduced, keyboard is likely open
-      if (vh < 600 && window.innerWidth < 768) {
-        chatContainer.classList.add('keyboard-open');
-        document.documentElement.style.setProperty('--vh', `${vh * 0.01}px`);
-      } else {
-        chatContainer.classList.remove('keyboard-open');
-        document.documentElement.style.removeProperty('--vh');
       }
-    });
-
-    // Add this function after updateLanguage function
-
-    // Update bot message translations
-    function updateBotMessageTranslations(langCode) {
-        // Get all bot messages
-        const botMessages = document.querySelectorAll('.message-group.bot .message-bubble.bot');
-        
-        if (botMessages.length === 0) return;
-        
-        console.log(`Updating all bot messages for ${langCode} TTS`);
-        
-        // Process each message with a slight delay to avoid overwhelming the server
-        botMessages.forEach((messageBubble, index) => {
-            // Skip if message already has a translation for this language
-            if (messageBubble.dataset.translatedLang === langCode && 
-                messageBubble.dataset.translatedText) {
-                console.log("Message already has translation:", messageBubble.dataset.translatedText);
-                return;
-            }
-            
-            // Get the original text (or current text if no original stored)
-            const originalText = messageBubble.dataset.originalText || messageBubble.textContent.trim();
-            
-            // Don't translate if the message is empty or too short
-            if (!originalText || originalText.length < 2) return;
-            
-            setTimeout(() => {
-                // Add translating class for styling
-                messageBubble.classList.add('translating');
-                
-                // Generate a unique ID for this translation request
-                const translationId = Date.now().toString() + index;
-                
-                // Add small translating indicator
-                const transIndicator = document.createElement('div');
-                transIndicator.className = 'translating-indicator';
-                transIndicator.setAttribute('data-translation-id', translationId);
-                transIndicator.innerHTML = `<small>Preparing TTS for ${getLanguageName(langCode)}...</small>`;
-                messageBubble.appendChild(transIndicator);
-                
-                // Use the translation endpoint optimized for speech
-                fetch('/translate_text', {
+    }
+    
+    function refreshChat() {
+      // Reload the page
+      window.location.reload();
+    }
+    
+    function setLanguage(languageCode) {
+      fetch('/set_language', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
                     body: JSON.stringify({ 
-                        text: originalText,
-                        language: langCode,
-                        prepare_for_speech: true
-                    })
+          language: languageCode
+        }),
                 })
                 .then(response => response.json())
                 .then(data => {
-                    if (data.translated) {
-                        // Store the speech-optimized text
-                        messageBubble.dataset.translatedText = data.translated;
-                        messageBubble.dataset.translatedLang = langCode;
-                        
-                        console.log(`Updated TTS text for message ${index}:`, data.translated);
-                    }
-                    
-                    // Remove indicator and class
-                    messageBubble.classList.remove('translating');
-                    const indicator = messageBubble.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
-                    if (indicator) indicator.remove();
+        if (data.success) {
+          // Add system message
+          addMessage(`Language changed to ${languageSelect.options[languageSelect.selectedIndex].text}`, 'bot');
+        }
                 })
                 .catch(error => {
-                    console.error(`Error preparing TTS for ${langCode}:`, error);
-                    messageBubble.classList.remove('translating');
-                    const indicator = messageBubble.querySelector(`.translating-indicator[data-translation-id="${translationId}"]`);
-                    if (indicator) indicator.remove();
-                });
-            }, index * 300); // Stagger requests to avoid overwhelming the server
-        });
+        console.error('Error setting language:', error);
+      });
+    }
+    
+    // Update voice input to use the queue
+    function toggleVoiceInput() {
+      // Check if browser supports speech recognition
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        // If we're already processing a command, don't start voice input
+        if (isProcessing) {
+          addMessage("Please wait for the current operation to complete", 'bot');
+          return;
+        }
+        
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        
+        recognition.lang = languageSelect.value;
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        
+        recognition.onstart = function() {
+          voiceButton.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+          voiceButton.classList.add('active');
+          addMessage("Listening...", 'bot');
+        };
+        
+        recognition.onresult = function(event) {
+          const transcript = event.results[0][0].transcript;
+          chatInput.value = transcript;
+          // Auto resize textarea
+          chatInput.style.height = 'auto';
+          chatInput.style.height = (chatInput.scrollHeight) + 'px';
+          
+          // Remove "Listening..." message
+          if (chatMessages.lastElementChild && 
+              chatMessages.lastElementChild.querySelector('.message-bubble') && 
+              chatMessages.lastElementChild.querySelector('.message-bubble').textContent === "Listening...") {
+            chatMessages.removeChild(chatMessages.lastElementChild);
+          }
+          
+          // Auto send the message after a short delay
+          setTimeout(() => {
+            sendMessage();
+          }, 500);
+        };
+        
+        recognition.onend = function() {
+          voiceButton.innerHTML = '<i class="fas fa-microphone"></i>';
+          voiceButton.classList.remove('active');
+        };
+        
+        recognition.onerror = function(event) {
+          console.error('Speech recognition error:', event.error);
+          // Remove "Listening..." message
+          if (chatMessages.lastElementChild && 
+              chatMessages.lastElementChild.querySelector('.message-bubble') && 
+              chatMessages.lastElementChild.querySelector('.message-bubble').textContent === "Listening...") {
+            chatMessages.removeChild(chatMessages.lastElementChild);
+          }
+          
+          let errorMessage = "Sorry, I couldn't hear you. Please try again or type your message.";
+          
+          // Provide more specific error messages
+          if (event.error === 'not-allowed') {
+            errorMessage = "Microphone access was denied. Please enable microphone access to use voice input.";
+          } else if (event.error === 'network') {
+            errorMessage = "Network error occurred. Please check your connection and try again.";
+          } else if (event.error === 'no-speech') {
+            errorMessage = "No speech was detected. Please try again.";
+          }
+          
+          addMessage(errorMessage, 'bot');
+          
+          voiceButton.innerHTML = '<i class="fas fa-microphone"></i>';
+          voiceButton.classList.remove('active');
+        };
+        
+        recognition.start();
+      } else {
+        addMessage("Sorry, voice input is not supported in your browser. Try using Chrome, Edge, or Safari instead.", 'bot');
+      }
     }
 
-    // Ensure all bot messages have proper translations for text-to-speech
-    if (langCode !== 'en') {
-        // Update TTS data for all bot messages
-        setTimeout(() => {
-            updateBotMessageTranslations(langCode);
-        }, 1000); // Give the main translation a head start
-    }
-
-    function handleBotResponse(data) {
-        // Clear typing indicator
-        clearTypingIndicator();
-        
-        const botMessageText = data.botMessage;
-        let isNewGroup = true;
-        let messageGroup;
-        
-        // Check if last message group is from bot
-        const lastMessageGroup = chatMessages.querySelector('.message-group:last-child');
-        if (lastMessageGroup && lastMessageGroup.classList.contains('bot')) {
-            isNewGroup = false;
-            messageGroup = lastMessageGroup;
-        }
-        
-        if (isNewGroup) {
-            // Create a new message group
-            messageGroup = document.createElement('div');
-            messageGroup.className = 'message-group bot';
-            
-            // Add bot avatar if it's a new group
-            const avatar = document.createElement('div');
-            avatar.className = 'avatar bot';
-            const avatarImg = document.createElement('img');
-            avatarImg.src = "/static/assets/bot.png";
-            avatarImg.alt = "Bot Avatar";
-            avatar.appendChild(avatarImg);
-            messageGroup.appendChild(avatar);
-            
-            // Create messages container
-            const messagesContainer = document.createElement('div');
-            messagesContainer.className = 'messages';
-            messageGroup.appendChild(messagesContainer);
-            
-            chatMessages.appendChild(messageGroup);
-        }
-        
-        // Add the message bubble
-        const messagesContainer = messageGroup.querySelector('.messages');
-        const messageBubble = document.createElement('div');
-        messageBubble.className = 'message-bubble bot';
-        messageBubble.id = `message-${messageCounter++}`;
-        
-        // Store original text for translation purposes
-        messageBubble.dataset.originalText = botMessageText;
-        
-        // Add text to the message bubble
-        messageBubble.innerHTML = formatBotMessage(botMessageText);
-        
-        // Add siri wave container for the message
-        const siriWaveContainer = document.createElement('div');
-        siriWaveContainer.className = 'siri-wave-container';
-        messageBubble.appendChild(siriWaveContainer);
-        
-        // Add speak button
-        const speakButton = document.createElement('button');
-        speakButton.className = 'speak-button';
-        speakButton.innerHTML = '<i class="fas fa-volume-up"></i>';
-        speakButton.setAttribute('aria-label', 'Speak message');
-        messageBubble.appendChild(speakButton);
-        
-        messagesContainer.appendChild(messageBubble);
-        
-        // Scroll to bottom
-        scrollToBottom();
-        
-        // Log the response for debugging
-        console.log("Bot response:", data);
-        
-        // Handle source attribution if present
-        if (data.sources && data.sources.length > 0) {
-            addSourceAttribution(data.sources, messageGroup);
-        }
-        
-        // Setup speak buttons
-        setupSpeakButtons();
-        
-        // NOTE: We don't need to translate or speak here as it's handled in appendBotMessage
-        // after this function is called
+    // Map backend intents to frontend categories
+    function mapIntentToCategory(intent) {
+      const intentMap = {
+        "product_recommendation": "products",
+        "routine_help": "routines",
+        "skin_concern": "sensitive skin",
+        "ingredient_question": "products",
+        "comparison": "products",
+        "how_to": "routines",
+        "side_effect": "sensitive skin"
+      };
+      
+      return intentMap[intent] || null;
     }
 });
 </script>
+{% endblock %}
 {% endblock %}

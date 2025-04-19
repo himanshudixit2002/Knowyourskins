@@ -9,9 +9,33 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<!-- Add Three.js for 3D effects -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: {
+            DEFAULT: '#ff8a00',
+            light: '#ffb347',
+            dark: '#e67300',
+          },
+          dark: {
+            DEFAULT: '#121212',
+            lighter: '#1a1a1a',
+            darker: '#0a0a0a',
+          }
+        },
+        fontFamily: {
+          'poppins': ['"Poppins"', 'sans-serif'],
+        },
+        screens: {
+          'xs': '375px',
+        }
+      }
+    }
+  }
+</script>
 <style>
   /* Global Reset & Fonts */
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,6 +59,13 @@
     background-color: var(--bg-dark);
     color: var(--text-light);
     overflow-x: hidden;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
   }
   
   /* Background Pattern */
@@ -74,13 +105,13 @@
     background: rgba(255, 255, 255, 0.05);
     animation: float 15s infinite ease-in-out;
   }
-  .particle:nth-child(1) { width: 100px; height: 100px; top: 10%; left: 10%; animation-delay: 0s; }
-  .particle:nth-child(2) { width: 80px; height: 80px; top: 20%; left: 80%; animation-delay: 2s; }
-  .particle:nth-child(3) { width: 120px; height: 120px; top: 60%; left: 70%; animation-delay: 4s; }
-  .particle:nth-child(4) { width: 60px; height: 60px; top: 80%; left: 20%; animation-delay: 6s; }
-  .particle:nth-child(5) { width: 90px; height: 90px; top: 40%; left: 30%; animation-delay: 8s; }
-  .particle:nth-child(6) { width: 70px; height: 70px; top: 30%; left: 60%; animation-delay: 10s; }
-  .particle:nth-child(7) { width: 110px; height: 110px; top: 70%; left: 40%; animation-delay: 12s; }
+  .particle:nth-child(1) { width: 70px; height: 70px; top: 10%; left: 10%; animation-delay: 0s; }
+  .particle:nth-child(2) { width: 50px; height: 50px; top: 20%; left: 80%; animation-delay: 2s; }
+  .particle:nth-child(3) { width: 80px; height: 80px; top: 60%; left: 70%; animation-delay: 4s; }
+  .particle:nth-child(4) { width: 40px; height: 40px; top: 80%; left: 20%; animation-delay: 6s; }
+  .particle:nth-child(5) { width: 60px; height: 60px; top: 40%; left: 30%; animation-delay: 8s; }
+  .particle:nth-child(6) { width: 50px; height: 50px; top: 30%; left: 60%; animation-delay: 10s; }
+  .particle:nth-child(7) { width: 70px; height: 70px; top: 70%; left: 40%; animation-delay: 12s; }
 
   @keyframes float {
     0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); }
@@ -113,1089 +144,100 @@
     100% { background-position: 0% 50%; }
   }
 
-  /* Decorative Elements */
-  .decorative-circle {
-    position: absolute;
-    border-radius: 50%;
-    background: linear-gradient(135deg, rgba(255, 138, 0, 0.1), rgba(255, 122, 0, 0.05));
-    z-index: 0;
-  }
-  .circle-1 {
-    width: 300px;
-    height: 300px;
-    top: -150px;
-    left: -150px;
-  }
-  .circle-2 {
-    width: 400px;
-    height: 400px;
-    bottom: -200px;
-    right: -200px;
-  }
-  .circle-3 {
-    width: 200px;
-    height: 200px;
-    top: 30%;
-    right: -100px;
-    opacity: 0.3;
-  }
-
-  /* Standard Card Styling */
-  .content-container {
-    width: 100%;
-    max-width: 900px;
-    background: rgba(30, 35, 45, 0.8);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 24px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3),
-                0 0 0 1px rgba(255, 255, 255, 0.05) inset;
-    overflow: hidden;
-    position: relative;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .content-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at top right, 
-                rgba(255, 138, 0, 0.1), 
-                transparent 60%);
-    pointer-events: none;
+  /* Card hover effects */
+  .card-hover {
+    transition: all 0.3s ease;
   }
   
-  /* Content Header */
-  .content-header {
-    padding: 2.5rem 2rem 2rem;
-    text-align: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .content-header::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle at center, 
-                rgba(255, 138, 0, 0.2), 
-                transparent 70%);
-    opacity: 0.5;
-    pointer-events: none;
-  }
-
-  .content-header h1 {
-    margin: 0;
-    font-size: 2.5rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, var(--primary), var(--primary-light));
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    margin-bottom: 0.5rem;
-    position: relative;
-    display: inline-block;
-  }
-
-  .content-header h1::after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 50px;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, var(--primary), transparent);
-    border-radius: 3px;
-  }
-
-  .content-header p {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 1.1rem;
-    margin: 0.75rem 0 0;
-  }
-
-  /* Authentication Pages */
-  .auth-container {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #1a1f2c, #2d3748);
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1.5rem;
-  }
-  
-  .auth-card {
-    background: rgba(30, 35, 45, 0.8);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    position: relative;
-    z-index: 10;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    width: 100%;
-    max-width: 500px;
-    padding: 2.5rem;
-  }
-  
-  .auth-card:hover {
+  .card-hover:hover {
     transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
   }
   
-  .background-logo {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 60%;
-    max-width: 700px;
-    opacity: 0.05;
-    transform: translate(-50%, -50%);
-    z-index: 0;
-    animation: rotateLogo 30s linear infinite;
+  /* Responsive typography */
+  @media (max-width: 640px) {
+    h1 {
+      font-size: 1.75rem !important;
+    }
+    
+    h2 {
+      font-size: 1.5rem !important;
+    }
+    
+    h3 {
+      font-size: 1.25rem !important;
+    }
+    
+    p {
+      font-size: 0.95rem !important;
+    }
   }
   
-  @keyframes rotateLogo {
-    from { transform: translate(-50%, -50%) rotate(0deg); }
-    to { transform: translate(-50%, -50%) rotate(360deg); }
-  }
-
-  /* Header and Navigation Styling */
-  .main-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 100;
-    background: linear-gradient(to bottom, rgba(15, 17, 23, 0.98), rgba(18, 20, 26, 0.95));
-    border-bottom: 1px solid rgba(255, 138, 0, 0.15);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    transition: box-shadow 0.3s ease, background 0.3s ease;
-    will-change: box-shadow, background;
-  }
-  
-  .nav-container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 1.5rem;
-    height: 70px; /* Set fixed height for consistency */
-  }
-  
-  .nav-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 100%;
-    position: relative;
-  }
-  
-  /* Logo Styling */
-  .logo-container {
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    position: relative;
-    z-index: 2;
-    margin-right: 20px; /* Add space between logo and navigation */
-    overflow: hidden; /* Contain the shimmer effect */
-  }
-  
-  .logo-img {
-    height: 38px;
-    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    margin-right: 10px;
-  }
-  
-  .logo-container:hover .logo-img {
-    transform: scale(1.05);
-  }
-  
-  .logo-text {
-    font-size: 1.25rem;
-    font-weight: 700;
-    text-decoration: none;
-    background: linear-gradient(90deg, #ff8a00, #ff5f00);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    white-space: nowrap;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
-    text-shadow: 0 2px 10px rgba(255, 138, 0, 0.25);
-    position: relative; /* For shimmer positioning */
-    z-index: 1;
-  }
-  
-  .logo-container:hover .logo-text {
-    filter: brightness(1.1);
-    text-shadow: 0 2px 15px rgba(255, 138, 0, 0.5);
-  }
-  
-  /* Full Navigation System */
-  .nav-menu {
-    display: flex;
-    align-items: center;
-    gap: 12px; /* Consistent spacing between nav items */
-    margin-left: auto;
-    height: 100%;
-    position: relative;
-    overflow: visible;
-  }
-  
-  .nav-menu::-webkit-scrollbar {
-    display: none;
-  }
-  
-  .nav-item {
-    position: relative;
-    padding: 8px 14px; /* Consistent padding */
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 0.9rem;
-    font-weight: 500;
-    text-decoration: none;
-    border-radius: 8px;
-    transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-    display: flex;
-    align-items: center;
-    white-space: nowrap;
-    letter-spacing: 0.2px;
-    height: 36px; /* Fixed height for all nav items */
-  }
-  
-  .nav-item i {
-    margin-right: 8px;
-    font-size: 0.95rem;
-    color: rgba(255, 138, 0, 0.9);
-    transition: all 0.3s ease;
-    width: 16px; /* Fixed width for icons */
-    text-align: center;
-  }
-  
-  .nav-item::before {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 50%;
-    width: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--primary), var(--primary-dark));
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    transform: translateX(-50%);
-    opacity: 0;
-    border-radius: 2px;
-  }
-  
-  .nav-item:hover {
+  /* Improved button styles */
+  .btn-primary {
+    background: linear-gradient(to right, var(--primary), var(--primary-light));
     color: white;
-    transform: translateY(-2px);
-    background: rgba(255, 138, 0, 0.1);
-  }
-  
-  .nav-item:hover i {
-    color: #ff8a00;
-  }
-  
-  .nav-item:hover::before {
-    width: 70%;
-    opacity: 0.7;
-  }
-  
-  .nav-item.active {
-    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
     font-weight: 600;
-    background: rgba(255, 138, 0, 0.15);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 138, 0, 0.2);
-  }
-  
-  .nav-item.active i {
-    color: #ff8a00;
-  }
-  
-  .nav-item.active::before {
-    width: 80%;
-    opacity: 1;
-    height: 2.5px;
-  }
-  
-  .nav-item.active::after {
-    content: '';
-    position: absolute;
-    bottom: -3px;
-    left: 50%;
-    width: 4px;
-    height: 4px;
-    background: var(--primary);
-    border-radius: 50%;
-    transform: translateX(-50%);
-    box-shadow: 0 0 8px var(--primary);
-    animation: pulse-dot 1.5s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
-  }
-  
-  @keyframes pulse-dot {
-    0% { transform: translateX(-50%) scale(0.8); opacity: 0.5; }
-    50% { transform: translateX(-50%) scale(1.2); opacity: 1; }
-    100% { transform: translateX(-50%) scale(0.8); opacity: 0.5; }
-  }
-  
-  /* Mobile Menu Button */
-  .mobile-menu-btn {
-    display: none;
-    background: rgba(255, 138, 0, 0.08);
-    border: 1px solid rgba(255, 138, 0, 0.15);
-    color: var(--text-light);
-    font-size: 1.4rem;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 10px;
-    transition: all 0.25s ease;
-    min-width: 42px;
-    min-height: 42px;
-    align-items: center;
-    justify-content: center;
-    margin-left: 10px; /* Add space between button and other elements */
-  }
-  
-  .mobile-menu-btn:hover, .mobile-menu-btn:focus {
-    background: rgba(255, 138, 0, 0.15);
-    color: var(--primary);
-    transform: translateY(-2px);
-    outline: none;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-  }
-  
-  .mobile-menu-btn.active {
-    background: rgba(255, 138, 0, 0.2);
-    color: var(--primary);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 138, 0, 0.3);
-    transform: translateY(-2px);
-  }
-  
-  /* Mobile Dropdown Menu */
-  .mobile-dropdown {
-    position: fixed;
-    top: 70px;
-    left: 0;
-    width: 100%;
-    max-height: 0;
-    overflow: hidden;
-    background: linear-gradient(to bottom, rgba(18, 20, 26, 0.98), rgba(15, 17, 23, 0.95));
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border-bottom: 1px solid rgba(255, 138, 0, 0.15);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-    transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
-    z-index: 90;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    opacity: 0;
-    transform: translateY(-10px);
-    pointer-events: none;
-  }
-  
-  .mobile-dropdown.active {
-    max-height: calc(100vh - 70px);
-    overflow-y: auto;
-    padding: 15px;
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-  }
-  
-  /* Mobile Nav Items */
-  .mobile-nav-item {
-    margin-bottom: 10px; /* Consistent spacing */
-    position: relative;
-    padding: 12px 15px;
-    color: var(--text-light);
-    font-size: 0.95rem;
-    font-weight: 500;
-    text-decoration: none;
-    border-radius: 10px;
-    transition: all 0.25s ease;
-    display: flex;
-    align-items: center;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    background: rgba(255, 255, 255, 0.03);
-  }
-  
-  .mobile-nav-item i {
-    margin-right: 12px;
-    font-size: 1rem;
-    color: var(--primary);
-    width: 24px; /* Fixed width for consistent alignment */
-    text-align: center;
-  }
-  
-  .mobile-nav-item:hover {
-    color: var(--primary-light);
-    background: rgba(255, 138, 0, 0.1);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    border-color: rgba(255, 138, 0, 0.2);
-  }
-  
-  .mobile-nav-item.active {
-    color: var(--primary-light);
-    font-weight: 600;
-    background: rgba(255, 138, 0, 0.12);
-    border-color: rgba(255, 138, 0, 0.25);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-  }
-  
-  /* Main Content */
-  .main-content {
-    margin-top: 90px;
-    padding: 1.5rem;
-    min-height: calc(100vh - 90px - 300px); /* Adjust for header and footer */
-    width: 100%;
-  }
-  
-  /* Content Container */
-  .content-container {
-    max-width: 1280px;
-    margin: 0 auto;
-    width: 100%;
-  }
-  
-  /* Content Section */
-  .content-section {
-    background: var(--bg-light);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    overflow: hidden; /* Prevent child elements from overflowing */
-    width: 100%;
-  }
-  
-  /* Interactive Elements */
-  .interactive-btn {
-    position: relative;
+    transition: all 0.3s ease;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.75rem 1.5rem;
-    background: linear-gradient(45deg, var(--primary-dark), var(--primary));
-    color: var(--text-light);
-    font-weight: 600;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
+    gap: 0.5rem;
+    position: relative;
     overflow: hidden;
-    transition: all 0.3s ease;
-    text-decoration: none;
   }
   
-  .interactive-btn:hover {
-    background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+  .btn-primary:hover {
+    background: linear-gradient(to right, var(--primary-light), var(--primary));
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 138, 0, 0.3);
+    box-shadow: 0 5px 15px rgba(255,138,0,0.3);
   }
   
-  .interactive-btn::before {
+  .btn-primary::after {
     content: '';
     position: absolute;
     top: 0;
-    left: -100%;
+    left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: all 0.5s ease;
+    background: linear-gradient(to right, rgba(255,255,255,0.1), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
   }
   
-  .interactive-btn:hover::before {
-    left: 100%;
+  .btn-primary:hover::after {
+    transform: translateX(100%);
   }
   
-  /* Footer */
-  .main-footer {
-    background: var(--bg-darker);
-    border-top: 1px solid var(--border-color);
-    padding: 3rem 1.5rem 1.5rem;
-    width: 100%;
-  }
-  
-  .footer-container {
-    max-width: 1280px;
-    margin: 0 auto;
-    width: 100%;
-  }
-  
-  .footer-grid {
-    display: grid;
-    grid-template-columns: repeat(1, 1fr);
-    gap: 2rem;
-  }
-  
-  @media (min-width: 768px) {
-    .footer-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-  
-  .footer-section {
-    margin-bottom: 1.5rem;
-  }
-  
-  .footer-heading {
-    font-size: 1.125rem;
+  .btn-secondary {
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,138,0,0.3);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
     font-weight: 600;
-    color: var(--text-light);
-    margin-bottom: 1rem;
-    position: relative;
-    padding-bottom: 0.5rem;
-  }
-  
-  .footer-heading::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 50px;
-    height: 2px;
-    background: var(--primary);
-  }
-  
-  .footer-link {
-    display: flex;
-    align-items: center;
-    color: rgba(255, 255, 255, 0.7);
-    margin-bottom: 0.75rem;
-    transition: all 0.2s ease;
-    text-decoration: none;
-  }
-  
-  .footer-link:hover {
-    color: var(--primary);
-    transform: translateX(5px);
-  }
-  
-  .footer-link i {
-    margin-right: 0.5rem;
-    color: var(--primary);
-  }
-  
-  .social-links {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1rem;
-  }
-  
-  .social-link {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    background: var(--bg-light);
-    color: var(--text-light);
-    border-radius: 50%;
     transition: all 0.3s ease;
-    text-decoration: none;
-  }
-  
-  .social-link:hover {
-    background: var(--primary);
-    color: var(--bg-darker);
-    transform: translateY(-3px);
-  }
-  
-  .footer-bottom {
-    text-align: center;
-    padding-top: 1.5rem;
-    margin-top: 1.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 0.875rem;
-  }
-  
-  .footer-bottom a {
-    color: rgba(255, 255, 255, 0.7);
-    text-decoration: underline;
-    transition: color 0.2s ease;
-  }
-  
-  .footer-bottom a:hover {
-    color: var(--primary);
-  }
-  
-  /* Documentation Card */
-  .doc-card {
-    background: var(--bg-light);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    padding: 1.5rem;
-    transition: all 0.3s ease;
-  }
-  
-  .doc-card:hover {
-    border-color: var(--primary);
-    box-shadow: 0 5px 15px rgba(255, 138, 0, 0.15);
-  }
-  
-  /* Responsive Styles */
-  @media (max-width: 1024px) {
-    .nav-item {
-      padding: 6px 10px;
-      font-size: 0.85rem;
-    }
-    
-    .nav-item i {
-      margin-right: 6px;
-      font-size: 0.9rem;
-    }
-    
-    .logo-img {
-      height: 35px;
-    }
-    
-    .logo-text {
-      font-size: 1.1rem;
-    }
-    
-    .nav-menu {
-      gap: 8px;
-    }
-  }
-  
-  @media (max-width: 768px) {
-    .nav-menu {
-      display: none;
-    }
-    
-    .mobile-menu-btn {
-      display: flex;
-    }
-    
-    .nav-content {
-      height: 65px;
-    }
-    
-    .nav-container {
-      height: 65px;
-    }
-    
-    .main-header {
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    }
-    
-    .mobile-dropdown {
-      top: 65px;
-    }
-    
-    .main-content {
-      margin-top: 80px;
-      min-height: calc(100vh - 80px - 300px);
-    }
-    
-    .mobile-nav-item:last-child {
-      margin-bottom: 0;
-    }
-  }
-  
-  @media (max-width: 480px) {
-    .logo-img {
-      height: 32px;
-    }
-    
-    .logo-text {
-      font-size: 1rem;
-    }
-    
-    .nav-container {
-      padding: 0 1rem;
-    }
-    
-    .mobile-nav-item {
-      padding: 10px 12px;
-    }
-    
-    .mobile-dropdown.active {
-      padding: 12px;
-    }
-    
-    .main-content {
-      padding: 1rem;
-    }
-  }
-
-  /* Siri-like Floating Assistant Button */
-  .siri-toggle {
-    position: fixed;
-    bottom: 25px;
-    right: 25px;
-    width: 75px;
-    height: 75px;
-    border-radius: 50%;
-    z-index: 999;
-    cursor: pointer;
-    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    transform-origin: center;
-  }
-  
-  .siri-toggle:hover {
-    transform: scale(1.05);
-  }
-  
-  .siri-toggle:active {
-    transform: scale(0.95);
-  }
-  
-  .siri-button {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 
-                0 0 0 1px rgba(255, 255, 255, 0.1),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
-    animation: siri-entrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    gap: 0.5rem;
   }
   
-  @keyframes siri-entrance {
-    0% { transform: scale(0.5); opacity: 0; }
-    70% { transform: scale(1.1); }
-    100% { transform: scale(1); opacity: 1; }
-  }
-  
-  .siri-orb {
-    position: relative;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #ff8a00, #ff5f00);
-    box-shadow: 0 0 30px rgba(255, 138, 0, 0.6),
-                0 0 60px rgba(255, 138, 0, 0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    animation: siri-pulse 3s infinite ease-in-out;
-  }
-  
-  @keyframes siri-pulse {
-    0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(255, 138, 0, 0.6), 0 0 60px rgba(255, 138, 0, 0.3); }
-    50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(255, 138, 0, 0.7), 0 0 80px rgba(255, 138, 0, 0.4); }
-  }
-  
-  .siri-orb::before {
-    content: '';
-    position: absolute;
-    top: -10%;
-    left: -10%;
-    width: 120%;
-    height: 120%;
-    background: radial-gradient(circle at 30% 30%, 
-                rgba(255, 255, 255, 0.4), 
-                transparent 50%);
-    opacity: 0.8;
-  }
-  
-  .siri-icon {
-    position: relative;
-    z-index: 2;
-    color: white;
-    font-size: 1.8rem;
-    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
-    animation: float-icon 3s ease-in-out infinite;
-  }
-  
-  @keyframes float-icon {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
-  }
-  
-  .siri-glow {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 138, 0, 0.8), transparent 70%);
-    opacity: 0;
-    animation: siri-glow 3s infinite ease-in-out;
-  }
-  
-  @keyframes siri-glow {
-    0%, 100% { opacity: 0.3; transform: scale(1); }
-    50% { opacity: 0.6; transform: scale(1.15); }
-  }
-  
-  .siri-waves {
-    position: absolute;
-    bottom: 10px;
-    left: 0;
-    width: 100%;
-    height: 20px;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    gap: 3px;
-    z-index: 3;
-  }
-  
-  .siri-wave {
-    width: 4px;
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 4px;
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
-    transform-origin: bottom;
-    animation: siri-wave-animation 1.2s infinite ease-in-out;
-  }
-  
-  .siri-wave:nth-child(1) { 
-    height: 30%; 
-    animation-delay: 0.1s; 
-  }
-  
-  .siri-wave:nth-child(2) { 
-    height: 60%; 
-    animation-delay: 0.2s; 
-  }
-  
-  .siri-wave:nth-child(3) { 
-    height: 80%; 
-    animation-delay: 0.3s; 
-  }
-  
-  .siri-wave:nth-child(4) { 
-    height: 40%; 
-    animation-delay: 0.4s; 
-  }
-  
-  .siri-wave:nth-child(5) { 
-    height: 70%; 
-    animation-delay: 0.5s; 
-  }
-  
-  @keyframes siri-wave-animation {
-    0%, 100% { transform: scaleY(0.5); opacity: 0.5; }
-    50% { transform: scaleY(1); opacity: 1; }
-  }
-  
-  .siri-ripple {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.4);
-    transform: scale(0);
-    opacity: 1;
-    pointer-events: none;
-  }
-  
-  .siri-toggle.clicked .siri-ripple {
-    animation: siri-ripple 0.8s ease-out forwards;
-  }
-  
-  @keyframes siri-ripple {
-    0% { transform: scale(0); opacity: 1; }
-    100% { transform: scale(2); opacity: 0; }
-  }
-  
-  .siri-tooltip {
-    position: absolute;
-    top: -50px;
-    right: 0;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    white-space: nowrap;
-    opacity: 0;
-    transform: translateY(10px);
-    transition: all 0.3s ease;
-    pointer-events: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-  }
-  
-  .siri-tooltip::after {
-    content: '';
-    position: absolute;
-    bottom: -6px;
-    right: 25px;
-    width: 12px;
-    height: 12px;
-    background: rgba(0, 0, 0, 0.8);
-    transform: rotate(45deg);
-    border-radius: 2px;
-  }
-  
-  .siri-toggle:hover .siri-tooltip {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  
-  /* Particles inside the orb */
-  .siri-particles {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    border-radius: 50%;
-    pointer-events: none;
-  }
-  
-  .siri-particle {
-    position: absolute;
-    width: 4px;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 50%;
-    opacity: 0;
-    animation: siri-particle-float 3s infinite ease-out;
-  }
-  
-  .siri-particle:nth-child(1) {
-    top: 20%;
-    left: 20%;
-    animation-delay: 0s;
-  }
-  
-  .siri-particle:nth-child(2) {
-    top: 60%;
-    left: 80%;
-    animation-delay: 0.4s;
-  }
-  
-  .siri-particle:nth-child(3) {
-    top: 40%;
-    left: 40%;
-    animation-delay: 0.8s;
-  }
-  
-  .siri-particle:nth-child(4) {
-    top: 80%;
-    left: 60%;
-    animation-delay: 1.2s;
-  }
-  
-  .siri-particle:nth-child(5) {
-    top: 30%;
-    left: 70%;
-    animation-delay: 1.6s;
-  }
-  
-  @keyframes siri-particle-float {
-    0% { transform: translate(0, 0); opacity: 0; }
-    20% { opacity: 0.8; }
-    100% { transform: translate(20px, -20px); opacity: 0; }
-  }
-
-  /* Added Professional Header Effects */
-  .nav-menu {
-    position: relative;
-    overflow: visible;
-  }
-  
-  .nav-menu::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 100%;
-    height: 1px;
-    background: linear-gradient(90deg, 
-      rgba(255, 138, 0, 0) 0%, 
-      rgba(255, 138, 0, 0.2) 50%, 
-      rgba(255, 138, 0, 0) 100%);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-  }
-  
-  .nav-content:hover .nav-menu::after {
-    opacity: 1;
-  }
-  
-  /* Enhanced nav item transitions */
-  .nav-menu:hover .nav-item:not(:hover) {
-    opacity: 0.7;
-    transform: translateY(0);
-  }
-  
-  .nav-menu .nav-item {
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
-                opacity 0.2s ease, 
-                transform 0.2s ease;
-  }
-  
-  /* Subtle shimmer on logo */
-  .logo-container::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.08) 50%,
-      rgba(255, 255, 255, 0) 100%
-    );
-    transform: skewX(-15deg);
-    animation: shimmer 2.5s infinite;
-    pointer-events: none;
-    z-index: 0;
-  }
-  
-  @keyframes shimmer {
-    0% { transform: translateX(0%) skewX(-15deg); }
-    100% { transform: translateX(200%) skewX(-15deg); }
-  }
-  
-  /* Improved scroll behavior */
-  .main-header {
-    transition: box-shadow 0.3s ease, background 0.3s ease;
-    will-change: box-shadow, background;
-  }
-  
-  .header-scrolled {
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-    background: linear-gradient(to bottom, rgba(10, 12, 18, 0.98), rgba(13, 15, 21, 0.95));
+  .btn-secondary:hover {
+    background: rgba(0,0,0,0.5);
+    border-color: rgba(255,138,0,0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
   }
 </style>
 </head>
 <body>
-<!-- Background Pattern -->
+  <!-- Background Elements -->
 <div class="bg-pattern"></div>
-
-<!-- Standardized Animated Background Elements -->
 <div class="animated-background">
-  <div class="decorative-circle circle-1"></div>
-  <div class="decorative-circle circle-2"></div>
-  <div class="decorative-circle circle-3"></div>
-  <div class="gradient-bg"></div>
   <div class="particle"></div>
   <div class="particle"></div>
   <div class="particle"></div>
@@ -1204,361 +246,165 @@
   <div class="particle"></div>
   <div class="particle"></div>
 </div>
+  <div class="gradient-bg"></div>
 
-<!-- Header & Navigation -->
-<header class="main-header">
-  <div class="nav-container">
-    <div class="nav-content">
+  <!-- Navbar -->
+  <nav class="relative z-50 bg-dark-darker/80 backdrop-blur-md shadow-md shadow-black/10">
+    <div class="container mx-auto px-4 py-3">
+      <div class="flex justify-between items-center">
       <!-- Logo -->
-      <div class="logo-container">
-        <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="KYS Logo" class="logo-img">
-        <a href="{{ url_for('index') }}" class="logo-text">KnowYourSkins</a>
-      </div>
-      
-      <!-- Desktop Navigation Menu -->
-      <nav class="nav-menu">
-        <a href="{{ url_for('chatbot_page') }}" class="nav-item {% if request.endpoint == 'chatbot_page' %}active{% endif %}">
-          <i class="fas fa-robot"></i> Aura AI
-        </a>
-        <a href="{{ url_for('predict') }}" class="nav-item {% if request.endpoint == 'predict' %}active{% endif %}">
-          <i class="fas fa-camera"></i> Face Analysis
-        </a>
-        <a href="{{ url_for('skin_disease_prediction') }}" class="nav-item {% if request.endpoint == 'skin_disease_prediction' %}active{% endif %}">
-          <i class="fas fa-disease"></i> Skin Disease
-        </a>
-        <a href="{{ url_for('userappoint') }}" class="nav-item {% if request.endpoint == 'userappoint' %}active{% endif %}">
-          <i class="fas fa-calendar-check"></i> Appointments
-        </a>
-        <a href="{{ url_for('bookappointment') }}" class="nav-item {% if request.endpoint == 'bookappointment' or request.endpoint == 'consultation' %}active{% endif %}">
-          <i class="fas fa-calendar-plus"></i> Book
+        <a href="{{ url_for('index') }}" class="flex items-center gap-2 hover:opacity-90 transition-opacity">
+          <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="KNOWYOURSKINS Logo" class="w-10 h-10">
+          <span class="font-bold text-lg sm:text-xl text-white">KNOW<span class="text-primary">YOUR</span>SKINS</span>
         </a>
         
-        {% if session.get('is_doctor') %}
-        <a href="{{ url_for('doctor_appointments') }}" class="nav-item {% if request.endpoint == 'doctor_appointments' %}active{% endif %}">
-          <i class="fas fa-stethoscope"></i> Doctor
-        </a>
-        {% endif %}
+        <!-- Mobile Menu Button -->
+        <button id="menuBtn" class="md:hidden text-white p-2">
+          <i class="fas fa-bars text-xl"></i>
+        </button>
         
-        <a href="{{ url_for('profile') }}" class="nav-item {% if request.endpoint == 'profile' %}active{% endif %}">
-          <i class="fas fa-user-circle"></i> Profile
-        </a>
-        
-        {% if session.get('user_id') %}
-        <a href="{{ url_for('logout') }}" class="nav-item {% if request.endpoint == 'logout' %}active{% endif %}">
-          <i class="fas fa-sign-out-alt"></i> Logout
-        </a>
+        <!-- Desktop Navigation -->
+        <div class="hidden md:flex items-center gap-6">
+          <a href="{{ url_for('index') }}" class="text-white hover:text-primary transition-colors text-sm">Home</a>
+          <a href="{{ url_for('predict') }}" class="text-white hover:text-primary transition-colors text-sm">Face Analysis</a>
+          <a href="{{ url_for('skin_disease_prediction') }}" class="text-white hover:text-primary transition-colors text-sm">Skin Disease</a>
+          <a href="{{ url_for('chatbot_page') }}" class="text-white hover:text-primary transition-colors text-sm flex items-center gap-1"><i class="fas fa-comment-dots"></i> Chatbot</a>
+          
+          {% if session.user_id %}
+            <a href="{{ url_for('profile') }}" class="text-white hover:text-primary transition-colors text-sm">Profile</a>
+            <a href="{{ url_for('logout') }}" class="btn-secondary text-sm px-4 py-2">Logout</a>
         {% else %}
-        <a href="{{ url_for('login') }}" class="nav-item {% if request.endpoint == 'login' %}active{% endif %}">
-          <i class="fas fa-sign-in-alt"></i> Login
-        </a>
-        <a href="{{ url_for('register') }}" class="nav-item {% if request.endpoint == 'register' %}active{% endif %}">
-          <i class="fas fa-user-plus"></i> Register
-        </a>
+            <a href="{{ url_for('login') }}" class="text-white hover:text-primary transition-colors text-sm">Login</a>
+            <a href="{{ url_for('register') }}" class="btn-primary text-sm px-4 py-2">Register</a>
         {% endif %}
-      </nav>
-      
-      <!-- Mobile Menu Button -->
-      <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Toggle mobile menu">
-        <i class="bi bi-list"></i>
-      </button>
     </div>
   </div>
   
-  <!-- Mobile Dropdown Menu -->
-  <div id="mobile-dropdown" class="mobile-dropdown">
-    <a href="{{ url_for('chatbot_page') }}" class="mobile-nav-item {% if request.endpoint == 'chatbot_page' %}active{% endif %}">
-      <i class="fas fa-robot"></i> Aura AI
-    </a>
-    <a href="{{ url_for('predict') }}" class="mobile-nav-item {% if request.endpoint == 'predict' %}active{% endif %}">
-      <i class="fas fa-camera"></i> Face Analysis
-    </a>
-    <a href="{{ url_for('skin_disease_prediction') }}" class="mobile-nav-item {% if request.endpoint == 'skin_disease_prediction' %}active{% endif %}">
-      <i class="fas fa-disease"></i> Skin Disease
-    </a>
-    <a href="{{ url_for('bookappointment') }}" class="mobile-nav-item {% if request.endpoint == 'bookappointment' or request.endpoint == 'consultation' %}active{% endif %}">
-      <i class="fas fa-calendar-plus"></i> Book Appointment
-    </a>
-    <a href="{{ url_for('userappoint') }}" class="mobile-nav-item {% if request.endpoint == 'userappoint' %}active{% endif %}">
-      <i class="fas fa-calendar-check"></i> My Appointments
-    </a>
-    <a href="{{ url_for('profile') }}" class="mobile-nav-item {% if request.endpoint == 'profile' %}active{% endif %}">
-      <i class="fas fa-user-circle"></i> Profile
-    </a>
-    
-    {% if session.get('is_doctor') %}
-    <a href="{{ url_for('doctor_appointments') }}" class="mobile-nav-item {% if request.endpoint == 'doctor_appointments' %}active{% endif %}">
-      <i class="fas fa-stethoscope"></i> Doctor Dashboard
-    </a>
-    {% endif %}
-    
-    {% if session.get('user_id') %}
-    <a href="{{ url_for('logout') }}" class="mobile-nav-item {% if request.endpoint == 'logout' %}active{% endif %}">
-      <i class="fas fa-sign-out-alt"></i> Logout
-    </a>
+      <!-- Mobile Menu -->
+      <div id="mobileMenu" class="md:hidden hidden bg-dark-lighter rounded-lg mt-3 p-4 shadow-lg absolute left-4 right-4 z-50">
+        <div class="flex flex-col gap-4">
+          <a href="{{ url_for('index') }}" class="text-white hover:text-primary transition-colors">Home</a>
+          <a href="{{ url_for('predict') }}" class="text-white hover:text-primary transition-colors">Face Analysis</a>
+          <a href="{{ url_for('skin_disease_prediction') }}" class="text-white hover:text-primary transition-colors">Skin Disease</a>
+          <a href="{{ url_for('chatbot_page') }}" class="text-white hover:text-primary transition-colors flex items-center gap-1"><i class="fas fa-comment-dots"></i> Chatbot</a>
+          
+          {% if session.user_id %}
+            <a href="{{ url_for('profile') }}" class="text-white hover:text-primary transition-colors">Profile</a>
+            <a href="{{ url_for('logout') }}" class="w-full btn-secondary py-2 mt-2 text-center">Logout</a>
     {% else %}
-    <a href="{{ url_for('login') }}" class="mobile-nav-item {% if request.endpoint == 'login' %}active{% endif %}">
-      <i class="fas fa-sign-in-alt"></i> Login
-    </a>
-    <a href="{{ url_for('register') }}" class="mobile-nav-item {% if request.endpoint == 'register' %}active{% endif %}">
-      <i class="fas fa-user-plus"></i> Register
-    </a>
+            <a href="{{ url_for('login') }}" class="text-white hover:text-primary transition-colors">Login</a>
+            <a href="{{ url_for('register') }}" class="w-full btn-primary py-2 mt-2 text-center">Register</a>
     {% endif %}
   </div>
-</header>
-
-<!-- Main Content -->
-<main class="main-content">
-  <div class="content-container">
-    <section class="content-section">
-      {% block content %}{% endblock %}
-    </section>
-  </div>
-</main>
-
-<!-- Siri-like Floating Assistant Button -->
-{% if request.endpoint != 'chatbot_page' %}
-<a href="{{ url_for('chatbot_page') }}" class="siri-toggle" id="siri-toggle" aria-label="Open virtual assistant">
-  <div class="siri-tooltip">Ask me anything about skin care</div>
-  <div class="siri-button">
-    <div class="siri-orb">
-      <i class="fas fa-robot siri-icon"></i>
-      <div class="siri-glow"></div>
-      <div class="siri-particles">
-        <div class="siri-particle"></div>
-        <div class="siri-particle"></div>
-        <div class="siri-particle"></div>
-        <div class="siri-particle"></div>
-        <div class="siri-particle"></div>
-      </div>
-      <div class="siri-waves">
-        <div class="siri-wave"></div>
-        <div class="siri-wave"></div>
-        <div class="siri-wave"></div>
-        <div class="siri-wave"></div>
-        <div class="siri-wave"></div>
       </div>
     </div>
-    <div class="siri-ripple"></div>
-  </div>
-</a>
-{% endif %}
+  </nav>
 
-<!-- Footer -->
-<footer class="main-footer">
-  <div class="footer-container">
-    <div class="footer-grid">
-      <!-- Company Info -->
-      <div class="footer-section">
-        <h3 class="footer-heading">KNOWYOURSKINS</h3>
-        <p class="text-sm text-gray-400 mb-4">AI-Driven Dermatology Solutions</p>
-        <div class="space-y-2">
-          <p class="text-sm flex items-center">
-            <i class="fas fa-envelope mr-2 text-orange-400"></i>
-            himanshudixit2406@gmail.com
-          </p>
-          <p class="text-sm flex items-center">
-            <i class="fas fa-phone mr-2 text-orange-400"></i>
-            +917390922922
-          </p>
-        </div>
-        
-        <!-- Social Links -->
-        <div class="social-links">
-          <a href="https://www.instagram.com/himanshu.dixitt?igsh=MXExMWI4ZzIxNDA4cw==" class="social-link" aria-label="Instagram">
-            <i class="fab fa-instagram"></i>
+<!-- Main Content -->
+  <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="container mx-auto px-4 mt-4">
+          {% for category, message in messages %}
+            <div class="p-4 mb-4 rounded-lg {{ 'bg-green-500/20 border border-green-500/30' if category == 'success' else 'bg-red-500/20 border border-red-500/30' }}">
+              <p class="{{ 'text-green-400' if category == 'success' else 'text-red-400' }}">{{ message }}</p>
+  </div>
+          {% endfor %}
+      </div>
+{% endif %}
+    {% endwith %}
+    
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-dark-darker mt-12 border-t border-gray-800">
+    <div class="container mx-auto px-4 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Brand -->
+        <div>
+          <a href="{{ url_for('index') }}" class="flex items-center gap-2 mb-4">
+            <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="KNOWYOURSKINS Logo" class="w-10 h-10">
+            <span class="font-bold text-xl text-white">KNOW<span class="text-primary">YOUR</span>SKINS</span>
           </a>
-          <a href="https://www.linkedin.com/in/himanshudixit2406/" class="social-link" aria-label="LinkedIn">
-            <i class="fab fa-linkedin"></i>
-          </a>
-          <a href="https://github.com/himanshudixit2002" class="social-link" aria-label="GitHub">
-            <i class="fab fa-github"></i>
-          </a>
+          <p class="text-gray-400 text-sm mb-4">Advanced AI-powered skin analysis platform providing personalized recommendations.</p>
+          <div class="flex gap-4">
+            <a href="https://www.instagram.com/himanshu.dixitt?igsh=MXExMWI4ZzIxNDA4cw==" class="text-gray-400 hover:text-primary transition-colors"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.linkedin.com/in/himanshudixit2406/" class="text-gray-400 hover:text-primary transition-colors"><i class="fab fa-linkedin"></i></a>
+            <a href="https://github.com/himanshudixit2002" class="text-gray-400 hover:text-primary transition-colors"><i class="fab fa-github"></i></a>
         </div>
       </div>
       
       <!-- Quick Links -->
-      <div class="footer-section">
-        <h3 class="footer-heading">Quick Links</h3>
-        <div class="flex flex-col">
-          <a href="{{ url_for('predict') }}" class="footer-link">
-            <i class="fas fa-camera-retro"></i>
-            Skin Analysis
-          </a>
-          <a href="{{ url_for('bookappointment') }}" class="footer-link">
-            <i class="fas fa-calendar-plus"></i>
-            Book Appointment
-          </a>
-          <a href="{{ url_for('profile') }}" class="footer-link">
-            <i class="fas fa-user-circle"></i>
-            Profile
-          </a>
-          <a href="{{ url_for('userappoint') }}" class="footer-link">
-            <i class="fas fa-calendar-check"></i>
-            Appointments
-          </a>
-        </div>
+        <div>
+          <h3 class="text-white font-semibold mb-4">Quick Links</h3>
+          <ul class="space-y-2">
+            <li><a href="{{ url_for('index') }}" class="text-gray-400 hover:text-primary transition-colors text-sm">Home</a></li>
+            <li><a href="{{ url_for('predict') }}" class="text-gray-400 hover:text-primary transition-colors text-sm">Face Analysis</a></li>
+            <li><a href="{{ url_for('skin_disease_prediction') }}" class="text-gray-400 hover:text-primary transition-colors text-sm">Skin Disease Analysis</a></li>
+            <li><a href="{{ url_for('chatbot_page') }}" class="text-gray-400 hover:text-primary transition-colors text-sm">AI Chatbot</a></li>
+            <li><a href="{{ url_for('terms_of_service') }}" class="text-gray-400 hover:text-primary transition-colors text-sm">Terms of Service</a></li>
+            <li><a href="{{ url_for('privacy_policy') }}" class="text-gray-400 hover:text-primary transition-colors text-sm">Privacy Policy</a></li>
+          </ul>
       </div>
       
-      <!-- Documentation Card -->
-      <div class="footer-section">
-        <h3 class="footer-heading">Documentation</h3>
-        <div class="doc-card">
-          <p class="text-sm text-gray-400 mb-4">
-            Explore our comprehensive guide for installation, usage, and advanced tips to make the most of KNOWYOURSKINS.
-          </p>
-          <a href="{{ url_for('documentation') }}" class="interactive-btn">
-            Read Documentation
-          </a>
-        </div>
+        <!-- Contact -->
+        <div>
+          <h3 class="text-white font-semibold mb-4">Contact Us</h3>
+          <ul class="space-y-2">
+            <li class="flex items-start gap-3 text-sm">
+              <i class="fas fa-envelope mt-1 text-primary"></i>
+              <span class="text-gray-400">himanshudixit2406@gmail.com</span>
+            </li>
+            <li class="flex items-start gap-3 text-sm">
+              <i class="fas fa-phone mt-1 text-primary"></i>
+              <span class="text-gray-400">+91 7390922922</span>
+            </li>
+            <li class="flex items-start gap-3 text-sm">
+              <i class="fas fa-map-marker-alt mt-1 text-primary"></i>
+              <span class="text-gray-400">Rath, Hamirpur, Uttar Pradesh, 210431</span>
+            </li>
+          </ul>
       </div>
     </div>
     
-    <!-- Footer Bottom -->
-    <div class="footer-bottom">
-      <p>© 2024 KnowYourSkins. All rights reserved. | <a href="{{ url_for('terms_of_service') }}">Terms of Service</a> | <a href="{{ url_for('privacy_policy') }}">Privacy Policy</a></p>
+      <div class="border-t border-gray-800 mt-8 pt-6 text-center text-gray-500 text-sm">
+        <p>&copy; {{ now.year if now else '2024' }} KNOWYOURSKINS. All rights reserved.</p>
     </div>
   </div>
 </footer>
 
+  <!-- JavaScript -->
 <script>
-  // Improved mobile menu toggle with better animations and reliability
   document.addEventListener('DOMContentLoaded', function() {
-    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-    const mobileDropdown = document.getElementById('mobile-dropdown');
-    const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
-    let isMenuOpen = false;
-    
-    // Function to toggle the menu state
-    function toggleMenu(open) {
-      isMenuOpen = open !== undefined ? open : !isMenuOpen;
+      // Mobile Menu Toggle
+      const menuBtn = document.getElementById('menuBtn');
+      const mobileMenu = document.getElementById('mobileMenu');
       
-      mobileDropdown.classList.toggle('active', isMenuOpen);
-      mobileMenuBtn.classList.toggle('active', isMenuOpen);
-      
-      // Change icon based on menu state
-      const icon = mobileMenuBtn.querySelector('i');
-      if (isMenuOpen) {
-        icon.classList.remove('bi-list');
-        icon.classList.add('bi-x-lg');
-      } else {
-        icon.classList.remove('bi-x-lg');
-        icon.classList.add('bi-list');
-      }
-    }
-    
-    if (mobileMenuBtn && mobileDropdown) {
-      mobileMenuBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        toggleMenu();
-      });
-      
-      // Close menu when clicking on navigation items
-      mobileNavItems.forEach(item => {
-        item.addEventListener('click', function() {
-          toggleMenu(false);
+      if (menuBtn && mobileMenu) {
+        menuBtn.addEventListener('click', function() {
+          mobileMenu.classList.toggle('hidden');
+          menuBtn.innerHTML = mobileMenu.classList.contains('hidden') 
+            ? '<i class="fas fa-bars text-xl"></i>' 
+            : '<i class="fas fa-times text-xl"></i>';
         });
-      });
-      
-      // Close mobile menu when clicking outside
-      document.addEventListener('click', function(event) {
-        if (isMenuOpen && !mobileMenuBtn.contains(event.target) && !mobileDropdown.contains(event.target)) {
-          toggleMenu(false);
-        }
-      });
-      
-      // Close menu on window resize (if switching to desktop)
-      window.addEventListener('resize', function() {
-        if (window.innerWidth > 768 && isMenuOpen) {
-          toggleMenu(false);
-        }
-      });
-    }
-    
-    // Enhanced interactive button effects
-    document.querySelectorAll('.interactive-btn').forEach(button => {
-      button.addEventListener('mouseenter', function() {
-        this.style.transform = 'translateY(-3px)';
-        this.style.boxShadow = '0 6px 15px rgba(255, 138, 0, 0.3)';
-      });
-      
-      button.addEventListener('mouseleave', function() {
-        this.style.transform = 'translateY(0)';
-        this.style.boxShadow = '';
-      });
-    });
-    
-    // Add active class to current page nav items
-    const currentPath = window.location.pathname;
-    
-    // Handle special case for consultation route which should highlight Book Appointment
-    const isConsultation = currentPath.includes('/consultation');
-    
-    // Desktop menu
-    document.querySelectorAll('.nav-item').forEach(item => {
-      const href = item.getAttribute('href');
-      
-      // Handle the special case for book appointment / consultation
-      if (item.textContent.trim().includes('Book') && isConsultation) {
-        item.classList.add('active');
-        return;
       }
       
-      if (href === currentPath) {
-        item.classList.add('active');
-      }
-    });
-    
-    // Mobile menu with the same special case handling
-    document.querySelectorAll('.mobile-nav-item').forEach(item => {
-      const href = item.getAttribute('href');
-      
-      // Handle the special case for book appointment / consultation
-      if (item.textContent.trim().includes('Book Appointment') && isConsultation) {
-        item.classList.add('active');
-        return;
-      }
-      
-      if (href === currentPath) {
-        item.classList.add('active');
-      }
-    });
-    
-    // Siri-like assistant click animation
-    const siriToggle = document.getElementById('siri-toggle');
-    if (siriToggle) {
-      siriToggle.addEventListener('click', function() {
-        this.classList.add('clicked');
-        setTimeout(() => {
-          this.classList.remove('clicked');
-        }, 800);
-      });
-      
-      // Randomize wave animation to make it more natural
-      const siriWaves = document.querySelectorAll('.siri-wave');
-      siriWaves.forEach(wave => {
-        const randomDelay = Math.random() * 0.7;
-        const randomDuration = 1 + Math.random() * 1;
-        wave.style.animationDelay = `${randomDelay}s`;
-        wave.style.animationDuration = `${randomDuration}s`;
-      });
-      
-      // Create dynamic wave effect
-      setInterval(() => {
-        siriWaves.forEach(wave => {
-          const randomHeight = 30 + Math.random() * 70;
-          wave.style.height = `${randomHeight}%`;
+      // Smooth scroll for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          
+          const targetId = this.getAttribute('href');
+          if (targetId === '#') return;
+          
+          const targetElement = document.querySelector(targetId);
+          if (targetElement) {
+            targetElement.scrollIntoView({
+              behavior: 'smooth'
+            });
+          }
         });
-      }, 1000);
-    }
-    
-    // Header scroll effect
-    const header = document.querySelector('.main-header');
-    window.addEventListener('scroll', function() {
-      if (window.scrollY > 50) {
-        header.classList.add('header-scrolled');
-      } else {
-        header.classList.remove('header-scrolled');
-      }
     });
   });
 </script>

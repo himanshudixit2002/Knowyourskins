@@ -2,78 +2,159 @@
 
 {% block content %}
 <style>
-  /* Import Google Fonts */
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  /* Modern Design System - Face Analysis 2.0 */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+
+  :root {
+    --primary: #FF8C00;
+    --primary-light: #FFA333;
+    --primary-dark: #E67D00;
+    --accent: #FF6B00;
+    --accent-light: #FF8533;
+    --accent-dark: #E65C00;
+    --bg-dark: #121212;
+    --bg-card: #1E1E1E;
+    --text: #FFFFFF;
+    --text-secondary: #CCCCCC;
+    --surface: #1E1E1E;
+    --stroke: #333333;
+    --success: #4CAF50;
+    --warning: #FF9800;
+    --error: #F44336;
+    --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    --gradient-accent: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 12px 30px rgba(0, 0, 0, 0.4);
+    --shadow-focus: 0 0 0 3px rgba(255, 140, 0, 0.4);
+    --border-radius-sm: 8px;
+    --border-radius-md: 12px;
+    --border-radius-lg: 20px;
+    --border-radius-xl: 30px;
+  }
 
   /* Main Container */
-  .container-main {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 2rem;
+  .fa-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+    font-family: 'Inter', sans-serif;
+    color: var(--text);
+  }
+
+  /* Header Section */
+  .fa-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
     position: relative;
-    z-index: 1;
+  }
+
+  .fa-header h1 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+    display: inline-block;
+    position: relative;
+    text-align: center;
+  }
+
+  .fa-header h1 i {
+    color: var(--primary);
+    margin-right: 0.5rem;
+  }
+
+  .fa-header h1::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    width: 80px;
+    height: 3px;
+    transform: translateX(-50%);
+    background: var(--gradient-primary);
+    border-radius: 2px;
+  }
+
+  .fa-header p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 1.25rem auto 0;
+  }
+
+  /* Main Content Wrapper */
+  .fa-content-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+    margin-top: 2rem;
+    align-items: start;
+  }
+
+  @media (max-width: 992px) {
+    .fa-content-wrapper {
+      grid-template-columns: 1fr;
+    }
   }
 
   /* Upload Section */
-  .upload-section {
-    padding: 2rem;
-  }
-
-  /* Upload Box */
-  .upload-box {
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px dashed rgba(255, 159, 90, 0.3);
-    border-radius: 20px;
-    padding: 3rem 2rem;
-    text-align: center;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    margin-bottom: 2rem;
+  .fa-upload-section {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-lg);
+    padding: 2.5rem;
+    box-shadow: var(--shadow-md);
     position: relative;
     overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid var(--stroke);
   }
 
-  .upload-box::before {
+  .fa-upload-section::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at center, 
-                rgba(255, 255, 255, 0.05), 
-                transparent 70%);
+    background: radial-gradient(circle at top right, rgba(255, 140, 0, 0.1), transparent 70%);
     pointer-events: none;
   }
 
-  .upload-box:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: #FF9F5A;
+  .fa-upload-section:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-lg);
   }
 
-  .upload-box input[type="file"] {
-    display: none;
+  .fa-drop-zone {
+    border: 2px dashed var(--stroke);
+    border-radius: var(--border-radius-md);
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    margin-bottom: 2rem;
+    position: relative;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.03);
   }
 
-  .upload-box h3 {
-    color: white;
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
+  .fa-drop-zone.dragover {
+    border-color: var(--primary);
+    background: rgba(255, 140, 0, 0.08);
+    transform: scale(1.02);
   }
 
-  .upload-box p {
-    color: rgba(255, 255, 255, 0.7);
-    margin: 0.5rem 0;
+  .fa-drop-zone.has-file {
+    border-color: var(--primary);
+    background: rgba(255, 140, 0, 0.08);
   }
 
-  .upload-icon-container {
+  .fa-upload-icon {
     width: 80px;
     height: 80px;
-    background: rgba(255, 159, 90, 0.1);
+    background: rgba(255, 140, 0, 0.15);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -83,123 +164,121 @@
     transition: all 0.3s ease;
   }
 
-  .upload-box:hover .upload-icon-container {
+  .fa-drop-zone:hover .fa-upload-icon {
     transform: scale(1.1);
-    background: rgba(255, 159, 90, 0.2);
+    background: rgba(255, 140, 0, 0.25);
   }
 
-  .upload-icon {
+  .fa-upload-icon i {
     font-size: 2.5rem;
-    color: #FF9F5A;
+    color: var(--primary);
     transition: all 0.3s ease;
   }
 
-  .upload-box:hover .upload-icon {
+  .fa-drop-zone:hover .fa-upload-icon i {
     transform: translateY(-5px);
   }
 
-  .upload-icon-container::after {
-    content: '';
-    position: absolute;
-    top: -5px;
-    left: -5px;
-    right: -5px;
-    bottom: -5px;
-    border-radius: 50%;
-    border: 2px solid rgba(255, 159, 90, 0.2);
-    opacity: 0;
-    transition: all 0.3s ease;
+  .fa-drop-zone input[type="file"] {
+    display: none;
   }
 
-  .upload-box:hover .upload-icon-container::after {
-    opacity: 1;
-    top: -10px;
-    left: -10px;
-    right: -10px;
-    bottom: -10px;
+  .fa-drop-zone h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text);
   }
 
-  .file-size-note {
-    font-size: 0.9rem;
-    color: #FF9F5A;
-    margin-top: 0.75rem;
+  .fa-drop-zone p {
+    color: var(--text-secondary);
+    margin: 0.5rem 0;
+    font-size: 0.95rem;
+  }
+
+  .fa-file-info {
     display: inline-block;
-    padding: 0.4rem 1rem;
-    background: rgba(255, 159, 90, 0.1);
-    border-radius: 20px;
-  }
-
-  .feedback {
-    color: #10b981;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 140, 0, 0.1);
+    border-radius: var(--border-radius-sm);
+    color: var(--primary-light);
+    font-size: 0.9rem;
     margin-top: 1rem;
     font-weight: 500;
-    padding: 0.5rem 1rem;
-    background: rgba(16, 185, 129, 0.1);
-    border-radius: 8px;
-    display: inline-block;
   }
 
-  /* Button */
-  .btn-container {
+  .fa-file-feedback {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--border-radius-sm);
+    background: rgba(76, 175, 80, 0.1);
+    color: var(--success);
+    font-weight: 500;
+    display: none;
+    animation: fadeInUp 0.3s ease forwards;
     text-align: center;
-    position: relative;
+    width: 100%;
   }
 
-  .btn-analyze {
-    background: linear-gradient(135deg, #FF9F5A, #FF7A00);
+  /* Analysis Button */
+  .fa-analyze-btn {
+    width: 100%;
+    background: var(--gradient-primary);
     border: none;
-    border-radius: 12px;
-    padding: 1rem 2.5rem;
+    border-radius: var(--border-radius-md);
+    padding: 1rem;
     font-size: 1.1rem;
     font-weight: 600;
     color: white;
     cursor: pointer;
     transition: all 0.3s ease;
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 0.5rem;
-    box-shadow: 0 4px 15px rgba(255, 159, 90, 0.3);
+    justify-content: center;
+    gap: 0.75rem;
     position: relative;
     overflow: hidden;
-    z-index: 1;
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+    line-height: 1.3;
   }
 
-  .btn-analyze::before {
+  .fa-analyze-btn::before {
     content: '';
     position: absolute;
     top: 0;
-    left: 0;
+    left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
-    z-index: -1;
-    transition: all 0.3s ease;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: all 0.6s ease;
   }
 
-  .btn-analyze:hover {
+  .fa-analyze-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255, 159, 90, 0.4);
+    box-shadow: var(--shadow-md);
   }
 
-  .btn-analyze:hover::before {
-    opacity: 0.5;
+  .fa-analyze-btn:hover::before {
+    left: 100%;
   }
 
-  .btn-analyze:active {
-    transform: translateY(1px);
-  }
-
-  .btn-icon {
-    font-size: 1.2rem;
+  .fa-analyze-btn i {
+    font-size: 1.25rem;
     transition: all 0.3s ease;
   }
 
-  .btn-analyze:hover .btn-icon {
-    transform: rotate(15deg);
+  .fa-analyze-btn:hover i {
+    transform: rotate(20deg);
+  }
+
+  .fa-analyze-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
   }
 
   /* Loader */
-  .loader {
+  .fa-loader {
     display: none;
     width: 60px;
     height: 60px;
@@ -207,8 +286,8 @@
     position: relative;
   }
 
-  .loader:before,
-  .loader:after {
+  .fa-loader::before,
+  .fa-loader::after {
     content: '';
     position: absolute;
     top: 0;
@@ -216,39 +295,400 @@
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    border: 3px solid transparent;
-    border-top-color: #FF9F5A;
+    animation: faLoaderPulse 1.5s ease-in-out infinite;
   }
 
-  .loader:before {
-    z-index: 10;
-    animation: spin 1s infinite;
+  .fa-loader::before {
+    border: 3px solid var(--primary);
+    opacity: 0.6;
+    animation-delay: 0s;
   }
 
-  .loader:after {
-    border: 3px solid rgba(255, 159, 90, 0.3);
+  .fa-loader::after {
+    border: 3px solid var(--accent);
+    opacity: 0.6;
+    animation-delay: 0.75s;
   }
 
-  @keyframes spin {
+  @keyframes faLoaderPulse {
     0% {
-      transform: rotate(0deg);
+      transform: scale(0.8);
+      opacity: 0.6;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 0.2;
     }
     100% {
-      transform: rotate(360deg);
+      transform: scale(0.8);
+      opacity: 0.6;
     }
   }
 
   /* Results Section */
-  .results-section {
-    display: none;
-    padding: 0 0 2rem 0;
-    animation: fadeIn 0.5s ease forwards;
+  .fa-results-section {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+    display: none; /* Initially hidden */
+    animation: fadeInUp 0.5s ease forwards;
+    border: 1px solid var(--stroke);
   }
 
+  .fa-results-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at bottom left, rgba(255, 140, 0, 0.1), transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Results Tabs */
+  .fa-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 1.5rem 1.5rem 0;
+    position: relative;
+    justify-content: center;
+  }
+
+  .fa-tab-btn {
+    flex: 1;
+    min-width: 120px;
+    max-width: 200px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--stroke);
+    border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+    padding: 1rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    position: relative;
+    z-index: 1;
+    text-align: center;
+  }
+
+  .fa-tab-btn i {
+    font-size: 1.1rem;
+    color: var(--primary);
+    transition: all 0.3s ease;
+    display: inline-block;
+    margin-right: 0.25rem;
+  }
+
+  .fa-tab-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+  }
+
+  .fa-tab-btn.active {
+    background: var(--gradient-primary);
+    color: white;
+    border-color: transparent;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .fa-tab-btn.active i {
+    color: white;
+  }
+
+  .fa-tab-btn:hover i {
+    transform: translateY(-3px);
+  }
+
+  /* Tab Content */
+  .fa-tab-content {
+    display: none;
+    padding: 2rem;
+    animation: fadeIn 0.3s ease forwards;
+  }
+
+  .fa-tab-content.active {
+    display: block;
+  }
+
+  /* Results Cards */
+  .fa-card {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--stroke);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .fa-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(255, 140, 0, 0.3);
+  }
+
+  .fa-card-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--stroke);
+    position: relative;
+  }
+
+  .fa-card-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: var(--gradient-primary);
+    transition: width 0.3s ease;
+  }
+
+  .fa-card:hover .fa-card-header::after {
+    width: 100px;
+  }
+
+  .fa-card-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 140, 0, 0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .fa-card:hover .fa-card-icon {
+    transform: scale(1.1);
+    background: rgba(255, 140, 0, 0.25);
+  }
+
+  .fa-card-icon i {
+    font-size: 1.25rem;
+    color: var(--primary);
+  }
+
+  .fa-card-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+  }
+
+  /* Condition Grid */
+  .fa-conditions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .fa-condition-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--stroke);
+    border-left: 3px solid var(--primary);
+    border-radius: var(--border-radius-sm);
+    padding: 1.25rem 1rem;
+    font-weight: 500;
+    color: var(--text);
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+  }
+
+  .fa-condition-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 140, 0, 0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .fa-condition-item:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-sm);
+    border-left-width: 6px;
+  }
+
+  .fa-condition-item:hover::before {
+    opacity: 1;
+  }
+
+  /* Product Recommendations */
+  .fa-product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
+
+  .fa-product-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--stroke);
+    border-radius: var(--border-radius-md);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .fa-product-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 140, 0, 0.05), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .fa-product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(255, 140, 0, 0.3);
+  }
+
+  .fa-product-card:hover::before {
+    opacity: 1;
+  }
+
+  .fa-product-card h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 0;
+    margin-bottom: 1.25rem;
+    position: relative;
+    padding-bottom: 0.75rem;
+    text-align: left;
+  }
+
+  .fa-product-card h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background: var(--gradient-primary);
+    transition: width 0.3s ease;
+  }
+
+  .fa-product-card:hover h3::after {
+    width: 80px;
+  }
+
+  .fa-product-card p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    text-align: left;
+    line-height: 1.5;
+  }
+
+  .fa-product-card strong {
+    color: var(--text);
+  }
+
+  /* Analysis Images */
+  .fa-image-comparison {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    justify-content: center;
+  }
+
+  .fa-image-container {
+    flex: 1;
+    min-width: 250px;
+    position: relative;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    aspect-ratio: 4/3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .fa-image-container:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .fa-analysis-img {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--border-radius-md);
+    display: none;
+    transition: all 0.3s ease;
+    object-fit: contain;
+  }
+
+  .fa-image-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 500;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+  }
+
+  .fa-image-container:hover .fa-image-label {
+    background: rgba(255, 140, 0, 0.6);
+  }
+
+  /* Animations */
   @keyframes fadeIn {
     from {
       opacity: 0;
-      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
     }
     to {
       opacity: 1;
@@ -256,1023 +696,296 @@
     }
   }
 
-  /* Results Navigation */
-  .results-nav {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.75rem;
-    padding: 1.5rem 2rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    margin-bottom: 1.5rem;
-    position: relative;
-    overflow: hidden;
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(255, 140, 0, 0.4);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(255, 140, 0, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(255, 140, 0, 0);
+    }
   }
 
-  .results-nav::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 1px;
-    background: linear-gradient(90deg, 
-                transparent, 
-                rgba(255, 159, 90, 0.3), 
-                transparent);
-  }
-
-  .tab-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 0.75rem 1.25rem;
-    font-size: 1rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.8);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .tab-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, 
-                rgba(255, 255, 255, 0.1), 
-                transparent);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .tab-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: translateY(-2px);
-  }
-
-  .tab-btn:hover::before {
-    opacity: 1;
-  }
-
-  .tab-btn.active {
-    background: linear-gradient(135deg, #FF9F5A, #FF7A00);
-    color: white;
-    border-color: transparent;
-    box-shadow: 0 4px 15px rgba(255, 159, 90, 0.3);
-  }
-
-  .tab-btn i {
-    font-size: 1.1rem;
-    transition: all 0.3s ease;
-  }
-
-  .tab-btn:hover i {
-    transform: translateY(-2px);
-  }
-
-  /* Tab Content */
-  .tab-content {
-    display: none;
-    animation: fadeIn 0.5s ease forwards;
-    padding: 0 2rem;
-  }
-
-  .tab-content.active {
-    display: block;
-  }
-
-  /* Card Custom */
-  .card-custom {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    transform-style: preserve-3d;
-    perspective: 1000px;
-  }
-
-  .card-custom::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at top right, 
-                rgba(255, 159, 90, 0.1), 
-                transparent 70%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-  }
-
-  .card-custom:hover {
-    transform: translateY(-5px) rotateX(2deg) rotateY(2deg);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2),
-                0 0 0 1px rgba(255, 255, 255, 0.1) inset;
-  }
-
-  .card-custom:hover::before {
-    opacity: 1;
-  }
-
-  .card-title {
-    color: white;
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-top: 0;
-    margin-bottom: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    position: relative;
-  }
-
-  .card-title::after {
-    content: '';
-    position: absolute;
-    bottom: -0.5rem;
-    left: 0;
-    width: 50px;
-    height: 2px;
-    background: linear-gradient(90deg, #FF9F5A, transparent);
-    border-radius: 2px;
-    transition: width 0.3s ease;
-  }
-
-  .card-custom:hover .card-title::after {
-    width: 100px;
-  }
-
-  .card-title i {
-    color: #FF9F5A;
-    font-size: 1.25rem;
-    background: rgba(255, 159, 90, 0.1);
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-  }
-
-  .card-custom:hover .card-title i {
-    transform: scale(1.1);
-    background: rgba(255, 159, 90, 0.2);
-  }
-
-  /* Condition Grid */
-  .condition-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .list-group-item {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 1rem;
-    color: white;
-    font-weight: 500;
-    text-align: center;
-    transition: all 0.3s ease;
-    border-left: 3px solid #FF9F5A;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .list-group-item::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, 
-                rgba(255, 159, 90, 0.1), 
-                transparent);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .list-group-item:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-  }
-
-  .list-group-item:hover::before {
-    opacity: 1;
-  }
-
-  /* Product Grid */
-  .product-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-  }
-
-  /* Recommendation Card */
-  .recommendation-card {
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 1.25rem;
-    color: white;
-    transition: all 0.3s ease;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .recommendation-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at top right, 
-                rgba(255, 159, 90, 0.05), 
-                transparent 70%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .recommendation-card:hover {
-    background: rgba(255, 255, 255, 0.12);
-    transform: translateY(-3px) rotateX(2deg);
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-  }
-
-  .recommendation-card:hover::before {
-    opacity: 1;
-  }
-
-  .recommendation-card h3 {
-    color: #FF9F5A;
-    font-size: 1.2rem;
-    margin-top: 0;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 0.5rem;
-    position: relative;
-  }
-
-  .recommendation-card h3::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    width: 30%;
-    height: 2px;
-    background: linear-gradient(90deg, #FF9F5A, transparent);
-    transition: width 0.3s ease;
-  }
-
-  .recommendation-card:hover h3::after {
-    width: 50%;
-  }
-
-  .recommendation-card p {
-    margin: 0.75rem 0;
-    font-size: 0.95rem;
-    transition: all 0.2s ease;
-  }
-
-  .recommendation-card:hover p {
-    transform: translateX(3px);
-  }
-
-  .recommendation-card strong {
-    color: rgba(255, 255, 255, 0.9);
-    position: relative;
-    display: inline-block;
-  }
-
-  .recommendation-card strong::after {
-    content: '';
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 0;
-    height: 1px;
-    background: #FF9F5A;
-    transition: width 0.3s ease;
-  }
-
-  .recommendation-card:hover strong::after {
-    width: 100%;
-  }
-
-  /* Tip Content */
-  .tip-content {
-    color: rgba(255, 255, 255, 0.9);
-    line-height: 1.6;
-    font-size: 1rem;
-    white-space: pre-line;
-    padding: 0.5rem;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-  }
-
-  .card-custom:hover .tip-content {
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  /* Image Comparison */
-  .image-comparison {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    align-items: center;
-  }
-
-  .annotated-img {
-    max-width: 100%;
-    border-radius: 12px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
-    border: 2px solid transparent;
-  }
-
-  .annotated-img:hover {
-    transform: scale(1.02);
-    border-color: rgba(255, 159, 90, 0.3);
-  }
-
-  /* Image Overlay */
-  .image-wrapper {
-    position: relative;
-    border-radius: 12px;
-    overflow: hidden;
-    max-width: 100%;
-  }
-
-  .image-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 1rem;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
-    color: white;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    text-align: center;
-  }
-
-  .image-wrapper:hover .image-overlay {
-    opacity: 1;
+  .fa-pulse {
+    animation: pulse 2s infinite;
   }
 
   /* Responsive Adjustments */
   @media (max-width: 768px) {
-    .container-main {
-      padding: 1rem 0.75rem;
-      min-height: calc(100vh - 80px);
-      width: 100%;
+    .fa-header h1 {
+      font-size: 2rem;
+    }
+    
+    .fa-header p {
+      font-size: 1rem;
+    }
+    
+    .fa-upload-section, 
+    .fa-results-section {
+      padding: 1.5rem;
+    }
+    
+    .fa-drop-zone {
+      padding: 2rem 1rem;
+    }
+    
+    .fa-upload-icon {
+      width: 60px;
+      height: 60px;
+    }
+    
+    .fa-upload-icon i {
+      font-size: 2rem;
+    }
+    
+    .fa-drop-zone h3 {
+      font-size: 1.2rem;
+      line-height: 1.4;
+    }
+    
+    .fa-tabs {
+      flex-wrap: wrap;
     }
 
-    .content-header {
-      padding: 2rem 1rem 1.75rem;
+    .fa-tab-btn {
+      flex: 1 0 calc(50% - 0.75rem);
+      font-size: 0.9rem;
+      max-width: none;
     }
-
-    .content-header h1 {
+    
+    .fa-card-title {
+      font-size: 1.2rem;
+    }
+    
+    .fa-tab-content {
+      padding: 1.5rem;
+    }
+    
+    .fa-conditions-grid {
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+    
+    .fa-product-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .fa-header h1 {
       font-size: 1.8rem;
     }
     
-    .content-header p {
-      font-size: 1rem;
-      margin-top: 0.5rem;
-      padding: 0 0.5rem;
-    }
-
-    .content-container {
-      max-width: 100%;
-      margin: 0;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-      width: 100%;
-    }
-
-    .results-nav {
-      padding: 1.25rem 1rem;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      justify-content: center;
-      overflow-x: hidden;
-    }
-
-    .tab-btn {
-      padding: 0.75rem 1rem;
-      font-size: 0.95rem;
-      flex-basis: calc(50% - 0.75rem);
-      flex-grow: 0;
-      justify-content: center;
-      min-height: 52px; /* Larger tap target for mobile */
-      width: calc(50% - 0.75rem);
-      display: flex;
-      align-items: center;
-      text-align: center;
-      border-radius: 10px;
-    }
-
-    .tab-content {
-      padding: 0 1.25rem;
-    }
-
-    .card-title {
-      font-size: 1.3rem;
-      align-items: center;
-      gap: 0.75rem;
-      padding-bottom: 0.75rem;
-      margin-bottom: 1.5rem;
-      text-align: center;
+    .fa-tab-btn {
+      flex: 1 0 100%;
     }
     
-    .card-title::after {
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80px;
+    .fa-upload-section, 
+    .fa-results-section {
+      padding: 1.25rem;
     }
     
-    .card-title i {
-      margin-bottom: 0.25rem;
+    .fa-card {
+      padding: 1.25rem;
     }
-
-    .condition-grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 0.85rem;
+    
+    .fa-tab-content {
+      padding: 1.25rem;
     }
-
-    .list-group-item {
-      padding: 0.9rem 0.7rem;
-      font-size: 0.95rem;
-      min-height: 48px; /* Improved tap target size */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      border-radius: 9px;
-    }
-
-    .product-grid {
+    
+    .fa-conditions-grid {
       grid-template-columns: 1fr;
-      gap: 1.35rem;
-    }
-    
-    .recommendation-card {
-      padding: 1.35rem;
-      border-radius: 12px;
-    }
-    
-    .recommendation-card h3 {
-      font-size: 1.15rem;
-      text-align: center;
-      padding-bottom: 0.65rem;
-    }
-    
-    .recommendation-card p {
-      text-align: center;
-      font-size: 0.95rem;
-      margin: 0.65rem 0;
-    }
-
-    .btn-analyze {
-      padding: 1rem 1.5rem;
-      font-size: 1.05rem;
-      width: 100%;
-      min-height: 54px; /* Larger tap target for mobile */
-      border-radius: 12px;
-    }
-
-    .upload-box {
-      padding: 2.25rem 1.5rem;
-      margin-bottom: 1.75rem;
-      border-radius: 16px;
-    }
-
-    .upload-icon-container {
-      width: 75px;
-      height: 75px;
-      margin-bottom: 1.5rem;
-    }
-
-    .upload-icon {
-      font-size: 2.15rem;
-    }
-    
-    .upload-box h3 {
-      font-size: 1.3rem;
-      margin-bottom: 0.85rem;
-    }
-    
-    .upload-box p {
-      font-size: 0.95rem;
-      margin: 0.5rem 0;
-    }
-    
-    .file-size-note {
-      font-size: 0.9rem;
-      padding: 0.45rem 1rem;
-      border-radius: 16px;
-    }
-    
-    .card-custom {
-      padding: 1.65rem 1.35rem;
-      margin-bottom: 1.65rem;
-      border-radius: 14px;
-    }
-    
-    .tip-content {
-      font-size: 1rem;
-      line-height: 1.65;
-      text-align: left;
-      padding: 0.75rem;
-    }
-    
-    .annotated-img {
-      border-radius: 12px;
-      width: 100%;
-    }
-
-    /* Enhanced image gallery for better mobile viewing */
-    .image-comparison {
-      gap: 1.5rem;
-      flex-direction: column;
-    }
-
-    .image-wrapper {
-      width: 100%;
-      margin-bottom: 0.75rem;
-    }
-
-    .image-overlay {
-      opacity: 0.85; /* Always slightly visible on mobile */
-      padding: 0.85rem;
-    }
-    
-    .results-section {
-      padding: 0 0 1.75rem 0;
     }
   }
 
-  @media (max-width: 480px) {
-    .container-main {
-      padding: 0.75rem 0.5rem;
-      min-height: calc(100vh - 60px);
-    }
-    
-    .content-container {
-      border-radius: 12px;
-      margin: 0;
-      width: 100%;
-    }
-    
-    .content-header {
-      padding: 1.75rem 1rem 1.5rem;
-    }
-
-    .content-header h1 {
-      font-size: 1.6rem;
-    }
-
-    .content-header p {
-      font-size: 0.95rem;
-      margin-top: 0.5rem;
-      padding: 0 0.5rem;
-    }
-
-    .results-nav {
-      padding: 1rem 0.6rem;
-      gap: 0.65rem;
-      flex-direction: row;
-      flex-wrap: wrap;
-    }
-
-    .tab-btn {
-      padding: 0.8rem 0.6rem;
-      font-size: 0.9rem;
-      border-radius: 10px;
-      min-height: 48px; /* Larger touch target */
-      flex-basis: calc(50% - 0.65rem);
-      width: calc(50% - 0.65rem);
-    }
-
-    .tab-btn i {
-      font-size: 1rem;
-      margin-right: 0.4rem;
-    }
-
-    .tab-content {
-      padding: 0 0.9rem;
-    }
-
-    .card-title {
-      font-size: 1.25rem;
-      margin-bottom: 1.35rem;
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .card-title i {
-      width: 40px;
-      height: 40px;
-      font-size: 1.15rem;
-      margin-bottom: 0.35rem;
-    }
-
-    .condition-grid {
-      grid-template-columns: 1fr 1fr; /* Force 2 columns even on very small screens */
-      gap: 0.75rem;
-    }
-
-    .list-group-item {
-      padding: 0.85rem 0.65rem;
-      font-size: 0.9rem;
-      border-radius: 9px;
-      word-break: break-word;
-      hyphens: auto;
-      min-height: 46px;
-    }
-
-    .recommendation-card {
-      padding: 1.25rem 1rem;
-      border-radius: 10px;
-    }
-
-    .recommendation-card h3 {
-      font-size: 1.1rem;
-      padding-bottom: 0.6rem;
-      margin-bottom: 0.9rem;
-    }
-
-    .recommendation-card p {
-      font-size: 0.95rem;
-      margin: 0.8rem 0;
-      line-height: 1.6;
-      text-align: center;
-    }
-    
-    .recommendation-card strong {
-      display: block;
-      margin-bottom: 0.35rem;
-      font-size: 1rem;
-    }
-
-    .tip-content {
-      font-size: 0.95rem;
-      line-height: 1.6;
-      padding: 0.65rem;
-    }
-
-    .upload-box {
-      padding: 1.85rem 1.15rem;
-      margin-bottom: 1.6rem;
-      border-radius: 12px;
-    }
-    
-    .upload-box h3 {
-      font-size: 1.2rem;
-      margin-bottom: 0.75rem;
-    }
-    
-    .upload-box p {
-      font-size: 0.9rem;
-      margin: 0.45rem 0;
-    }
-
-    .upload-icon-container {
-      width: 65px;
-      height: 65px;
-      margin-bottom: 1.25rem;
-    }
-
-    .upload-icon {
-      font-size: 1.75rem;
-    }
-    
-    .file-size-note {
-      font-size: 0.85rem;
-      padding: 0.45rem 0.9rem;
-      margin-top: 0.65rem;
-      border-radius: 12px;
-    }
-    
-    .btn-analyze {
-      padding: 0.9rem 1.35rem;
-      font-size: 1rem;
-      border-radius: 10px;
-      min-height: 52px;
-    }
-    
-    .btn-icon {
-      font-size: 1.15rem;
-    }
-    
-    .loader {
-      width: 55px;
-      height: 55px;
-      margin: 1.35rem auto;
-    }
-    
-    .upload-section {
-      padding: 1.6rem 1.15rem;
-    }
-    
-    .card-custom {
-      padding: 1.35rem 1.15rem;
-      margin-bottom: 1.4rem;
-      border-radius: 12px;
-    }
-    
-    .image-wrapper .image-overlay {
-      padding: 0.85rem;
-      font-size: 0.9rem;
-    }
-    
-    /* Fix for image comparison on very small screens */
-    .image-comparison {
-      gap: 1.35rem;
-    }
-    
-    .image-wrapper {
-      width: 100%;
-      margin-bottom: 0.65rem;
-    }
-    
-    .annotated-img {
-      width: 100%;
-      height: auto;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 159, 90, 0.15);
-    }
+  /* Recommendations styling */
+  .fa-recommendations-content {
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0.5rem;
   }
 
-  /* Extra small devices */
-  @media (max-width: 360px) {
-    .container-main {
-      padding: 0.65rem 0.35rem;
-    }
-    
-    .content-header {
-      padding: 1.5rem 0.85rem 1.25rem;
-    }
-    
-    .content-header h1 {
-      font-size: 1.45rem;
-    }
-    
-    .content-header p {
-      font-size: 0.9rem;
-      padding: 0 0.3rem;
-    }
-    
-    .results-nav {
-      padding: 0.9rem 0.55rem;
-      gap: 0.5rem;
-    }
-    
-    .tab-btn {
-      padding: 0.75rem 0.5rem;
-      font-size: 0.85rem;
-      width: calc(50% - 0.5rem);
-      flex-basis: calc(50% - 0.5rem);
-      min-height: 46px;
-    }
-    
-    .tab-btn i {
-      margin-right: 0.25rem;
-      font-size: 0.9rem;
-    }
-    
-    .condition-grid {
-      grid-template-columns: 1fr; /* Single column for very small screens */
-    }
-    
-    .upload-box h3 {
-      font-size: 1.15rem;
-    }
-    
-    .upload-box p {
-      font-size: 0.85rem;
-    }
-    
-    .card-title {
-      font-size: 1.15rem;
-    }
-
-    /* Make buttons more tappable on very small screens */
-    .btn-analyze, 
-    .tab-btn {
-      margin-bottom: 0.25rem;
-    }
-    
-    /* Adjust spacing for tiny screens */
-    .tip-content {
-      padding: 0.6rem 0.35rem;
-    }
-    
-    .card-custom {
-      padding: 1.2rem 0.9rem;
-    }
-    
-    .recommendation-card {
-      padding: 1.1rem 0.85rem;
-    }
-    
-    .list-group-item {
-      padding: 0.8rem 0.5rem;
-      font-size: 0.85rem;
-      min-height: 44px;
-    }
-    
-    /* Enhance the image display for tiny screens */
-    .image-comparison {
-      gap: 1.2rem;
-    }
-    
-    .image-wrapper {
-      margin-bottom: 0.5rem;
-    }
-    
-    .image-overlay {
-      opacity: 0.9; /* Make more visible on tiny screens */
-      padding: 0.7rem;
-      font-size: 0.85rem;
-    }
+  .fa-recommendations-content h3 {
+    color: var(--primary);
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255, 140, 0, 0.2);
+    padding-bottom: 0.5rem;
   }
 
-  /* Fade-in Animation */
-  .fade-in {
-    animation: fadeIn 0.5s ease-in-out forwards;
+  .fa-recommendations-content ul {
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
   }
 
-  @media (min-width: 768px) {
-    .image-comparison {
-      flex-direction: row;
-      justify-content: center;
-      align-items: flex-start;
-    }
-
-    .annotated-img {
-      max-width: 48%;
-    }
+  .fa-recommendations-content li {
+    margin-bottom: 0.75rem;
+    color: var(--text-secondary);
+    list-style-type: none;
+    position: relative;
+    padding-left: 1.5rem;
+    line-height: 1.5;
   }
 
-  /* Pulse Animation for Active Elements */
-  @keyframes pulse {
-    0% {
-      box-shadow: 0 0 0 0 rgba(255, 159, 90, 0.4);
-    }
-    70% {
-      box-shadow: 0 0 0 10px rgba(255, 159, 90, 0);
-    }
-    100% {
-      box-shadow: 0 0 0 0 rgba(255, 159, 90, 0);
-    }
+  .fa-recommendations-content li::before {
+    content: '•';
+    color: var(--primary);
+    position: absolute;
+    left: 0.5rem;
+    font-weight: bold;
   }
 
-  .pulse {
-    animation: pulse 2s infinite;
+  .fa-recommendations-content strong {
+    color: var(--text);
+  }
+
+  /* Improve button hover/active states */
+  .fa-analyze-btn:active {
+    transform: translateY(1px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Fix center alignment issues in buttons */
+  button {
+    text-align: center;
   }
 </style>
 
-<div class="container-main">
-  <div class="content-container">
-    <div class="content-header">
-      <h1><i class="fas fa-syringe"></i>Face Analysis</h1>
-      <p>Upload your photo for AI-powered skin analysis</p>
-    </div>
-
-    <!-- Upload Form -->
-    <div class="upload-section">
+<div class="fa-container">
+  <header class="fa-header">
+    <h1><i class="fas fa-microscope"></i> Advanced Face Analysis</h1>
+    <p>Upload your photo for AI-powered skin analysis using cutting-edge computer vision technology</p>
+  </header>
+  
+  <div class="fa-content-wrapper">
+    <!-- Upload Section -->
+    <section class="fa-upload-section">
       <form id="uploadForm" method="post" enctype="multipart/form-data">
-        <div class="upload-box" id="uploadBox">
+        <div class="fa-drop-zone" id="dropZone">
           <input id="fileInput" type="file" name="image" accept="image/*" required>
-          <div class="upload-icon-container">
-            <i class="fas fa-cloud-upload-alt upload-icon"></i>
+          <div class="fa-upload-icon">
+            <i class="fas fa-cloud-upload-alt"></i>
           </div>
           <h3>Drag & Drop or Click to Upload</h3>
-          <p>Supported formats: JPG, PNG</p>
-          <p class="file-size-note">Max size: 2MB</p>
-          <p id="fileFeedback" class="feedback" style="display: none;"></p>
+          <p>Upload a clear photo of your face for the most accurate analysis</p>
+          <p class="fa-file-info">Accepted formats: JPG, PNG (Max: 2MB)</p>
+          <div id="fileFeedback" class="fa-file-feedback"></div>
         </div>
-        <div class="btn-container">
-          <button class="btn-analyze" type="submit">
-            <i class="fas fa-microscope btn-icon"></i> Analyze Skin
-          </button>
-          <div class="loader" id="loadingSpinner"></div>
-        </div>
+        
+        <button type="submit" class="fa-analyze-btn" id="analyzeBtn">
+          <i class="fas fa-microscope"></i>
+          <span>Analyze Skin Condition</span>
+        </button>
+        
+        <div class="fa-loader" id="loader"></div>
       </form>
-    </div>
+    </section>
 
     <!-- Results Section -->
-    <div id="resultsSection" class="results-section">
-      <nav class="results-nav">
-        <button class="tab-btn active" data-tab="conditions">
-          <i class="fas fa-flask"></i> Conditions
+    <section class="fa-results-section" id="resultsSection">
+      <div class="fa-tabs">
+        <button class="fa-tab-btn active" data-tab="conditions">
+          <i class="fas fa-check-circle"></i> Detected Conditions
         </button>
-        <button class="tab-btn" data-tab="tips">
-          <i class="fas fa-lightbulb"></i> Skincare Tips
+        <button class="fa-tab-btn" data-tab="analysis">
+          <i class="fas fa-chart-pie"></i> Analysis
         </button>
-        <button class="tab-btn" data-tab="products">
+        <button class="fa-tab-btn" data-tab="recommendations">
+          <i class="fas fa-lightbulb"></i> Recommendations
+        </button>
+        <button class="fa-tab-btn" data-tab="products">
           <i class="fas fa-shopping-bag"></i> Products
         </button>
-        <button class="tab-btn" data-tab="analysis">
-          <i class="fas fa-search"></i> Analysis
-        </button>
-      </nav>
-      
-      <div class="tab-content active" data-tab="conditions">
-        <div class="card-custom fade-in">
-          <h2 class="card-title">
-            <i class="fas fa-flask"></i> Detected Skin Conditions
-          </h2>
-          <ul id="conditionsList" class="condition-grid"></ul>
-        </div>
       </div>
       
-      <div class="tab-content" data-tab="tips">
-        <div class="card-custom fade-in">
-          <h2 class="card-title">
-            <i class="fas fa-lightbulb"></i> Personalized Skincare Recommendations
-          </h2>
-          <div id="aiAnalysis" class="tip-content"></div>
-        </div>
-      </div>
-      
-      <div class="tab-content" data-tab="products">
-        <div class="card-custom fade-in">
-          <h2 class="card-title">
-            <i class="fas fa-shopping-bag"></i> Recommended Products
-          </h2>
-          <div id="recommendationsContainer" class="product-grid"></div>
-        </div>
-      </div>
-      
-      <div class="tab-content" data-tab="analysis">
-        <div class="card-custom fade-in">
-          <h2 class="card-title">
-            <i class="fas fa-search"></i> AI Analysis Visualization
-          </h2>
-          <div class="image-comparison">
-            <div class="image-wrapper">
-              <img id="originalImage" class="annotated-img" src="/placeholder.svg" alt="Original Image" style="display: none;">
-              <div class="image-overlay">Original uploaded image</div>
+      <!-- Conditions Tab -->
+      <div class="fa-tab-content active" data-tab="conditions">
+        <div class="fa-card">
+          <div class="fa-card-header">
+            <div class="fa-card-icon">
+              <i class="fas fa-check-circle"></i>
             </div>
-            <div class="image-wrapper">
-              <img id="annotatedImage" class="annotated-img" src="/placeholder.svg" alt="Analyzed Image" style="display: none;">
-              <div class="image-overlay">AI-analyzed image with annotations</div>
+            <h2 class="fa-card-title">Detected Skin Conditions</h2>
+          </div>
+          <div class="fa-conditions-grid" id="conditionsList"></div>
+        </div>
+      </div>
+      
+      <!-- Analysis Tab -->
+      <div class="fa-tab-content" data-tab="analysis">
+        <div class="fa-card">
+          <div class="fa-card-header">
+            <div class="fa-card-icon">
+              <i class="fas fa-chart-pie"></i>
+            </div>
+            <h2 class="fa-card-title">Visual Analysis</h2>
+          </div>
+          <div class="fa-image-comparison">
+            <div class="fa-image-container">
+              <img id="originalImage" class="fa-analysis-img" src="#" alt="Original Image">
+              <div class="fa-image-label">Original Image</div>
+            </div>
+            <div class="fa-image-container">
+              <img id="annotatedImage" class="fa-analysis-img" src="#" alt="Analyzed Image">
+              <div class="fa-image-label">AI-Analyzed Image</div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+      
+      <!-- Recommendations Tab -->
+      <div class="fa-tab-content" data-tab="recommendations">
+        <div class="fa-card">
+          <div class="fa-card-header">
+            <div class="fa-card-icon">
+              <i class="fas fa-lightbulb"></i>
+            </div>
+            <h2 class="fa-card-title">Skincare Recommendations</h2>
+          </div>
+          <div id="aiAnalysis" class="fa-recommendations-content"></div>
+        </div>
+      </div>
+      
+      <!-- Products Tab -->
+      <div class="fa-tab-content" data-tab="products">
+        <div class="fa-card">
+          <div class="fa-card-header">
+            <div class="fa-card-icon">
+              <i class="fas fa-shopping-bag"></i>
+            </div>
+            <h2 class="fa-card-title">Recommended Products</h2>
+          </div>
+          <div class="fa-product-grid" id="productsList"></div>
+        </div>
+      </div>
+    </section>
   </div>
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const uploadBox = document.getElementById("uploadBox");
+document.addEventListener("DOMContentLoaded", function() {
+  // DOM Elements
+  const dropZone = document.getElementById("dropZone");
     const fileInput = document.getElementById("fileInput");
     const fileFeedback = document.getElementById("fileFeedback");
     const uploadForm = document.getElementById("uploadForm");
-    const loadingSpinner = document.getElementById("loadingSpinner");
+  const analyzeBtn = document.getElementById("analyzeBtn");
+  const loader = document.getElementById("loader");
     const resultsSection = document.getElementById("resultsSection");
     const conditionsList = document.getElementById("conditionsList");
-    const recommendationsContainer = document.getElementById("recommendationsContainer");
+  const productsList = document.getElementById("productsList");
     const aiAnalysis = document.getElementById("aiAnalysis");
-    const annotatedImage = document.getElementById("annotatedImage");
     const originalImage = document.getElementById("originalImage");
+  const annotatedImage = document.getElementById("annotatedImage");
+  const tabButtons = document.querySelectorAll(".fa-tab-btn");
+  const tabContents = document.querySelectorAll(".fa-tab-content");
 
-    // Add animation to result cards
-    const resultCards = document.querySelectorAll('.card-custom');
-    resultCards.forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(20px)';
-        card.style.transitionDelay = `${index * 0.1}s`;
-    });
-
-    // Handle drag and drop
+  // File Upload Handling
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        uploadBox.addEventListener(eventName, preventDefaults, false);
+    dropZone.addEventListener(eventName, preventDefaults, false);
     });
 
     function preventDefaults(e) {
@@ -1281,283 +994,308 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     ['dragenter', 'dragover'].forEach(eventName => {
-        uploadBox.addEventListener(eventName, highlight, false);
+    dropZone.addEventListener(eventName, highlight, false);
     });
 
     ['dragleave', 'drop'].forEach(eventName => {
-        uploadBox.addEventListener(eventName, unhighlight, false);
+    dropZone.addEventListener(eventName, unhighlight, false);
     });
 
     function highlight() {
-        uploadBox.style.background = 'rgba(255, 255, 255, 0.15)';
-        uploadBox.style.borderColor = '#FF9F5A';
-        uploadBox.style.transform = 'translateY(-5px)';
-        uploadBox.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.2)';
+    dropZone.classList.add('dragover');
     }
 
     function unhighlight() {
-        uploadBox.style.background = 'rgba(255, 255, 255, 0.05)';
-        uploadBox.style.borderColor = 'rgba(255, 159, 90, 0.3)';
-        uploadBox.style.transform = 'translateY(0)';
-        uploadBox.style.boxShadow = 'none';
+    dropZone.classList.remove('dragover');
     }
 
-    uploadBox.addEventListener('drop', handleDrop, false);
+  // Handle dropping files
+  dropZone.addEventListener('drop', handleDrop, false);
 
     function handleDrop(e) {
         const dt = e.dataTransfer;
         const files = dt.files;
+    
+    if (files.length) {
         fileInput.files = files;
-        handleFiles(files);
+      validateAndPreviewFile(files[0]);
     }
+  }
 
-    function handleFiles(files) {
-        if (files.length > 0) {
-            const file = files[0];
-            if (file.size > 2 * 1024 * 1024) {
-                alert("File too large! Please select a file under 2MB.");
-                fileInput.value = "";
-                fileFeedback.style.display = "none";
-                return;
-            }
-            
+  // Handle file selection via input
+  fileInput.addEventListener('change', function() {
+    if (fileInput.files.length) {
+      validateAndPreviewFile(fileInput.files[0]);
+    }
+  });
+
+  // Trigger file input when clicking the drop zone
+  dropZone.addEventListener('click', function() {
+    fileInput.click();
+  });
+
+  // Validate and preview the selected file
+  function validateAndPreviewFile(file) {
             // Check file type
-            const fileType = file.type.toLowerCase();
-            if (fileType !== 'image/jpeg' && fileType !== 'image/jpg' && fileType !== 'image/png') {
-                alert("Invalid file type. Only JPG and PNG are allowed.");
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!validTypes.includes(file.type.toLowerCase())) {
+      showError("Invalid file type. Please upload a JPG or PNG image.");
                 fileInput.value = "";
-                fileFeedback.style.display = "none";
-                return;
-            }
-            
+      return false;
+    }
+    
+    // Check file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      showError("File too large! Please select a file under 2MB.");
+      fileInput.value = "";
+      return false;
+    }
+    
+    // Valid file - show preview
+    dropZone.classList.add('has-file');
             fileFeedback.style.display = "block";
-            fileFeedback.textContent = "Selected: " + file.name;
-            fileFeedback.classList.add('pulse');
+    fileFeedback.textContent = `Selected: ${file.name}`;
+    fileFeedback.classList.add('fa-pulse');
             
-            // Preview the original image
+    // Preview original image
             const reader = new FileReader();
             reader.onload = function(e) {
                 originalImage.src = e.target.result;
-                originalImage.style.display = "none"; // Will show after analysis
             };
             reader.readAsDataURL(file);
-        } else {
-            fileFeedback.style.display = "none";
-        }
-    }
-
-    // Trigger file input when clicking the upload box
-    uploadBox.addEventListener("click", () => fileInput.click());
-
-    fileInput.addEventListener("change", () => {
-        if (fileInput.files.length > 0) {
-            handleFiles(fileInput.files);
-        }
-    });
-
-    // Add tab switching functionality with enhanced animations
-    document.querySelectorAll('.tab-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            // Remove active class from all buttons and content
-            document.querySelectorAll('.tab-btn').forEach(btn =>
-                btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-                content.style.opacity = '0';
-                content.style.transform = 'translateY(10px)';
-            });
-            
-            // Add active class to clicked button and corresponding content
-            const tabId = this.dataset.tab;
-            this.classList.add('active');
-            const activeContent = document.querySelector(`.tab-content[data-tab="${tabId}"]`);
-            activeContent.classList.add('active');
-            
-            // Animate the active content
-            setTimeout(() => {
-                activeContent.style.opacity = '1';
-                activeContent.style.transform = 'translateY(0)';
-                activeContent.style.transition = 'all 0.5s ease';
-            }, 50);
-            
-            // Force annotated image refresh if showing analysis tab
-            if(tabId === 'analysis') {
-                if (annotatedImage.src) annotatedImage.style.display = 'block';
-                if (originalImage.src) originalImage.style.display = 'block';
-            }
-        });
-    });
-
-    // Add button hover effect
-    const analyzeBtn = document.querySelector('.btn-analyze');
-    analyzeBtn.addEventListener('mouseenter', () => {
-        analyzeBtn.querySelector('.btn-icon').style.transform = 'rotate(15deg)';
-    });
     
-    analyzeBtn.addEventListener('mouseleave', () => {
-        analyzeBtn.querySelector('.btn-icon').style.transform = 'rotate(0)';
-    });
+    return true;
+  }
 
-    uploadForm.addEventListener("submit", function (event) {
-        event.preventDefault();
-        
-        if (fileInput.files.length === 0) {
-            alert("Please select a file");
+  // Show error message
+  function showError(message) {
+    fileFeedback.style.display = "block";
+    fileFeedback.textContent = message;
+    fileFeedback.style.background = "rgba(244, 67, 54, 0.1)";
+    fileFeedback.style.color = "var(--error)";
+    dropZone.style.borderColor = "var(--error)";
+    
+    // Reset after 3 seconds
+    setTimeout(() => {
+      fileFeedback.style.display = "none";
+      fileFeedback.style.background = "rgba(76, 175, 80, 0.1)";
+      fileFeedback.style.color = "var(--success)";
+      dropZone.style.borderColor = "var(--stroke)";
+      dropZone.classList.remove('has-file');
+    }, 3000);
+  }
+
+  // Tab switching functionality
+  tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      // Remove active class from all buttons and content
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      tabContents.forEach(content => {
+        content.classList.remove('active');
+        content.style.display = 'none';
+      });
+      
+      // Add active class to clicked button
+      button.classList.add('active');
+      
+      // Show corresponding content
+      const tabName = button.getAttribute('data-tab');
+      const activeContent = document.querySelector(`.fa-tab-content[data-tab="${tabName}"]`);
+      activeContent.classList.add('active');
+      activeContent.style.display = 'block';
+    });
+  });
+
+  // Form submission
+  uploadForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    if (!fileInput.files.length) {
+      showError("Please select a file first.");
             return;
         }
         
-        const formData = new FormData();
-        formData.append("image", fileInput.files[0]);
-
-        loadingSpinner.style.display = "block";
-        analyzeBtn.style.opacity = "0.7";
+    // Show loading state
         analyzeBtn.disabled = true;
-
-        fetch("/predict", {
-            method: "POST",
+    loader.style.display = "block";
+    
+    // Create FormData object
+    const formData = new FormData();
+    formData.append('image', fileInput.files[0]);
+    
+    // Send the request
+    fetch('/predict', {
+      method: 'POST',
             body: formData
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error("Network response was not ok");
+        return response.json().then(data => {
+          throw new Error(data.error || 'An error occurred during analysis');
+        });
             }
             return response.json();
         })
         .then(data => {
-            loadingSpinner.style.display = "none";
-            analyzeBtn.style.opacity = "1";
+      // Hide loader and enable button
+      loader.style.display = "none";
             analyzeBtn.disabled = false;
             
-            renderResults(data);
+      // Display results
+      displayResults(data);
         })
         .catch(error => {
-            loadingSpinner.style.display = "none";
-            analyzeBtn.style.opacity = "1";
+      loader.style.display = "none";
             analyzeBtn.disabled = false;
-            alert("⚠️ Face not detected. Please upload a clearer image.");
-            console.error("Error:", error);
+      showError(error.message || "Error analyzing the image. Please try again.");
+      console.error('Error:', error);
         });
     });
 
-    function renderResults(data) {
+  // Display results
+  function displayResults(data) {
+    // Show results section
         resultsSection.style.display = "block";
+    
+    // Clear previous results
         conditionsList.innerHTML = "";
-        recommendationsContainer.innerHTML = "";
-        
-        // Animate result cards
-        resultCards.forEach((card, index) => {
-            setTimeout(() => {
-                card.style.opacity = '1';
-                card.style.transform = 'translateY(0)';
-                card.style.transition = 'all 0.5s ease';
-            }, index * 150);
-        });
-        
-        // Scroll to results
-        setTimeout(() => {
-            resultsSection.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
-        
-        // Show original image in analysis tab
+    productsList.innerHTML = "";
+    
+    // Show original image and annotated image
         originalImage.style.display = "block";
         
-        // Render AI analysis with formatting
-        if (data.ai_analysis) {
-            aiAnalysis.innerHTML = data.ai_analysis
-                .replace(/\n/g, '<br>')
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em>$1</em>');
+    if (data.annotated_image) {
+      annotatedImage.src = data.annotated_image;
+      annotatedImage.style.display = "block";
         } else {
-            aiAnalysis.textContent = "No analysis available.";
+      annotatedImage.style.display = "none";
         }
 
-        // Render conditions with animation
-        if (data.classes && data.classes.length > 0) {
+    // Display conditions with animation
+    if (data.classes && data.classes.length) {
             data.classes.forEach((condition, index) => {
-                const li = document.createElement("li");
-                li.className = "list-group-item";
-                li.textContent = condition;
-                li.style.opacity = '0';
-                li.style.transform = 'translateY(10px)';
-                conditionsList.appendChild(li);
-                
+        const conditionItem = document.createElement("div");
+        conditionItem.className = "fa-condition-item";
+        conditionItem.textContent = condition;
+        conditionItem.style.opacity = "0";
+        conditionItem.style.transform = "translateY(20px)";
+        
+        conditionsList.appendChild(conditionItem);
+        
+        // Staggered animation
                 setTimeout(() => {
-                    li.style.opacity = '1';
-                    li.style.transform = 'translateY(0)';
-                    li.style.transition = 'all 0.5s ease';
-                }, index * 100);
+          conditionItem.style.opacity = "1";
+          conditionItem.style.transform = "translateY(0)";
+          conditionItem.style.transition = "all 0.3s ease";
+        }, 100 * index);
             });
         } else {
-            const li = document.createElement("li");
-            li.className = "list-group-item";
-            li.textContent = "No conditions detected";
-            li.style.opacity = '0';
-            li.style.transform = 'translateY(10px)';
-            conditionsList.appendChild(li);
-            
-            setTimeout(() => {
-                li.style.opacity = '1';
-                li.style.transform = 'translateY(0)';
-                li.style.transition = 'all 0.5s ease';
-            }, 100);
-        }
-
-        // Render product recommendations with animation
-        if (data.recommendations && data.recommendations.length > 0) {
+      const noConditionsItem = document.createElement("div");
+      noConditionsItem.className = "fa-condition-item";
+      noConditionsItem.textContent = "No conditions detected";
+      conditionsList.appendChild(noConditionsItem);
+    }
+    
+    // Format and display AI analysis
+    if (data.ai_analysis) {
+      const formattedAnalysis = data.ai_analysis
+        .replace(/\n/g, '<br>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/#(.*?)(?:\n|$)/g, '<h3>$1</h3>')
+        .replace(/- (.*?)(?:\n|$)/g, '<li>$1</li>');
+      
+      aiAnalysis.innerHTML = formattedAnalysis;
+    } else {
+      aiAnalysis.innerHTML = "<p>No analysis available for this image.</p>";
+    }
+    
+    // Display product recommendations
+    if (data.recommendations && data.recommendations.length) {
             data.recommendations.forEach((rec, index) => {
-                const recCard = document.createElement("div");
-                recCard.className = "recommendation-card";
-                recCard.style.opacity = '0';
-                recCard.style.transform = 'translateY(10px)';
+        const productCard = document.createElement("div");
+        productCard.className = "fa-product-card";
+        productCard.style.opacity = "0";
+        productCard.style.transform = "translateY(20px)";
                 
                 let productsHtml = '';
-                if (rec.products && rec.products.length > 0) {
-                    rec.products.forEach(p => {
+        
+        if (rec.products && rec.products.length) {
+          rec.products.forEach(product => {
                         productsHtml += `
-                            <p><strong>${p.Brand} - ${p.Name}</strong><br>
-                            Price: ₹${p.Price}<br>
-                            Ingredients: ${p.Ingredients}</p>
+              <p><strong>${product.Brand} - ${product.Name}</strong></p>
+              <p>Price: ₹${product.Price}</p>
+              <p>Ingredients: ${product.Ingredients}</p>
                         `;
                     });
                 } else {
-                    productsHtml = '<p>No specific products recommended</p>';
+          productsHtml = '<p>No specific products recommended for this condition</p>';
                 }
                 
-                recCard.innerHTML = `
+        productCard.innerHTML = `
                     <h3>${rec.condition}</h3>
                     ${productsHtml}
                 `;
                 
-                recommendationsContainer.appendChild(recCard);
+        productsList.appendChild(productCard);
                 
+        // Staggered animation
                 setTimeout(() => {
-                    recCard.style.opacity = '1';
-                    recCard.style.transform = 'translateY(0)';
-                    recCard.style.transition = 'all 0.5s ease';
-                }, index * 150);
+          productCard.style.opacity = "1";
+          productCard.style.transform = "translateY(0)";
+          productCard.style.transition = "all 0.3s ease";
+        }, 150 * index);
             });
         } else {
-            recommendationsContainer.innerHTML = '<p class="text-center" style="color: rgba(255, 255, 255, 0.7);">No product recommendations available</p>';
-        }
-
-        // Show annotated image if available
-        if (data.annotated_image) {
-            annotatedImage.src = data.annotated_image;
-            annotatedImage.style.display = "block";
-            
-            // Add a subtle animation to the image
-            annotatedImage.style.opacity = '0';
-            annotatedImage.style.transform = 'scale(0.95)';
-            
-            setTimeout(() => {
-                annotatedImage.style.opacity = '1';
-                annotatedImage.style.transform = 'scale(1)';
-                annotatedImage.style.transition = 'all 0.5s ease';
-            }, 300);
-        } else {
-            annotatedImage.style.display = "none";
-        }
+      const noProductsMessage = document.createElement("p");
+      noProductsMessage.textContent = "No product recommendations available";
+      noProductsMessage.style.textAlign = "center";
+      noProductsMessage.style.color = "var(--text-secondary)";
+      productsList.appendChild(noProductsMessage);
     }
+    
+    // Scroll to results section
+            setTimeout(() => {
+      resultsSection.scrollIntoView({ behavior: 'smooth' });
+            }, 300);
+  }
+
+  // Add hover animations for buttons
+  analyzeBtn.addEventListener('mouseenter', () => {
+    const icon = analyzeBtn.querySelector('i');
+    if (icon) icon.style.transform = 'rotate(20deg)';
+  });
+  
+  analyzeBtn.addEventListener('mouseleave', () => {
+    const icon = analyzeBtn.querySelector('i');
+    if (icon) icon.style.transform = 'rotate(0)';
+  });
+
+  // Initialize tooltips or popovers if needed
+  function initTooltips() {
+    const tooltipElements = document.querySelectorAll('[data-tooltip]');
+    tooltipElements.forEach(element => {
+      element.addEventListener('mouseenter', () => {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'fa-tooltip';
+        tooltip.textContent = element.getAttribute('data-tooltip');
+        document.body.appendChild(tooltip);
+        
+        const rect = element.getBoundingClientRect();
+        tooltip.style.top = `${rect.top - tooltip.offsetHeight - 10}px`;
+        tooltip.style.left = `${rect.left + rect.width / 2 - tooltip.offsetWidth / 2}px`;
+        tooltip.style.opacity = '1';
+      });
+      
+      element.addEventListener('mouseleave', () => {
+        const tooltip = document.querySelector('.fa-tooltip');
+        if (tooltip) tooltip.remove();
+      });
+    });
+  }
+
+  // Initialize any additional components
+  initTooltips();
 });
 </script>
 {% endblock %}

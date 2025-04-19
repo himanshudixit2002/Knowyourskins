@@ -1,472 +1,112 @@
-{% extends 'layout.html' %}
+{% extends "layout.html" %}
+
+{% block title %}Skin Disease Analysis - KNOWYOURSKINS{% endblock %}
 
 {% block content %}
+<!-- Add CSS for loader and enhanced UI -->
 <style>
-  /* Import Google Fonts */
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
-
-  /* Base Styles */
-  :root {
-    --primary-color: #FF9F5A;
-    --primary-dark: #FF7A00;
-    --bg-dark: #1a1f2c;
-    --bg-darker: #151922;
-    --text-light: rgba(255, 255, 255, 0.9);
-    --text-muted: rgba(255, 255, 255, 0.7);
-    --border-light: rgba(255, 255, 255, 0.1);
-  }
-
-  /* Main Container */
-  .container-main {
+  /* Loading indicator styles */
+  .loader-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    padding: 2rem;
-    position: relative;
-    z-index: 1;
-  }
-
-  /* Navigation Tabs */
-  .tab-navigation {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.75rem;
-    padding: 1.5rem 2rem;
-    border-bottom: 1px solid var(--border-light);
-  }
-
-  .tab-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--border-light);
-    border-radius: 12px;
-    padding: 0.75rem 1.25rem;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .tab-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: translateY(-2px);
-  }
-
-  /* Active state set conditionally based on prediction */
-  .tab-btn.active {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    color: white;
-    border-color: transparent;
-    box-shadow: 0 4px 15px rgba(255, 159, 90, 0.3);
-  }
-
-  /* Tab Content */
-  .tab-content {
-    display: none;
-    animation: fadeIn 0.5s ease forwards;
-    padding: 2rem;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .tab-content.active {
-    display: block;
-  }
-  
-  /* Upload Box */
-  .upload-box {
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px dashed rgba(255, 159, 90, 0.3);
-    border-radius: 20px;
-    padding: 3rem 2rem;
-    text-align: center;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    margin-bottom: 2rem;
-    position: relative;
-    overflow: hidden;
-  }
-
-  /* Camera Container */
-  .camera-container {
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid rgba(255, 159, 90, 0.3);
-    border-radius: 20px;
-    padding: 2rem;
-    text-align: center;
-    transition: all 0.3s ease;
-    margin-bottom: 2rem;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .camera-feed {
-    width: 100%;
-    max-width: 640px;
-    height: auto;
-    border-radius: 12px;
-    margin: 0 auto 1.5rem;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-  }
-
-  .camera-controls {
-    display: flex;
-    justify-content: center;
+    flex-direction: column;
     gap: 1rem;
-    margin: 1.5rem 0;
+    padding: 2rem;
   }
 
-  .camera-btn {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+  .loader {
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(255, 138, 0, 0.2);
+    border-radius: 50%;
+    border-top-color: var(--primary);
+    animation: spin 1s ease-in-out infinite;
   }
 
-  .camera-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 159, 90, 0.3);
-  }
-
-  .camera-btn:disabled {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.5);
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
-  }
-
-  .detection-info {
-    background: rgba(0, 0, 0, 0.5);
-    color: white;
-    border-radius: 10px;
-    padding: 1rem;
-    margin-top: 1rem;
-    text-align: left;
-  }
-
-  #camera-status {
-    margin-bottom: 1rem;
-    color: var(--text-muted);
-  }
-
-  /* ... existing styles ... */
-  
-  /* Upload Box */
-  .upload-box {
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px dashed rgba(255, 159, 90, 0.3);
-    border-radius: 20px;
-    padding: 3rem 2rem;
-    text-align: center;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    margin-bottom: 2rem;
+  .pulse-border {
     position: relative;
-    overflow: hidden;
+    animation: pulse-border 2s ease-in-out infinite;
   }
 
-  .upload-box::before {
-    content: '';
+  .scanning-overlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at center, 
-                rgba(255, 255, 255, 0.05), 
-                transparent 70%);
+    background: linear-gradient(to bottom, transparent, rgba(255, 138, 0, 0.2), transparent);
+    transform: translateY(-100%);
+    animation: scanning 2s linear infinite;
     pointer-events: none;
+    opacity: 0;
+    border-radius: 0.5rem;
   }
 
-  .upload-box:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: var(--primary-color);
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  }
-
-  .upload-box.highlight {
-    background: rgba(255, 159, 90, 0.1);
-    border-color: var(--primary-color);
-  }
-
-  .upload-box input[type="file"] {
-    display: none;
-  }
-
-  .upload-box h3 {
-    color: white;
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-  }
-
-  .upload-box p {
-    color: var(--text-muted);
-    margin: 0.5rem 0;
-  }
-
-  .text-sm {
-    font-size: 0.875rem;
-  }
-
-  .text-gray-400 {
-    color: rgba(255, 255, 255, 0.6);
-  }
-
-  .upload-icon-container {
-    width: 80px;
-    height: 80px;
-    background: rgba(255, 159, 90, 0.1);
+  .live-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #ff4d4d;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.5rem;
-    position: relative;
-    transition: all 0.3s ease;
+    margin-right: 0.5rem;
+    animation: live-pulse 1.5s ease-in-out infinite;
   }
 
-  .upload-box:hover .upload-icon-container {
-    transform: scale(1.1);
-    background: rgba(255, 159, 90, 0.2);
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
   }
 
-  .upload-icon {
-    font-size: 2rem;
-    color: var(--primary-color);
+  .scale-in {
+    animation: scaleIn 0.3s ease-in-out;
   }
 
-  /* Preview Container */
-  .preview-container {
-    margin-top: 2rem;
-    display: none;
-    text-align: center;
+  .upload-area-active {
+    animation: border-pulse 2s infinite;
   }
 
-  .preview-image-container {
-    position: relative;
-    max-width: 300px;
-    margin: 0 auto;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  /* Animations */
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
 
-  .preview-image {
-    width: 100%;
-    border-radius: 16px;
-    display: block;
+  @keyframes pulse-border {
+    0% { box-shadow: 0 0 0 0 rgba(255, 138, 0, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 138, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 138, 0, 0); }
   }
 
-  .remove-preview {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: rgba(0, 0, 0, 0.6);
-    color: white;
-    border: none;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
+  @keyframes scanning {
+    0% { transform: translateY(-100%); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translateY(100%); opacity: 0; }
   }
 
-  .remove-preview:hover {
-    background: rgba(255, 0, 0, 0.7);
-    transform: scale(1.1);
+  @keyframes live-pulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1); }
   }
 
-  .upload-btn {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 1rem 2rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-top: 2rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(255, 159, 90, 0.3);
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
-  .upload-btn:hover {
-    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(255, 159, 90, 0.4);
+  @keyframes scaleIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
   }
 
-  .upload-btn:disabled {
-    background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.5);
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
+  @keyframes border-pulse {
+    0% { border-color: rgba(255, 138, 0, 0.4); }
+    50% { border-color: rgba(255, 138, 0, 0.8); }
+    100% { border-color: rgba(255, 138, 0, 0.4); }
   }
 
-  /* Loading Spinner - Completely Redesigned */
-  .loading-spinner {
-    display: none;
-    text-align: center;
-    padding: 3rem 2rem;
-    background: rgba(30, 35, 45, 0.9);
-    border-radius: 16px;
-    border: 1px solid var(--border-light);
-    margin: 2rem auto;
-    max-width: 400px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  }
-
-  .spinner-wrapper {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 1.5rem;
-    position: relative;
-    /* The key fix: isolate transforms to this element */
-    isolation: isolate;
-  }
-
-  @supports not (isolation: isolate) {
-    .spinner-wrapper {
-      transform: translateZ(0);
-      backface-visibility: hidden;
-    }
-  }
-
-  .spinner-outer {
-    position: absolute;
-    width: 80px;
-    height: 80px;
-    border: 4px solid transparent;
-    border-top-color: var(--primary-color);
-    border-right-color: var(--primary-color);
-    border-radius: 50%;
-    /* Individual transform context */
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: spin-clockwise 1.2s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-  }
-
-  .spinner-middle {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    width: 60px;
-    height: 60px;
-    border: 4px solid transparent;
-    border-bottom-color: var(--primary-dark);
-    border-left-color: var(--primary-dark);
-    border-radius: 50%;
-    /* Individual transform context */
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: spin-counterclockwise 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-  }
-
-  .spinner-inner {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    width: 40px;
-    height: 40px;
-    border: 4px solid transparent;
-    border-top-color: var(--primary-color);
-    border-radius: 50%;
-    /* Individual transform context */
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: spin-clockwise 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) infinite;
-  }
-
-  @keyframes spin-clockwise {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-
-  @keyframes spin-counterclockwise {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(-360deg); }
-  }
-
-  .loading-text {
-    margin: 0;
-    color: var(--text-light);
-    font-size: 1.2rem;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-  }
-
-  .loading-subtext {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    margin: 0 0 1.5rem;
-  }
-
-  .loading-progress {
-    width: 100%;
-    height: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
-    margin: 1.5rem auto 0;
-    overflow: hidden;
-    max-width: 300px;
-    position: relative;
-  }
-
-  .loading-progress-bar {
-    height: 100%;
-    width: 0;
-    background: linear-gradient(90deg, var(--primary-dark), var(--primary-color));
-    border-radius: 3px;
-    animation: progress 2s ease infinite;
-    position: relative;
-  }
-
-  @keyframes progress {
-    0% { width: 0; }
-    50% { width: 70%; }
-    70% { width: 90%; }
-    100% { width: 95%; }
-  }
-
-  /* Analysis Card */
+  /* Enhanced UI elements */
   .analysis-card {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    border: 1px solid var(--border-light);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
   }
@@ -477,2321 +117,1046 @@
     top: 0;
     left: 0;
     width: 100%;
-    height: 5px;
-    background: linear-gradient(90deg, var(--primary-dark), var(--primary-color));
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  .analysis-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  }
-
-  .analysis-card:hover::before {
-    opacity: 1;
-  }
-
-  .card-title {
-    color: white;
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-top: 0;
-    margin-bottom: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .card-title i {
-    color: var(--primary-color);
-  }
-
-  /* Diagnosis Result */
-  .prediction-text {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: var(--primary-color);
-    margin: 0;
-    text-shadow: 0 2px 10px rgba(255, 159, 90, 0.3);
-  }
-
-  /* Metrics */
-  pre {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 12px;
-    padding: 1.25rem;
-    color: rgba(255, 255, 255, 0.9);
-    font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
-    overflow-x: auto;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    margin: 0;
-  }
-
-  /* Analysis Text */
-  .ai-analysis-text {
-    color: rgba(255, 255, 255, 0.9);
-    line-height: 1.6;
-    font-size: 1rem;
-  }
-
-  /* Result Image */
-  .result-image-container {
-    position: relative;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-    margin-bottom: 1.5rem;
-  }
-
-  .result-image {
-    width: 100%;
-    display: block;
-    border-radius: 16px;
+    height: 3px;
+    background: linear-gradient(to right, var(--primary-dark), var(--primary), var(--primary-light));
+    transform: scaleX(0);
+    transform-origin: left;
     transition: transform 0.3s ease;
   }
 
-  .result-image-container:hover .result-image {
-    transform: scale(1.02);
+  .analysis-card:hover::before {
+    transform: scaleX(1);
   }
 
-  /* Back Button */
-  .back-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid var(--border-light);
-    border-radius: 10px;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    color: white;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 2rem;
-  }
-
-  .back-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-2px);
-  }
-
-  /* Progress Bar */
-  .progress-container {
-    width: 100%;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    margin-top: 1rem;
-    overflow: hidden;
-    display: none;
-  }
-
-  .progress-bar {
-    height: 100%;
-    width: 0;
-    background: linear-gradient(90deg, var(--primary-dark), var(--primary-color));
-    border-radius: 4px;
-    transition: width 0.5s ease;
-  }
-
-  /* Confidence Meter */
-  .confidence-meter {
-    display: flex;
-    align-items: center;
-    margin-top: 1rem;
-  }
-
-  .confidence-bar {
-    flex-grow: 1;
-    height: 10px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 5px;
-    overflow: hidden;
-    margin: 0 1rem;
-  }
-
-  .confidence-level {
-    height: 100%;
-    background: linear-gradient(90deg, #ff7a00, #ff9f5a);
-    border-radius: 5px;
-    transition: width 1s ease;
-  }
-
-  .confidence-label {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    min-width: 60px;
-  }
-
-  /* Tooltip */
-  .tooltip {
+  .btn-primary, .btn-secondary {
     position: relative;
-    display: inline-block;
-    cursor: help;
+    overflow: hidden;
   }
 
-  .tooltip .tooltip-text {
-    visibility: hidden;
-    width: 200px;
-    background-color: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    text-align: center;
-    border-radius: 6px;
-    padding: 10px;
+  .btn-primary::after, .btn-secondary::after {
+    content: '';
     position: absolute;
-    z-index: 1;
-    bottom: 125%;
-    left: 50%;
-    transform: translateX(-50%);
-    opacity: 0;
-    transition: opacity 0.3s;
-    font-size: 0.85rem;
-  }
-
-  .tooltip:hover .tooltip-text {
-    visibility: visible;
-    opacity: 1;
-  }
-
-  /* New Animated Elements */
-  .glow-effect {
-    position: absolute;
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 159, 90, 0.2) 0%, transparent 70%);
-    animation: pulse 4s infinite ease-in-out;
-    z-index: -1;
-  }
-
-  .glow-1 {
-    top: 20%;
-    left: 10%;
-    animation-delay: 0s;
-  }
-
-  .glow-2 {
-    bottom: 30%;
-    right: 15%;
-    animation-delay: 2s;
-  }
-
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); opacity: 0.5; }
-    50% { transform: scale(1.5); opacity: 0.2; }
-  }
-
-  /* Responsive Adjustments */
-  @media (max-width: 768px) {
-    .content-container {
-      max-width: 100%;
-    }
-
-    .content-header h1 {
-      font-size: 2rem;
-    }
-
-    .upload-box {
-      padding: 2rem 1rem;
-    }
-
-    .upload-btn {
-      width: 100%;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .container-main {
-      padding: 1rem;
-    }
-
-    .content-header h1 {
-      font-size: 1.75rem;
-    }
-
-    .content-header p {
-      font-size: 1rem;
-    }
-
-    .tab-btn {
-      padding: 0.6rem 1rem;
-      font-size: 0.9rem;
-    }
-
-    .upload-box h3 {
-      font-size: 1.25rem;
-    }
-
-    .prediction-text {
-      font-size: 1.5rem;
-    }
-  }
-
-  .hidden {
-    display: none;
-  }
-
-  /* New Styles for Probability Table */
-  .probability-table {
-    width: 100%;
-    margin-top: 1rem;
-  }
-
-  .probability-table table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  .probability-table th {
-    text-align: left;
-    padding: 0.75rem;
-    font-weight: 600;
-    color: var(--text-light);
-    border-bottom: 1px solid var(--border-light);
-  }
-
-  .probability-table td {
-    padding: 0.75rem;
-    border-top: 1px solid var(--border-light);
-    color: var(--text-muted);
-  }
-
-  .probability-table tr:hover td {
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  /* Analysis Section Styles */
-  .analysis-section {
-    margin-bottom: 1.5rem;
-  }
-
-  .analysis-section h4 {
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin-bottom: 0.75rem;
-    color: var(--text-light);
-  }
-
-  .analysis-section ul {
-    list-style-type: disc;
-    padding-left: 1.5rem;
-    color: var(--text-muted);
-  }
-
-  .analysis-section li {
-    margin-bottom: 0.5rem;
-    line-height: 1.6;
-  }
-
-  .analysis-section p {
-    color: var(--text-muted);
-    line-height: 1.6;
-    margin-bottom: 1rem;
-  }
-
-  /* Formatted Analysis (for string-based AI analysis) */
-  .formatted-analysis {
-    color: var(--text-muted);
-    line-height: 1.6;
-    white-space: pre-line; /* Preserve newlines */
-  }
-
-  .formatted-analysis strong,
-  .formatted-analysis b {
-    color: var(--text-light);
-    font-weight: 600;
-  }
-
-  .formatted-analysis h1,
-  .formatted-analysis h2,
-  .formatted-analysis h3,
-  .formatted-analysis h4 {
-    color: var(--text-light);
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-  }
-
-  .formatted-analysis ul,
-  .formatted-analysis ol {
-    padding-left: 1.5rem;
-    margin-bottom: 1rem;
-  }
-
-  .formatted-analysis li {
-    margin-bottom: 0.5rem;
-  }
-
-  .formatted-analysis p {
-    margin-bottom: 1rem;
-  }
-
-  .disclaimer-box {
-    display: flex;
-    gap: 1rem;
-    background: rgba(220, 38, 38, 0.1);
-    border: 1px solid rgba(220, 38, 38, 0.2);
-    border-radius: 8px;
-    padding: 1rem;
-    margin-top: 1rem;
-  }
-
-  .disclaimer-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #f87171;
-    font-size: 1.5rem;
-  }
-
-  .disclaimer-content p {
-    margin: 0;
-    color: var(--text-muted);
-  }
-
-  /* Zoom Modal */
-  .zoom-modal {
-    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.9);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    padding: 2rem;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
   }
 
-  .zoom-modal-content {
+  .btn-primary:hover::after, .btn-secondary:hover::after {
+    transform: translateX(100%);
+  }
+
+  /* AI Analysis Content Styling */
+  .ai-analysis-content {
+    line-height: 1.6;
+  }
+
+  .ai-analysis-content h1, 
+  .ai-analysis-content h2, 
+  .ai-analysis-content h3, 
+  .ai-analysis-content h4 {
+    color: var(--primary);
+    margin-top: 1.2em;
+    margin-bottom: 0.6em;
+    font-weight: 600;
+  }
+
+  .ai-analysis-content h1 {
+    font-size: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.3em;
+  }
+
+  .ai-analysis-content h2 {
+    font-size: 1.3rem;
+  }
+
+  .ai-analysis-content h3 {
+    font-size: 1.1rem;
+  }
+
+  .ai-analysis-content p {
+    margin-bottom: 1em;
+  }
+
+  .ai-analysis-content ul, 
+  .ai-analysis-content ol {
+    margin-left: 1.5em;
+    margin-bottom: 1em;
+  }
+
+  .ai-analysis-content li {
+    margin-bottom: 0.5em;
+  }
+
+  .ai-analysis-content strong {
+    color: var(--primary-light);
+    font-weight: 600;
+  }
+
+  .ai-analysis-content a {
+    color: var(--primary);
+    text-decoration: underline;
+    transition: color 0.2s ease;
+  }
+
+  .ai-analysis-content a:hover {
+    color: var(--primary-light);
+  }
+
+  .ai-analysis-content blockquote {
+    border-left: 3px solid var(--primary);
+    padding-left: 1em;
+    margin-left: 0;
+    margin-right: 0;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .ai-analysis-content pre {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 1em;
+    border-radius: 0.5em;
+    overflow-x: auto;
+  }
+
+  .ai-analysis-content code {
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 0.2em 0.4em;
+    border-radius: 0.3em;
+    font-family: monospace;
+  }
+
+  /* Custom scrollbar for AI analysis */
+  .ai-analysis-container::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .ai-analysis-container::-webkit-scrollbar-track {
+    background: var(--bg-darker);
+    border-radius: 4px;
+  }
+
+  .ai-analysis-container::-webkit-scrollbar-thumb {
+    background-color: var(--primary);
+    border-radius: 4px;
+  }
+
+  .ai-analysis-container::-webkit-scrollbar-thumb:hover {
+    background-color: var(--primary-light);
+  }
+
+  /* Table of Contents Styles */
+  .toc-container {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-left: 3px solid var(--primary);
+  }
+
+  .toc-list {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .toc-list li {
+    margin-bottom: 0.5em;
+    transition: all 0.2s ease;
+  }
+
+  .toc-list li:hover {
+    transform: translateX(3px);
+  }
+
+  .toc-list a {
+    text-decoration: none;
+    display: inline-block;
+    padding: 0.2em 0;
+    font-size: 0.9em;
     position: relative;
-    max-width: 90%;
-    max-height: 90%;
   }
 
-  .zoomed-image {
-    max-width: 100%;
-    max-height: 90vh;
-    border-radius: 8px;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-  }
-
-  .zoom-close {
-    position: absolute;
-    top: -40px;
-    right: -40px;
-    color: white;
-    font-size: 2rem;
-    cursor: pointer;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 50%;
-  }
-
-  .zoom-close:hover {
-    background: rgba(255, 255, 255, 0.2);
-  }
-
-  /* Collapsible Elements */
-  .card-body.collapsed {
-    max-height: 120px;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .card-body.collapsed::after {
+  .toc-list a::after {
     content: '';
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 100%;
-    height: 80px;
-    background: linear-gradient(transparent, var(--bg-dark));
-    pointer-events: none;
+    width: 0;
+    height: 1px;
+    background-color: var(--primary);
+    transition: width 0.3s ease;
   }
 
-  /* Action Buttons */
-  .action-buttons {
-    display: flex;
-    gap: 1rem;
-    margin-top: 2rem;
-  }
-
-  .print-btn {
-    background: linear-gradient(135deg, #34d399, #10b981);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 0.75rem 1.5rem;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-  }
-
-  .print-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-    background: linear-gradient(135deg, #10b981, #059669);
-  }
-
-  /* Print Mode Styles */
-  body.print-mode {
-    background: white !important;
-  }
-  
-  body.print-mode .container-main {
-    background: white !important;
-    min-height: auto !important;
-  }
-  
-  body.print-mode .tab-navigation,
-  body.print-mode .action-buttons,
-  body.print-mode .image-overlay {
-    visibility: hidden;
-  }
-  
-  body.print-mode .print-footer {
-    display: block;
-    color: #333 !important;
-    border-top: 1px solid #ddd;
-  }
-  
-  body.print-mode .results-dashboard {
-    background: white !important;
-  }
-
-  /* Print Styles */
-  @media print {
-    @page {
-      size: portrait;
-      margin: 1cm;
-    }
-    
-    html, body {
-      width: 100%;
-      height: auto;
-      margin: 0;
-      padding: 0;
-      background: white !important;
-      color: black !important;
-      font-size: 12pt;
-    }
-    
-    /* Hide non-essential elements */
-    .tab-navigation, 
-    .action-buttons,
-    .card-actions,
-    .image-overlay,
-    .animated-background,
-    .gradient-bg,
-    .glow-effect,
-    .decorative-circle {
-      display: none !important;
-    }
-    
-    /* Main container */
-    .container-main {
-      padding: 0 !important;
-      display: block !important;
-      min-height: auto !important;
-      background: white !important;
-      box-shadow: none !important;
-      overflow: visible !important;
-    }
-    
-    .content-container {
-      width: 100% !important;
-      max-width: none !important;
-    }
-    
-    /* Header styles */
-    .content-header {
-      text-align: center;
-      margin-bottom: 20px !important;
-      padding: 0 !important;
-    }
-    
-    .content-header h1 {
-      color: #333 !important;
-      font-size: 24pt !important;
-      margin: 0 0 5px 0 !important;
-    }
-    
-    .content-header p {
-      color: #666 !important;
-      font-size: 14pt !important;
-      margin: 0 !important;
-    }
-    
-    /* Dashboard layout */
-    .results-dashboard {
-      width: 100% !important;
-      max-width: none !important;
-    }
-    
-    .dashboard-grid {
-      display: block !important;
-      page-break-inside: avoid;
-    }
-    
-    .dashboard-col {
-      display: block !important;
-      margin-bottom: 20px !important;
-    }
-    
-    /* Cards */
-    .dashboard-card {
-      break-inside: avoid !important;
-      page-break-inside: avoid !important;
-      margin-bottom: 20px !important;
-      border: 1px solid #ddd !important;
-      border-radius: 8px !important;
-      box-shadow: none !important;
-      transform: none !important;
-      background: white !important;
-      overflow: visible !important;
-    }
-    
-    .card-header {
-      background: #f5f5f5 !important;
-      color: black !important;
-      border-bottom: 1px solid #ddd !important;
-      padding: 10px 15px !important;
-    }
-    
-    .card-title {
-      color: #333 !important;
-      font-size: 16pt !important;
-      margin: 0 !important;
-    }
-    
-    .card-title i {
-      color: #FF7A00 !important;
-    }
-    
-    .card-body {
-      padding: 15px !important;
-    }
-    
-    /* Image */
-    .result-image-container {
-      max-width: 400px !important;
-      margin: 0 auto 20px !important;
-      box-shadow: none !important;
-    }
-    
-    .result-image {
-      max-width: 100% !important;
-      height: auto !important;
-      border: 1px solid #ddd !important;
-    }
-    
-    /* Text elements */
-    .prediction-text {
-      color: #FF7A00 !important;
-      font-size: 18pt !important;
-      margin-bottom: 10px !important;
-    }
-    
-    p, li {
-      color: #333 !important;
-    }
-    
-    /* Analysis sections */
-    .analysis-grid {
-      display: block !important;
-    }
-    
-    .analysis-section {
-      margin-bottom: 15px !important;
-      background: white !important;
-      border: 1px solid #ddd !important;
-      border-radius: 8px !important;
-    }
-    
-    .section-header {
-      background: #f5f5f5 !important;
-      padding: 8px 12px !important;
-    }
-    
-    .section-header h4 {
-      color: #333 !important;
-      font-size: 14pt !important;
-      margin: 0 !important;
-    }
-    
-    .section-header h4 i {
-      color: #FF7A00 !important;
-    }
-    
-    .section-content {
-      padding: 12px !important;
-    }
-    
-    /* Probability table */
-    .probability-table table {
-      width: 100% !important;
-      border-collapse: collapse !important;
-    }
-    
-    .probability-table th,
-    .probability-table td {
-      border: 1px solid #ddd !important;
-      padding: 8px !important;
-      text-align: left !important;
-      color: #333 !important;
-    }
-    
-    .probability-table th {
-      background: #f5f5f5 !important;
-      font-weight: bold !important;
-    }
-    
-    .probability-bar {
-      height: 8px !important;
-      background: #FF9F5A !important;
-      border: none !important;
-    }
-    
-    .probability-text {
-      color: #333 !important;
-      font-weight: normal !important;
-    }
-    
-    tr.highest-prob td {
-      font-weight: bold !important;
-      color: #FF7A00 !important;
-    }
-    
-    /* Footer */
-    .print-footer {
-      display: block !important;
-      margin-top: 30px !important;
-      padding-top: 10px !important;
-      border-top: 1px solid #ddd !important;
-      text-align: center !important;
-      font-size: 10pt !important;
-      color: #666 !important;
-    }
-  }
-
-  /* Utility Classes */
-  .mb-1 {
-    margin-bottom: 0.25rem;
-  }
-
-  .mb-2 {
-    margin-bottom: 0.5rem;
-  }
-
-  .mb-4 {
-    margin-bottom: 1rem;
-  }
-
-  .mt-4 {
-    margin-top: 1rem;
-  }
-
-  .w-full {
+  .toc-list a:hover::after {
     width: 100%;
   }
 
-  .text-left {
-    text-align: left;
-  }
-
-  .text-right {
-    text-align: right;
-  }
-
-  .p-2 {
-    padding: 0.5rem;
-  }
-
-  .p-3 {
-    padding: 0.75rem;
-  }
-
-  .rounded-lg {
-    border-radius: 0.5rem;
-  }
-
-  /* Results Dashboard Layout */
-  .results-dashboard {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  @media (min-width: 768px) {
-    .dashboard-grid {
-      grid-template-columns: 1fr 1fr;
-    }
-  }
-
-  .dashboard-col {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .dashboard-card {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
-    border: 1px solid var(--border-light);
-    overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  .dashboard-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  }
-
-  .card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--border-light);
-    background: rgba(0, 0, 0, 0.2);
-  }
-
-  .card-title {
-    color: white;
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .card-title i {
-    color: var(--primary-color);
-  }
-
-  .card-actions {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .card-action-btn {
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-
-  .card-action-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-  }
-
-  .card-body {
-    padding: 1.5rem;
-  }
-
-  /* Full width card */
-  .full-width {
-    grid-column: 1 / -1;
-  }
-
-  /* Primary Diagnosis */
-  .diagnosis-content {
-    text-align: center;
-  }
-
-  .confidence-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-  }
-
-  .confidence-value {
-    font-weight: 600;
-    color: var(--text-light);
-  }
-
-  .confidence-info {
-    text-align: right;
-    margin-top: 0.5rem;
-  }
-
-  /* Probability Bars */
-  .probability-bar-container {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    width: 100%;
-  }
-
-  .probability-bar {
-    height: 8px;
-    background: linear-gradient(90deg, var(--primary-dark), var(--primary-color));
-    border-radius: 4px;
-    min-width: 5px;
-  }
-
-  .probability-text {
-    font-family: 'Courier New', monospace;
-    font-size: 0.9rem;
-    min-width: 60px;
-    text-align: right;
-  }
-
-  /* Highlight the highest probability */
-  .probability-table tr.highest-prob td {
-    color: var(--primary-color);
-    font-weight: 600;
-  }
-
-  /* Image Overlay */
-  .image-overlay {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .zoom-btn {
-    background: rgba(0, 0, 0, 0.6);
-    color: white;
-    border: none;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-
-  .zoom-btn:hover {
-    background: rgba(255, 159, 90, 0.7);
-  }
-
-  /* Analysis Sections */
-  .analysis-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  @media (min-width: 768px) {
-    .analysis-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .description-section {
-      grid-column: 1 / -1;
-    }
-  }
-
+  /* Section Styling */
   .analysis-section {
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid var(--border-light);
+    position: relative;
+    transition: all 0.3s ease;
+    padding-left: 0.5rem;
   }
 
-  .section-header {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--border-light);
+  .analysis-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -10px;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--primary), transparent);
+    border-radius: 3px;
+    opacity: 0.3;
+    transition: opacity 0.3s ease;
   }
 
-  .section-header h4 {
-    margin: 0;
-    color: var(--text-light);
-    font-size: 1rem;
-    font-weight: 500;
+  .analysis-section:hover::before {
+    opacity: 0.8;
+  }
+
+  /* Better heading styles */
+  .ai-analysis-content h2 {
     display: flex;
     align-items: center;
     gap: 0.5rem;
   }
 
-  .section-header h4 i {
-    color: var(--primary-color);
+  .ai-analysis-content h2::before {
+    content: '●';
+    color: var(--primary);
+    font-size: 0.8em;
   }
 
-  .section-content {
-    padding: 1rem;
-  }
-
-  .section-content p {
-    color: var(--text-muted);
-    line-height: 1.6;
-    margin: 0;
-  }
-
-  /* Feature List */
-  .feature-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .feature-list li {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.5rem 0;
-    color: var(--text-muted);
-    border-bottom: 1px solid var(--border-light);
-  }
-
-  .feature-list li:last-child {
-    border-bottom: none;
-  }
-
-  .feature-list li i {
-    color: var(--primary-color);
-    margin-top: 0.25rem;
-  }
-
-  /* Print Footer */
-  .print-footer {
-    display: none;
-  }
-
-  /* Action Buttons */
-
-  /* New Analysis Styles */
-  .analysis-structured {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .analysis-block {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid var(--border-light);
-    transition: transform 0.3s ease;
-  }
-
-  .analysis-block:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  }
-
-  .analysis-block-header {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--border-light);
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .analysis-block-title {
-    margin: 0;
-    color: var(--text-light);
-    font-size: 1.1rem;
-    font-weight: 600;
-  }
-
-  .analysis-block-icon {
-    color: var(--primary-color);
-    font-size: 1.25rem;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .analysis-block-content {
-    padding: 1.25rem;
-  }
-
-  .analysis-block-text {
-    color: var(--text-muted);
-    line-height: 1.7;
-    margin: 0;
-  }
-
-  .analysis-subheader {
-    color: white;
-    font-size: 1rem;
-    font-weight: 600;
-    margin: 1rem 0 0.5rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .key-point-list {
-    list-style: none;
-    padding: 0;
-    margin: 0.5rem 0 0;
-  }
-
-  .key-point-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  .key-point-item:last-child {
-    border-bottom: none;
-  }
-
-  .key-point-icon {
-    color: var(--primary-color);
-    margin-top: 0.25rem;
-    flex-shrink: 0;
-  }
-
-  .key-point-text {
-    color: var(--text-muted);
-    line-height: 1.5;
-    margin: 0;
-  }
-
-  .key-highlight {
-    display: inline-block;
-    background: rgba(255, 159, 90, 0.15);
-    padding: 0.1rem 0.5rem;
-    border-radius: 4px;
-    color: var(--primary-color);
-    font-weight: 500;
-  }
-
-  .severity-meter {
-    display: flex;
-    align-items: center;
-    margin-top: 1rem;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    padding: 0.75rem 1rem;
-  }
-
-  .severity-label {
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    margin-right: 1rem;
-    min-width: 80px;
-  }
-
-  .severity-bars {
-    display: flex;
-    flex-grow: 1;
-    gap: 3px;
-  }
-
-  .severity-bar {
-    height: 8px;
-    flex-grow: 1;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-  }
-
-  .severity-bar.active {
-    background: linear-gradient(90deg, var(--primary-dark), var(--primary-color));
-  }
-
-  .severity-text {
-    margin-left: 1rem;
-    font-weight: 500;
-    min-width: 80px;
-    text-align: right;
-  }
-
-  .severity-low .severity-text {
-    color: #10b981;
-  }
-
-  .severity-medium .severity-text {
-    color: #f59e0b;
-  }
-
-  .severity-high .severity-text {
-    color: #ef4444;
-  }
-
-  .disclaimer-box {
-    display: flex;
-    gap: 1rem;
-    background: rgba(220, 38, 38, 0.1);
-    border: 1px solid rgba(220, 38, 38, 0.2);
-    border-radius: 8px;
-    padding: 1rem;
-    margin-top: 1rem;
+  .ai-analysis-content h3::before {
+    content: '►';
+    color: var(--primary);
+    margin-right: 0.5rem;
+    font-size: 0.7em;
   }
 </style>
 
-<div class="container-main">
-  <!-- Decorative Elements -->
-  <div class="decorative-circle circle-1"></div>
-  <div class="decorative-circle circle-2"></div>
-  <div class="decorative-circle circle-3"></div>
-  <div class="gradient-bg"></div>
-  <div class="glow-effect glow-1"></div>
-  <div class="glow-effect glow-2"></div>
-  
-  <!-- Animated Background -->
-  <div class="animated-background">
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
-    <div class="particle"></div>
+<div class="container mx-auto px-4 py-8">
+  <div class="text-center mb-10">
+    <h1 class="text-3xl md:text-4xl font-bold text-white mb-3">Skin Disease <span class="text-primary">Analysis</span></h1>
+    <p class="text-gray-300 max-w-3xl mx-auto">Upload an image of your skin condition or use your camera for real-time analysis. Our AI will identify potential skin diseases and provide helpful information.</p>
   </div>
-  
-  <div class="content-container" id="app-container" data-has-prediction="{{ 'true' if prediction is defined else 'false' }}">
-    <div class="content-header">
-      <h1>Skin Disease Prediction</h1>
-      <p>AI-powered analysis for accurate skin condition diagnosis</p>
-    </div>
 
-    <div class="tab-navigation">
-      <button class="tab-btn active" data-tab="upload">
-        <i class="fas fa-upload"></i> Upload Image
+  <!-- Analysis Mode Tabs -->
+  <div class="mb-8">
+    <div class="flex flex-wrap justify-center gap-4 mb-4">
+      <button id="uploadModeBtn" class="px-6 py-3 rounded-lg bg-dark-lighter border border-primary/30 text-white hover:border-primary transition-all duration-200 active">
+        <i class="fas fa-upload mr-2"></i> Upload Image
       </button>
-      <button class="tab-btn" data-tab="camera">
-        <i class="fas fa-camera"></i> Live Camera
-      </button>
-      <button class="tab-btn" data-tab="results" {% if prediction %}style="display: inline-flex"{% else %}style="display: none"{% endif %}>
-        <i class="fas fa-chart-pie"></i> Analysis Results
+      <button id="liveModeBtn" class="px-6 py-3 rounded-lg bg-dark-lighter border border-gray-700 text-white hover:border-primary transition-all duration-200">
+        <i class="fas fa-camera mr-2"></i> Live Camera
       </button>
     </div>
+    <p id="mode-description" class="text-center text-sm text-gray-400">Upload a clear image of your skin condition for analysis</p>
+  </div>
 
-    <!-- Upload Tab -->
-    <div id="upload-tab" class="tab-content active">
-      <form id="upload-form" action="{{ url_for('skin_disease_prediction') }}" method="post" enctype="multipart/form-data">
-        <div class="upload-box" id="upload-area">
-          <div class="upload-icon-container">
-            <i class="fas fa-upload upload-icon"></i>
+  <!-- Upload Mode Section -->
+  <div id="uploadModeSection" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Upload Section -->
+    <div class="bg-dark-lighter p-6 rounded-xl shadow-lg border border-gray-800">
+      <h2 class="text-xl font-semibold text-white mb-4">Upload Your Image</h2>
+      
+      <form id="uploadForm" method="POST" enctype="multipart/form-data" action="{{ url_for('skin_disease_prediction') }}" class="mb-6">
+        <div class="mb-6">
+          <label class="block text-gray-300 mb-2">Select an image (JPG, PNG)</label>
+          <div class="relative">
+            <input type="file" id="image" name="image" accept="image/jpeg, image/png" class="hidden" onchange="previewImage(this)">
+            <label for="image" class="flex items-center justify-center w-full h-40 border-2 border-dashed border-primary/40 rounded-lg cursor-pointer hover:border-primary transition-colors" id="upload-label">
+              <div id="upload-placeholder" class="text-center">
+                <i class="fas fa-cloud-upload-alt text-3xl text-primary mb-2"></i>
+                <p class="text-gray-400">Click to select or drop image here</p>
+              </div>
+              <img id="preview" class="absolute inset-0 w-full h-full object-contain rounded-lg hidden">
+              <div id="upload-loading" class="absolute inset-0 w-full h-full bg-dark-lighter/80 rounded-lg hidden flex-col items-center justify-center">
+                <div class="loader mb-3"></div>
+                <p class="text-gray-300">Processing image...</p>
+              </div>
+            </label>
           </div>
-          <h3>Upload Your Skin Image</h3>
-          <p>Drop your image here or click to browse</p>
-          <p class="text-sm text-gray-400 mt-2">Supported formats: JPG, JPEG, PNG</p>
-          <input type="file" name="image" id="file-input" accept="image/jpeg, image/png" hidden />
         </div>
         
-        <div class="preview-container" id="preview-container">
-          <div class="preview-image-container">
-            <img id="preview-image" class="preview-image" src="#" alt="Preview" />
-            <button type="button" class="remove-preview" id="remove-preview">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-          <button id="upload-btn" type="submit" class="upload-btn mt-4" disabled>
-            <i class="fas fa-upload"></i> Upload for Analysis
-          </button>
-        </div>
+        <button type="submit" id="analyzeBtn" class="w-full btn-primary py-3 font-semibold flex items-center justify-center" disabled>
+          <i class="fas fa-search-plus mr-2"></i> Analyze Skin Condition
+          <i id="analyze-spinner" class="fas fa-circle-notch fa-spin ml-2 hidden"></i>
+        </button>
       </form>
       
-      <div class="loading-spinner" id="loading-spinner">
-        <div class="spinner-wrapper">
-          <div class="spinner-outer"></div>
-          <div class="spinner-middle"></div>
-          <div class="spinner-inner"></div>
-        </div>
-        <h3 class="loading-text">Analyzing your skin image...</h3>
-        <p class="loading-subtext">Our AI is examining the image for potential skin conditions.</p>
-        <div class="loading-progress">
-          <div class="loading-progress-bar" id="loading-progress-bar"></div>
-        </div>
+      <div class="text-xs text-gray-400">
+        <p class="mb-1"><i class="fas fa-check-circle text-primary mr-1"></i> High-quality, well-lit images give better results</p>
+        <p class="mb-1"><i class="fas fa-check-circle text-primary mr-1"></i> For best results, capture close-up of the affected area</p>
+        <p><i class="fas fa-shield-alt text-primary mr-1"></i> Your images are processed securely and not stored permanently</p>
       </div>
     </div>
-    
-    <!-- Camera Tab -->
-    <div class="tab-content" id="camera-tab">
-      <div class="camera-container">
-        <h3 class="text-white text-xl mb-4">Real-time Skin Disease Detection</h3>
-        <p class="text-gray-400 mb-6">Use your camera to detect skin conditions in real-time</p>
-        
-        <p id="camera-status">Click "Start Camera" to begin</p>
-        
-        <div class="camera-feed-container">
-          <video id="camera-feed" class="camera-feed" autoplay playsinline></video>
-          <canvas id="camera-canvas" style="display: none;"></canvas>
-        </div>
-        
-        <div class="camera-controls">
-          <button id="start-camera" class="camera-btn">
-            <i class="fas fa-video"></i> Start Camera
-          </button>
-          <button id="capture-image" class="camera-btn" disabled>
-            <i class="fas fa-camera"></i> Capture Image
-          </button>
-          <button id="stop-camera" class="camera-btn" disabled>
-            <i class="fas fa-video-slash"></i> Stop Camera
-          </button>
-        </div>
-        
-        <div id="live-prediction" class="detection-info" style="display: none;">
-          <h4 class="font-bold text-lg mb-2">Live Detection:</h4>
-          <p id="live-prediction-text">Waiting for analysis...</p>
-          <div class="flex items-center mt-2">
-            <div class="mr-2 font-semibold">Confidence:</div>
-            <div class="w-full bg-gray-700 rounded-full h-4 overflow-hidden">
-              <div id="confidence-bar" class="h-full bg-gradient-to-r from-orange-500 to-amber-500" style="width: 0%"></div>
-            </div>
-            <div id="confidence-text" class="ml-2">0%</div>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Results Tab -->
-    <div id="results-tab" class="tab-content">
+
+    <!-- Results Section -->
+    <div id="resultsSection" class="bg-dark-lighter p-6 rounded-xl shadow-lg border border-gray-800 analysis-card {% if not prediction %}flex items-center justify-center{% endif %}">
       {% if prediction %}
-        <div class="results-dashboard">
-          <div class="dashboard-grid">
-            <!-- Left column: Image and primary diagnosis -->
-            <div class="dashboard-col">
-              <!-- Uploaded Image Card -->
-              <div class="dashboard-card image-card">
-                <div class="card-header">
-                  <h3 class="card-title"><i class="fas fa-image"></i> Analyzed Image</h3>
-                  <div class="card-actions">
-                    <button class="card-action-btn" title="Download Image">
-                      <i class="fas fa-download"></i>
-                    </button>
-                  </div>
-                </div>
-                <div class="card-body">
-                  <div class="result-image-container">
-                    <img src="{{ image_url }}" alt="Analyzed skin image" class="result-image">
-                    <div class="image-controls">
-                      <button class="zoom-btn" title="Zoom Image">
-                        <i class="fas fa-search-plus"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Primary Diagnosis Card -->
-              <div class="dashboard-card primary-diagnosis-card">
-                <div class="card-header">
-                  <h3 class="card-title"><i class="fas fa-stethoscope"></i> Primary Diagnosis</h3>
-                </div>
-                <div class="card-body">
-                  <div class="diagnosis-content">
-                    <p class="prediction-text">{{ prediction }}</p>
-                    {% if confidence_score is defined and confidence_score %}
-                    <div class="confidence-meter mt-4">
-                      <div class="confidence-header">
-                        <span class="confidence-label">AI Confidence Level:</span>
-                        <span class="confidence-value">{{ confidence_score }}%</span>
-                      </div>
-                      <div class="confidence-bar">
-                        <div class="confidence-level" id="confidence-level-bar" data-confidence="{{ confidence_score }}"></div>
-                      </div>
-                      <div class="confidence-info">
-                        <span class="info-icon tooltip">
-                          <i class="fas fa-info-circle"></i>
-                          <span class="tooltip-text">This indicates the AI's confidence level in its diagnosis. Higher percentages suggest greater certainty, but all results should be confirmed by a medical professional.</span>
-                        </span>
-                      </div>
-                    </div>
-                    {% endif %}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Right column: Detailed analysis -->
-            <div class="dashboard-col">
-              <!-- Probability Metrics Card -->
-              <div class="dashboard-card probabilities-card">
-                <div class="card-header">
-                  <h3 class="card-title"><i class="fas fa-chart-bar"></i> Differential Diagnosis</h3>
-                  <div class="card-actions">
-                    <span class="info-icon tooltip">
-                      <i class="fas fa-info-circle"></i>
-                      <span class="tooltip-text">Shows alternative possible conditions ordered by probability.</span>
-                    </span>
-                  </div>
-                </div>
-                <div class="card-body">
-                  <div class="probability-results">
-                    {% if probabilities is string %}
-                      <pre>{{ probabilities }}</pre>
-                    {% elif probabilities is mapping %}
-                      <div class="probability-table">
-                        <table class="w-full">
-                          <thead>
-                            <tr>
-                              <th class="text-left p-2">Condition</th>
-                              <th class="text-right p-2">Probability</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {% for condition, prob in probabilities.items() %}
-                            <tr class="border-t border-opacity-10">
-                              <td class="text-left p-2">{{ condition }}</td>
-                              <td class="text-right p-2">
-                                {% if prob is number %}
-                                  <div class="probability-bar-container">
-                                    <div class="probability-bar" data-width="{{ prob * 100 }}"></div>
-                                    <span class="probability-text">{{ "%.2f"|format(prob * 100) }}%</span>
-                                  </div>
-                                {% else %}
-                                  {{ prob }}
-                                {% endif %}
-                              </td>
-                            </tr>
-                            {% endfor %}
-                          </tbody>
-                        </table>
-                      </div>
-                    {% else %}
-                      <p>No detailed probability information available.</p>
-                    {% endif %}
-                  </div>
-                </div>
-              </div>
-            </div>
+        <div class="fade-in">
+          <h2 class="text-xl font-semibold text-white mb-4 flex items-center">
+            <i class="fas fa-chart-bar text-primary mr-2"></i> Analysis Results
+          </h2>
+          
+          <div class="mb-4">
+            <p class="text-gray-300 mb-2">Analyzed Image:</p>
+            <img src="{{ image_url }}" alt="Analyzed skin condition" class="w-full h-auto max-h-60 object-contain rounded-lg border border-gray-700 hover:border-primary transition-all duration-300">
           </div>
-
-          <!-- Full width AI Analysis Card -->
-          <div class="dashboard-card analysis-card full-width">
-            <div class="card-header">
-              <h3 class="card-title"><i class="fas fa-robot"></i> AI Analysis & Recommendation</h3>
-              <div class="card-actions">
-                <button class="card-action-btn" id="toggle-analysis" title="Expand/Collapse">
-                  <i class="fas fa-chevron-down"></i>
-                </button>
+          
+          <div class="mb-6">
+            <h3 class="font-medium text-white flex items-center">
+              Detected Condition: 
+              <span class="text-primary ml-2 bg-primary/10 px-3 py-1 rounded-full text-sm">{{ prediction }}</span>
+            </h3>
+            <div class="mt-3 relative pt-1">
+              <div class="flex items-center justify-between mb-1">
+                <div class="text-sm text-gray-300">Confidence Level</div>
+                <div class="text-sm text-primary font-medium">{{ probabilities[prediction] }}</div>
               </div>
-            </div>
-            <div class="card-body" id="analysis-body">
-              <div class="ai-analysis-text">
-                {% if ai_analysis is defined and ai_analysis %}
-                  {% if ai_analysis is string %}
-                    <script>
-                      // Function to properly format AI text for display
-                      function formatAIText(text) {
-                        if (!text) return '';
-                        
-                        // Replace ** markers with HTML bold tags
-                        let formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                        
-                        // Split into paragraphs and process each
-                        const paragraphs = formatted.split(/\n{2,}/g);
-                        let result = '';
-                        
-                        // Process the first paragraph as description
-                        if (paragraphs.length > 0) {
-                          result += `<p class="ai-paragraph">${paragraphs[0]}</p>`;
-                        }
-                        
-                        // Special sections to identify
-                        const sections = {
-                          treatment: { 
-                            title: 'Treatment Options',
-                            icon: 'fa-pills',
-                            keywords: ['treatment', 'therapy', 'cream', 'medication', 'cortico', 'inhibitor']
-                          },
-                          skincare: { 
-                            title: 'Skincare Recommendations',
-                            icon: 'fa-spa',
-                            keywords: ['skincare', 'routine', 'cleanser', 'moisturizer', 'cream', 'sunscreen']
-                          },
-                          lifestyle: { 
-                            title: 'Lifestyle & Prevention',
-                            icon: 'fa-heartbeat',
-                            keywords: ['lifestyle', 'diet', 'nutrition', 'stress', 'exercise', 'protect', 'prevention']
-                          }
-                        };
-                        
-                        // Create section objects
-                        let contentSections = {};
-                        
-                        // Sort remaining paragraphs into sections
-                        for (let i = 1; i < paragraphs.length; i++) {
-                          const para = paragraphs[i];
-                          let assigned = false;
-                          
-                          for (const [key, section] of Object.entries(sections)) {
-                            if (section.keywords.some(word => para.toLowerCase().includes(word))) {
-                              if (!contentSections[key]) {
-                                contentSections[key] = [];
-                              }
-                              contentSections[key].push(para);
-                              assigned = true;
-                              break;
-                            }
-                          }
-                          
-                          // If not assigned to a specific section, add to the one that makes most sense
-                          if (!assigned) {
-                            // Default to lifestyle section if not assigned
-                            if (!contentSections['lifestyle']) {
-                              contentSections['lifestyle'] = [];
-                            }
-                            contentSections['lifestyle'].push(para);
-                          }
-                        }
-                        
-                        // Render each section
-                        for (const [key, section] of Object.entries(sections)) {
-                          if (contentSections[key] && contentSections[key].length > 0) {
-                            result += `
-                              <div class="ai-section">
-                                <h4 class="ai-section-title"><i class="fas ${section.icon}"></i> ${section.title}</h4>
-                                <div class="ai-section-content">
-                                  ${contentSections[key].map(p => `<p class="ai-paragraph">${p}</p>`).join('')}
-                    </div>
-                              </div>
-                            `;
-                          }
-                        }
-                        
-                        return result;
-                      }
-                    </script>
-                    
-                    <div class="analysis-structured">
-                      <!-- Main description block -->
-                      <div class="analysis-block">
-                        <div class="analysis-block-header">
-                          <div class="analysis-block-icon">
-                            <i class="fas fa-info-circle"></i>
-                          </div>
-                          <h4 class="analysis-block-title">Condition Overview</h4>
-                        </div>
-                        <div class="analysis-block-content formatted-ai-content">
-                          <div id="formatted-ai-content"></div>
-                          <script>
-                            document.addEventListener('DOMContentLoaded', function() {
-                              // The AI analysis text is embedded in a data attribute
-                              const aiElement = document.createElement('div');
-                              aiElement.innerHTML = `{{ ai_analysis|safe }}`;
-                              const aiText = aiElement.textContent || aiElement.innerText;
-                              document.getElementById('formatted-ai-content').innerHTML = formatAIText(aiText);
-                            });
-                          </script>
-                        </div>
-                      </div>
-                      
-                      <!-- Recommendations Block (shown only if not in AI text) -->
-                      <div class="analysis-block" id="generic-recommendations">
-                        <div class="analysis-block-header">
-                          <div class="analysis-block-icon">
-                            <i class="fas fa-hand-holding-medical"></i>
-                          </div>
-                          <h4 class="analysis-block-title">General Recommendations</h4>
-                        </div>
-                        <div class="analysis-block-content">
-                          <ul class="key-point-list">
-                            <li class="key-point-item">
-                              <div class="key-point-icon">
-                                <i class="fas fa-user-md"></i>
-                              </div>
-                              <p class="key-point-text">Consult with a dermatologist for an accurate diagnosis and personalized treatment plan.</p>
-                            </li>
-                            <li class="key-point-item">
-                              <div class="key-point-icon">
-                                <i class="fas fa-shield-alt"></i>
-                              </div>
-                              <p class="key-point-text">Avoid scratching or irritating the affected areas to prevent further complications.</p>
-                            </li>
-                            <li class="key-point-item">
-                              <div class="key-point-icon">
-                                <i class="fas fa-calendar-check"></i>
-                              </div>
-                              <p class="key-point-text">Keep track of any changes in the appearance or symptoms of the condition over time.</p>
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <!-- Standard disclaimer -->
-                    <div class="disclaimer-box">
-                      <div class="disclaimer-icon">
-                        <i class="fas fa-exclamation-triangle"></i>
-                      </div>
-                      <div class="disclaimer-content">
-                        <p><strong>Medical Disclaimer:</strong> This analysis is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.</p>
-                      </div>
-                    </div>
-                    
-                    <style>
-                      .formatted-ai-content {
-                        line-height: 1.7;
-                      }
-                      .ai-paragraph {
-                        margin-bottom: 1rem;
-                        color: var(--text-muted);
-                      }
-                      .ai-section {
-                        margin-top: 1.5rem;
-                        padding-top: 1.5rem;
-                        border-top: 1px solid rgba(255, 255, 255, 0.1);
-                      }
-                      .ai-section-title {
-                        font-size: 1.1rem;
-                        font-weight: 600;
-                        color: var(--text-light);
-                        margin-bottom: 1rem;
-                        display: flex;
-                        align-items: center;
-                        gap: 0.5rem;
-                      }
-                      .ai-section-title i {
-                        color: var(--primary-color);
-                      }
-                      .ai-section-content {
-                        color: var(--text-muted);
-                      }
-                    </style>
-                    
-                  {% elif ai_analysis is mapping %}
-                    <div class="analysis-structured">
-                      <!-- Description Block -->
-                      <div class="analysis-block">
-                        <div class="analysis-block-header">
-                          <div class="analysis-block-icon">
-                            <i class="fas fa-info-circle"></i>
-                        </div>
-                          <h4 class="analysis-block-title">Condition Overview</h4>
-                        </div>
-                        <div class="analysis-block-content">
-                          <p class="analysis-block-text">{{ ai_analysis.description | default('No description available.') }}</p>
-                        </div>
-                      </div>
-                      
-                      <!-- Symptoms Section -->
-                      {% if ai_analysis.symptoms is defined and ai_analysis.symptoms %}
-                      <div class="analysis-block">
-                        <div class="analysis-block-header">
-                          <div class="analysis-block-icon">
-                            <i class="fas fa-clipboard-list"></i>
-                        </div>
-                          <h4 class="analysis-block-title">Common Symptoms</h4>
-                        </div>
-                        <div class="analysis-block-content">
-                          <ul class="key-point-list">
-                            {% for symptom in ai_analysis.symptoms %}
-                              <li class="key-point-item">
-                                <div class="key-point-icon">
-                                  <i class="fas fa-check-circle"></i>
-                                </div>
-                                <p class="key-point-text">{{ symptom }}</p>
-                              </li>
-                            {% endfor %}
-                          </ul>
-                        </div>
-                      </div>
-                      {% endif %}
-                      
-                      <!-- Recommendations Section -->
-                      {% if ai_analysis.recommendations is defined and ai_analysis.recommendations %}
-                      <div class="analysis-block">
-                        <div class="analysis-block-header">
-                          <div class="analysis-block-icon">
-                            <i class="fas fa-hand-holding-medical"></i>
-                        </div>
-                          <h4 class="analysis-block-title">Recommendations</h4>
-                        </div>
-                        <div class="analysis-block-content">
-                          <ul class="key-point-list">
-                            {% for rec in ai_analysis.recommendations %}
-                              <li class="key-point-item">
-                                <div class="key-point-icon">
-                                  <i class="fas fa-check-circle"></i>
-                                </div>
-                                <p class="key-point-text">{{ rec }}</p>
-                              </li>
-                            {% endfor %}
-                          </ul>
-                        </div>
-                      </div>
-                      {% endif %}
-                      
-                      <!-- Severity Assessment if available -->
-                      {% if ai_analysis.severity is defined and ai_analysis.severity %}
-                      <div class="analysis-block">
-                        <div class="analysis-block-header">
-                          <div class="analysis-block-icon">
-                            <i class="fas fa-exclamation-circle"></i>
-                          </div>
-                          <h4 class="analysis-block-title">Severity Assessment</h4>
-                        </div>
-                        <div class="analysis-block-content">
-                          {% set severity_level = ai_analysis.severity | lower %}
-                          <div class="severity-meter severity-{{ severity_level }}">
-                            <div class="severity-label">Severity:</div>
-                            <div class="severity-bars">
-                              <div class="severity-bar {{ 'active' if severity_level in ['low', 'medium', 'high'] }}"></div>
-                              <div class="severity-bar {{ 'active' if severity_level in ['medium', 'high'] }}"></div>
-                              <div class="severity-bar {{ 'active' if severity_level == 'high' }}"></div>
-                            </div>
-                            <div class="severity-text">{{ ai_analysis.severity | title }}</div>
-                          </div>
-                        </div>
-                      </div>
-                      {% endif %}
-                    </div>
-                    
-                    <!-- Disclaimer -->
-                    {% if ai_analysis.disclaimer is defined and ai_analysis.disclaimer %}
-                    <div class="disclaimer-box">
-                      <div class="disclaimer-icon">
-                        <i class="fas fa-exclamation-triangle"></i>
-                      </div>
-                      <div class="disclaimer-content">
-                        <p><strong>Medical Disclaimer:</strong> {{ ai_analysis.disclaimer }}</p>
-                      </div>
-                    </div>
-                    {% else %}
-                    <!-- Standard disclaimer if none provided -->
-                    <div class="disclaimer-box">
-                      <div class="disclaimer-icon">
-                        <i class="fas fa-exclamation-triangle"></i>
-                      </div>
-                      <div class="disclaimer-content">
-                        <p><strong>Medical Disclaimer:</strong> This analysis is for informational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition.</p>
-                      </div>
-                    </div>
-                    {% endif %}
-                  {% else %}
-                    <div class="analysis-block">
-                      <div class="analysis-block-header">
-                        <div class="analysis-block-icon">
-                          <i class="fas fa-info-circle"></i>
-                        </div>
-                        <h4 class="analysis-block-title">Analysis Information</h4>
-                      </div>
-                      <div class="analysis-block-content">
-                        <p class="analysis-block-text">No detailed analysis available for this condition. Please consult with a healthcare professional for proper diagnosis and treatment recommendations.</p>
-                      </div>
-                    </div>
-                  {% endif %}
-                {% else %}
-                  <div class="analysis-block">
-                    <div class="analysis-block-header">
-                      <div class="analysis-block-icon">
-                        <i class="fas fa-info-circle"></i>
-                      </div>
-                      <h4 class="analysis-block-title">Analysis Information</h4>
-                    </div>
-                    <div class="analysis-block-content">
-                      <p class="analysis-block-text">No analysis information available. Please try again with a clearer image or consult with a healthcare professional.</p>
-                    </div>
-                  </div>
-                {% endif %}
+              <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-700">
+                <div style="width: {{ probabilities[prediction].replace('%', '') }}%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-primary-dark to-primary"></div>
               </div>
             </div>
           </div>
           
-          <!-- Action Buttons -->
-          <div class="action-buttons">
-            <button class="back-btn" id="analyze-another-btn" type="button">
-              <i class="fas fa-arrow-left"></i> Analyze Another Image
-            </button>
+          {% if ai_analysis %}
+          <div class="mt-4 bg-dark rounded-lg border border-gray-700 hover:border-primary/30 transition-all duration-300 overflow-hidden">
+            <div class="p-3 border-b border-gray-700 flex items-center justify-between">
+              <h3 class="font-medium text-white flex items-center">
+                <i class="fas fa-robot text-primary mr-2"></i> AI Analysis
+              </h3>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-gray-400">Powered by KnowYourSkins</span>
+                <i class="fas fa-info-circle text-primary/70"></i>
+              </div>
+            </div>
+            <div class="ai-analysis-container max-h-80 overflow-y-auto p-4" style="scrollbar-width: thin; scrollbar-color: var(--primary) var(--bg-darker);">
+              <div class="ai-analysis-content prose prose-sm prose-invert max-w-none">
+                {{ ai_analysis | safe }}
+              </div>
+            </div>
           </div>
+          {% endif %}
         </div>
       {% else %}
-        <div class="text-center p-6">
-          <h3 class="text-white text-xl mb-4">No Analysis Results Yet</h3>
-          <p class="text-gray-400 mb-4">Upload a skin image to see AI-powered analysis results here.</p>
-          <button class="tab-btn" id="go-to-upload-btn" type="button">
-            <i class="fas fa-upload"></i> Go to Upload
-          </button>
+        <div class="text-center py-12 text-gray-400">
+          <i class="fas fa-microscope text-5xl mb-4 text-primary/50"></i>
+          <p>Your analysis results will appear here</p>
         </div>
       {% endif %}
     </div>
   </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  // Tab navigation
-  function switchTab(tabId) {
-    // Hide all tab contents
-    document.querySelectorAll('.tab-content').forEach(tab => {
-      tab.classList.remove('active');
-    });
-    
-    // Remove active class from all tab buttons
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.classList.remove('active');
-    });
-    
-    // Show selected tab content
-    const tabElement = document.getElementById(tabId + '-tab');
-    if (tabElement) {
-      tabElement.classList.add('active');
-    }
-    
-    // Add active class to clicked button
-    const activeButton = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
-    if (activeButton) {
-      activeButton.classList.add('active');
-    }
-  }
   
-  // Add event listeners to tab buttons
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const tabId = btn.getAttribute('data-tab');
-      switchTab(tabId);
-    });
-  });
-  
-  // Handle toggle for analysis section
-  const toggleAnalysisBtn = document.getElementById('toggle-analysis');
-  if (toggleAnalysisBtn) {
-    toggleAnalysisBtn.addEventListener('click', () => {
-      const analysisBody = document.getElementById('analysis-body');
-      if (analysisBody) {
-        analysisBody.classList.toggle('collapsed');
-        toggleAnalysisBtn.querySelector('i').classList.toggle('fa-chevron-down');
-        toggleAnalysisBtn.querySelector('i').classList.toggle('fa-chevron-up');
-      }
-    });
-  }
-  
-  // Handle image zoom
-  const zoomBtn = document.querySelector('.zoom-btn');
-  if (zoomBtn) {
-    zoomBtn.addEventListener('click', () => {
-      const imageUrl = document.querySelector('.result-image').src;
+  <!-- Live Mode Section -->
+  <div id="liveModeSection" class="grid grid-cols-1 lg:grid-cols-2 gap-8 hidden">
+    <!-- Camera Capture Section -->
+    <div class="bg-dark-lighter p-6 rounded-xl shadow-lg border border-gray-800 analysis-card">
+      <h2 class="text-xl font-semibold text-white mb-4 flex items-center">
+        <i class="fas fa-video text-primary mr-2"></i> Live Camera Analysis
+      </h2>
       
-      // Create modal for zoomed image
-      const modal = document.createElement('div');
-      modal.className = 'zoom-modal';
-      modal.innerHTML = `
-        <div class="zoom-modal-content">
-          <span class="zoom-close">&times;</span>
-          <img src="${imageUrl}" alt="Zoomed skin image" class="zoomed-image">
+      <div class="relative">
+        <video id="video" class="w-full h-64 object-cover rounded-lg bg-black" autoplay playsinline></video>
+        <div id="camera-overlay" class="absolute inset-0 flex items-center justify-center bg-dark/70 rounded-lg">
+          <div class="text-center">
+            <i class="fas fa-camera-retro text-4xl text-primary/60 mb-2"></i>
+            <p class="text-gray-400">Camera initializing...</p>
+          </div>
         </div>
-      `;
-      document.body.appendChild(modal);
+        <div id="scanning-overlay" class="scanning-overlay hidden"></div>
+        <canvas id="canvas" class="hidden"></canvas>
+      </div>
       
-      // Handle close button
-      modal.querySelector('.zoom-close').addEventListener('click', () => {
-        document.body.removeChild(modal);
-      });
+      <div class="flex gap-2 mt-4">
+        <button id="startCameraBtn" class="flex-1 btn-primary py-2 flex items-center justify-center">
+          <i class="fas fa-play mr-2"></i> Start Camera
+        </button>
+        <button id="captureLiveBtn" class="flex-1 btn-secondary py-2 flex items-center justify-center" disabled>
+          <i class="fas fa-camera mr-2"></i> Capture
+          <i id="capture-spinner" class="fas fa-circle-notch fa-spin ml-2 hidden"></i>
+        </button>
+      </div>
       
-      // Close on click outside the image
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          document.body.removeChild(modal);
-        }
-      });
-    });
-  }
-  
-  // Format AI analysis text if available
-  const aiContentElement = document.getElementById('formatted-ai-content');
-  if (aiContentElement) {
-    try {
-      // The AI analysis text is embedded in a data attribute
-      const aiElement = document.createElement('div');
-      aiElement.innerHTML = `{{ ai_analysis|safe }}`;
-      const aiText = aiElement.textContent || aiElement.innerText;
-      aiContentElement.innerHTML = formatAIText(aiText);
-    } catch (error) {
-      console.error('Error formatting AI text:', error);
-      // Fallback to simple display
-      aiContentElement.innerHTML = `<p class="ai-paragraph">{{ ai_analysis|safe }}</p>`;
-    }
-  }
-  
-  // Highlight the highest probability in the table
-  const probabilityTable = document.querySelector('.probability-table table');
-  if (probabilityTable) {
-    let highestProb = 0;
-    let highestRow = null;
+      <div class="mt-6">
+        <label class="block text-gray-300 mb-2 flex items-center justify-between">
+          <span class="flex items-center">
+            <i class="fas fa-broadcast-tower text-primary mr-2"></i>
+            Live Detection
+            <span id="live-indicator" class="live-dot ml-2 hidden"></span>
+          </span>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input id="liveDetectionToggle" type="checkbox" class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+          </label>
+        </label>
+        <p id="liveDetectionStatus" class="text-xs text-gray-400 flex items-center">
+          <i class="fas fa-info-circle mr-1 text-primary/70"></i>
+          Live detection is off. Turn on to continuously analyze skin conditions.
+        </p>
+      </div>
+    </div>
     
-    // Find the row with the highest probability
-    const rows = probabilityTable.querySelectorAll('tbody tr');
-    rows.forEach(row => {
-      const probCell = row.querySelector('td:last-child');
-      if (probCell) {
-        // Extract the numeric value by removing the % sign and converting to float
-        const probText = probCell.textContent.trim();
-        let probValue = 0;
+    <!-- Live Results Section -->
+    <div id="liveResultsSection" class="bg-dark-lighter p-6 rounded-xl shadow-lg border border-gray-800 analysis-card">
+      <h2 class="text-xl font-semibold text-white mb-4 flex items-center">
+        <i class="fas fa-chart-line text-primary mr-2"></i> Live Detection Results
+      </h2>
+      
+      <div id="liveCaptureDisplay" class="hidden mb-4 fade-in">
+        <p class="text-gray-300 mb-2">Captured Image:</p>
+        <img id="capturedImage" src="#" alt="Captured skin condition" class="w-full h-auto max-h-60 object-contain rounded-lg border border-gray-700 hover:border-primary transition-all duration-300">
+      </div>
+      
+      <div id="liveResults" class="py-12 text-center text-gray-400">
+        <i class="fas fa-broadcast-tower text-5xl mb-4 text-primary/50"></i>
+        <p>Start the camera and enable live detection to see real-time results</p>
+      </div>
+      
+      <div id="liveAnalysisSection" class="hidden scale-in">
+        <div class="mb-4">
+          <h3 class="font-medium text-white flex items-center">
+            Current Detection: 
+            <span id="liveDiseaseName" class="text-primary ml-2 bg-primary/10 px-3 py-1 rounded-full text-sm">-</span>
+          </h3>
+          <div class="mt-3 relative pt-1">
+            <div class="flex items-center justify-between mb-1">
+              <div class="text-sm text-gray-300">Confidence</div>
+              <div id="liveConfidence" class="text-sm text-primary font-medium">0%</div>
+            </div>
+            <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-700">
+              <div id="liveConfidenceBar" style="width: 0%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-primary-dark to-primary"></div>
+            </div>
+          </div>
+          
+          <!-- Add AI Analysis Insight Section for Live Detection -->
+          <div id="liveInsightContainer" class="mt-4 bg-dark rounded-lg border border-gray-700 hover:border-primary/30 transition-all duration-300 overflow-hidden hidden">
+            <div class="p-3 border-b border-gray-700 flex items-center justify-between">
+              <h3 class="font-medium text-white flex items-center">
+                <i class="fas fa-lightbulb text-primary mr-2"></i> Condition Insights
+              </h3>
+              <div class="flex items-center">
+                <span class="live-dot"></span>
+                <span class="text-xs text-gray-400">Live Analysis</span>
+              </div>
+            </div>
+            <div class="ai-analysis-container max-h-60 overflow-y-auto p-4">
+              <div id="liveInsightContent" class="ai-analysis-content prose prose-sm prose-invert max-w-none">
+                <!-- Live AI insights will be populated here via JavaScript -->
+              </div>
+            </div>
+          </div>
+        </div>
         
-        // Try to extract a numeric value from the text
-        if (probText.endsWith('%')) {
-          probValue = parseFloat(probText.replace('%', ''));
-        } else {
-          const numericMatch = probText.match(/([0-9]*[.])?[0-9]+/);
-          if (numericMatch) {
-            probValue = parseFloat(numericMatch[0]);
-          }
-        }
-        
-        if (!isNaN(probValue) && probValue > highestProb) {
-          highestProb = probValue;
-          highestRow = row;
-        }
+        <div id="livePredictionHistory" class="mt-6">
+          <h3 class="font-medium text-white mb-2 flex items-center">
+            <i class="fas fa-history text-primary mr-2"></i> Recent Detections
+          </h3>
+          <div id="historyItems" class="max-h-64 overflow-y-auto space-y-2">
+            <!-- History items will be populated here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Disclaimer -->
+  <div class="mt-10 p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
+    <h3 class="text-lg font-semibold text-white flex items-center">
+      <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i> Important Disclaimer
+    </h3>
+    <p class="text-gray-300 text-sm mt-2">
+      This tool is designed to provide information and is not a substitute for professional medical advice, diagnosis, or treatment. 
+      Always seek the advice of your physician or other qualified health provider with any questions about your medical condition.
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Mode switching
+    const uploadModeBtn = document.getElementById('uploadModeBtn');
+    const liveModeBtn = document.getElementById('liveModeBtn');
+    const uploadModeSection = document.getElementById('uploadModeSection');
+    const liveModeSection = document.getElementById('liveModeSection');
+    const modeDescription = document.getElementById('mode-description');
+    
+    uploadModeBtn.addEventListener('click', function() {
+      uploadModeBtn.classList.add('border-primary/30');
+      uploadModeBtn.classList.remove('border-gray-700');
+      liveModeBtn.classList.remove('border-primary/30');
+      liveModeBtn.classList.add('border-gray-700');
+      
+      uploadModeSection.classList.remove('hidden');
+      liveModeSection.classList.add('hidden');
+      modeDescription.textContent = 'Upload a clear image of your skin condition for analysis';
+      
+      // Stop camera if running
+      if (stream) {
+        stopCamera();
       }
     });
     
-    // Add highlighting class to the highest probability row
-    if (highestRow) {
-      highestRow.classList.add('highest-prob');
-    }
-  }
-  
-  // Set width for probability bars
-  document.querySelectorAll('.probability-bar').forEach(bar => {
-    const width = bar.getAttribute('data-width');
-    if (width) {
-      bar.style.width = width + '%';
-    }
-  });
-  
-  // Initialize the confidence level bar if it exists
-  const confidenceLevelBar = document.getElementById('confidence-level-bar');
-  if (confidenceLevelBar) {
-    const confidenceScore = confidenceLevelBar.dataset.confidence;
-    if (confidenceScore) {
-      confidenceLevelBar.style.width = confidenceScore + '%';
+    liveModeBtn.addEventListener('click', function() {
+      liveModeBtn.classList.add('border-primary/30');
+      liveModeBtn.classList.remove('border-gray-700');
+      uploadModeBtn.classList.remove('border-primary/30');
+      uploadModeBtn.classList.add('border-gray-700');
       
-      // Add color based on confidence level
-      if (confidenceScore >= 80) {
-        confidenceLevelBar.style.background = 'linear-gradient(90deg, #10b981, #34d399)';  // Green for high confidence
-      } else if (confidenceScore >= 50) {
-        confidenceLevelBar.style.background = 'linear-gradient(90deg, #f59e0b, #fbbf24)';  // Yellow for medium confidence
-      } else {
-        confidenceLevelBar.style.background = 'linear-gradient(90deg, #ef4444, #f87171)';  // Red for low confidence
-      }
-    }
-  }
-  
-  // File upload handling
-  const uploadArea = document.getElementById('upload-area');
-  const fileInput = document.getElementById('file-input');
-  const previewContainer = document.getElementById('preview-container');
-  const previewImage = document.getElementById('preview-image');
-  const removePreviewBtn = document.getElementById('remove-preview');
-  const uploadBtn = document.getElementById('upload-btn');
-  const loadingSpinner = document.getElementById('loading-spinner');
-  const uploadForm = document.getElementById('upload-form');
-  const progressContainer = document.getElementById('progress-container');
-  const progressBar = document.getElementById('progress-bar');
-  const loadingProgressBar = document.getElementById('loading-progress-bar');
-  const analyzeAnotherBtn = document.getElementById('analyze-another-btn');
-  const goToUploadBtn = document.getElementById('go-to-upload-btn');
-  const appContainer = document.getElementById('app-container');
-  
-  // Action buttons event listeners
-  if (analyzeAnotherBtn) {
-    analyzeAnotherBtn.addEventListener('click', () => {
-      switchTab('upload');
-    });
-  }
-  
-  if (goToUploadBtn) {
-    goToUploadBtn.addEventListener('click', () => {
-      switchTab('upload');
-    });
-  }
-  
-  // Click on upload area to trigger file input
-  if (uploadArea) {
-    uploadArea.addEventListener('click', () => {
-      fileInput.click();
+      liveModeSection.classList.remove('hidden');
+      uploadModeSection.classList.add('hidden');
+      modeDescription.textContent = 'Use your camera for real-time skin disease detection';
     });
     
-    // Handle drag and drop
+    // Image upload preview and form handling
+    const imageInput = document.getElementById('image');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const preview = document.getElementById('preview');
+    const uploadPlaceholder = document.getElementById('upload-placeholder');
+    const uploadLabel = document.getElementById('upload-label');
+    const uploadLoading = document.getElementById('upload-loading');
+    const analyzeSpinner = document.getElementById('analyze-spinner');
+    const uploadForm = document.getElementById('uploadForm');
+    
+    function previewImage(input) {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          preview.src = e.target.result;
+          preview.classList.remove('hidden');
+          uploadPlaceholder.classList.add('hidden');
+          analyzeBtn.disabled = false;
+          
+          // Add active class for visual feedback
+          uploadLabel.classList.add('pulse-border');
+          setTimeout(() => {
+            uploadLabel.classList.remove('pulse-border');
+          }, 1500);
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+    
+    // Handle form submission and show loading
+    uploadForm.addEventListener('submit', function() {
+      analyzeBtn.disabled = true;
+      analyzeSpinner.classList.remove('hidden');
+      uploadLoading.classList.remove('hidden');
+      uploadLoading.classList.add('flex');
+    });
+    
+    // Expose previewImage to global scope
+    window.previewImage = previewImage;
+    
+    // Enable drag and drop for image upload
+    const dropArea = uploadLabel;
+    
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      uploadArea.addEventListener(eventName, preventDefaults, false);
+      dropArea.addEventListener(eventName, preventDefaults, false);
     });
+    
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     
     ['dragenter', 'dragover'].forEach(eventName => {
-      uploadArea.addEventListener(eventName, () => {
-        uploadArea.classList.add('highlight');
-      });
+      dropArea.addEventListener(eventName, highlight, false);
     });
     
     ['dragleave', 'drop'].forEach(eventName => {
-      uploadArea.addEventListener(eventName, () => {
-        uploadArea.classList.remove('highlight');
+      dropArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight() {
+      dropArea.classList.add('upload-area-active');
+    }
+    
+    function unhighlight() {
+      dropArea.classList.remove('upload-area-active');
+    }
+    
+    dropArea.addEventListener('drop', handleDrop, false);
+    
+    function handleDrop(e) {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      
+      if (files && files[0]) {
+        imageInput.files = files;
+        previewImage(imageInput);
+      }
+    }
+    
+    // Live camera functionality
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const startCameraBtn = document.getElementById('startCameraBtn');
+    const captureLiveBtn = document.getElementById('captureLiveBtn');
+    const cameraOverlay = document.getElementById('camera-overlay');
+    const scanningOverlay = document.getElementById('scanning-overlay');
+    const liveDetectionToggle = document.getElementById('liveDetectionToggle');
+    const liveDetectionStatus = document.getElementById('liveDetectionStatus');
+    const liveCaptureDisplay = document.getElementById('liveCaptureDisplay');
+    const capturedImage = document.getElementById('capturedImage');
+    const liveResults = document.getElementById('liveResults');
+    const liveAnalysisSection = document.getElementById('liveAnalysisSection');
+    const liveDiseaseName = document.getElementById('liveDiseaseName');
+    const liveConfidence = document.getElementById('liveConfidence');
+    const liveConfidenceBar = document.getElementById('liveConfidenceBar');
+    const historyItems = document.getElementById('historyItems');
+    const liveIndicator = document.getElementById('live-indicator');
+    const captureSpinner = document.getElementById('capture-spinner');
+    
+    let stream = null;
+    let isLiveDetectionActive = false;
+    let liveDetectionInterval = null;
+    let predictionHistory = [];
+    
+    // Start camera stream
+    startCameraBtn.addEventListener('click', async function() {
+      try {
+        if (stream) {
+          stopCamera();
+          startCameraBtn.innerHTML = '<i class="fas fa-play mr-2"></i> Start Camera';
+          captureLiveBtn.disabled = true;
+          cameraOverlay.classList.remove('hidden');
+          return;
+        }
+        
+        cameraOverlay.classList.remove('hidden');
+        startCameraBtn.disabled = true;
+        startCameraBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Starting...';
+        
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            facingMode: 'environment',
+            width: { ideal: 1280 },
+            height: { ideal: 720 } 
+          } 
+        });
+        
+        video.srcObject = stream;
+        
+        // Wait for video to be ready
+        video.onloadedmetadata = function() {
+          cameraOverlay.classList.add('hidden');
+          startCameraBtn.disabled = false;
+          startCameraBtn.innerHTML = '<i class="fas fa-stop mr-2"></i> Stop Camera';
+          captureLiveBtn.disabled = false;
+        };
+      } catch (err) {
+        console.error('Error accessing camera:', err);
+        startCameraBtn.disabled = false;
+        startCameraBtn.innerHTML = '<i class="fas fa-play mr-2"></i> Start Camera';
+        alert('Could not access camera. Make sure camera permissions are granted.');
+      }
+    });
+    
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+        stream = null;
+        
+        // Also stop live detection if active
+        if (isLiveDetectionActive) {
+          stopLiveDetection();
+          liveDetectionToggle.checked = false;
+        }
+      }
+    }
+    
+    // Capture image from camera
+    captureLiveBtn.addEventListener('click', function() {
+      if (!stream) return;
+      
+      // Show loading
+      captureLiveBtn.disabled = true;
+      captureSpinner.classList.remove('hidden');
+      
+      const context = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Convert to base64
+      const imageData = canvas.toDataURL('image/jpeg');
+      
+      // Display captured image
+      capturedImage.src = imageData;
+      liveCaptureDisplay.classList.remove('hidden');
+      liveResults.classList.add('hidden');
+      liveAnalysisSection.classList.remove('hidden');
+      
+      // Send to backend for analysis
+      analyzeImageFromCamera(imageData).finally(() => {
+        // Hide loading regardless of result
+        captureLiveBtn.disabled = false;
+        captureSpinner.classList.add('hidden');
       });
     });
     
-    uploadArea.addEventListener('drop', handleDrop);
-  }
-  
-  function preventDefaults(e) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-  
-  function handleDrop(e) {
-    const dt = e.dataTransfer;
-    const files = dt.files;
-    if (files.length) {
-      fileInput.files = files;
-      updatePreview();
-    }
-  }
-  
-  // Handle file selection
-  if (fileInput) {
-    fileInput.addEventListener('change', updatePreview);
-  }
-  
-  function updatePreview() {
-    if (!fileInput.files || !fileInput.files[0]) return;
-    
-    const file = fileInput.files[0];
-    const reader = new FileReader();
-    
-    reader.onload = function(e) {
-      previewImage.src = e.target.result;
-      previewContainer.style.display = 'block';
-      uploadBtn.disabled = false;
-    }
-    
-    reader.readAsDataURL(file);
-  }
-  
-  // Handle removing preview
-  if (removePreviewBtn) {
-    removePreviewBtn.addEventListener('click', function() {
-      previewImage.src = '#';
-      previewContainer.style.display = 'none';
-      fileInput.value = '';
-      uploadBtn.disabled = true;
+    // Live detection toggle
+    liveDetectionToggle.addEventListener('change', function() {
+      if (this.checked) {
+        if (!stream) {
+          // If camera is not started, start it first
+          startCameraBtn.click();
+          // Set a flag to start live detection once camera is ready
+          startCameraBtn.dataset.startLiveAfter = 'true';
+          return;
+        }
+        
+        startLiveDetection();
+      } else {
+        stopLiveDetection();
+      }
     });
-  }
-  
-  // Handle form submission
-  if (uploadForm) {
-    uploadForm.addEventListener('submit', function(e) {
-      if (!fileInput.files || !fileInput.files[0]) {
-        e.preventDefault();
+    
+    function startLiveDetection() {
+      if (!stream) return;
+      
+      isLiveDetectionActive = true;
+      liveDetectionStatus.innerHTML = '<i class="fas fa-info-circle mr-1 text-primary"></i> Live detection is on. Analyzing your skin in real-time...';
+      liveResults.classList.add('hidden');
+      liveAnalysisSection.classList.remove('hidden');
+      liveIndicator.classList.remove('hidden');
+      scanningOverlay.classList.remove('hidden');
+      
+      // Start periodic capture and analysis
+      liveDetectionInterval = setInterval(function() {
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Convert to base64
+        const imageData = canvas.toDataURL('image/jpeg');
+        
+        // Send to backend for real-time analysis
+        analyzeImageFromCamera(imageData, true);
+      }, 2000); // Analyze every 2 seconds
+    }
+    
+    function stopLiveDetection() {
+      if (liveDetectionInterval) {
+        clearInterval(liveDetectionInterval);
+        liveDetectionInterval = null;
+      }
+      
+      isLiveDetectionActive = false;
+      liveDetectionStatus.innerHTML = '<i class="fas fa-info-circle mr-1 text-primary/70"></i> Live detection is off. Turn on to continuously analyze skin conditions.';
+      liveIndicator.classList.add('hidden');
+      scanningOverlay.classList.add('hidden');
+    }
+    
+    // Handle video onloaded event
+    video.addEventListener('loadedmetadata', function() {
+      if (startCameraBtn.dataset.startLiveAfter === 'true') {
+        // Start live detection after camera starts if the flag was set
+        liveDetectionToggle.checked = true;
+        startLiveDetection();
+        delete startCameraBtn.dataset.startLiveAfter;
+      }
+    });
+    
+    // Send image to backend for analysis
+    async function analyzeImageFromCamera(imageData, isRealtime = false) {
+      try {
+        // Show loading state
+        liveDiseaseName.textContent = 'Analyzing...';
+        liveConfidence.textContent = '-';
+        liveConfidenceBar.style.width = '0%';
+        
+        const response = await fetch(`{{ url_for('camera_predict') }}${isRealtime ? '?realtime=true' : ''}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ image_data: imageData })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        
+        const result = await response.json();
+        
+        // Update live results with animation
+        liveAnalysisSection.classList.add('scale-in');
+        setTimeout(() => {
+          liveAnalysisSection.classList.remove('scale-in');
+        }, 300);
+        
+        liveDiseaseName.textContent = result.prediction || 'Unknown';
+        const confidenceValue = result.confidence ? Math.round(result.confidence) : 0;
+        liveConfidence.textContent = `${confidenceValue}%`;
+        
+        // Animate the confidence bar
+        liveConfidenceBar.style.transition = 'width 0.5s ease-in-out';
+        liveConfidenceBar.style.width = `${confidenceValue}%`;
+        
+        // Add to history for live detection mode
+        if (isRealtime) {
+          addToPredictionHistory(result.prediction, confidenceValue);
+        }
+        
+        // Display condition insights if available
+        if (result.ai_analysis) {
+          displayLiveInsights(result.ai_analysis);
+        } else if (result.prediction && !isRealtime) {
+          // Fetch insights for the detected condition on demand
+          fetchConditionInsights(result.prediction);
+        }
+        
+        return result;
+      } catch (error) {
+        console.error('Error analyzing image:', error);
+        liveDiseaseName.textContent = 'Error';
+        liveConfidence.textContent = '-';
+        liveConfidenceBar.style.width = '0%';
+        throw error;
+      }
+    }
+    
+    // Display live condition insights
+    function displayLiveInsights(insightText) {
+      const liveInsightContainer = document.getElementById('liveInsightContainer');
+      const liveInsightContent = document.getElementById('liveInsightContent');
+      
+      if (insightText && insightText.trim() !== '') {
+        // Process the text to ensure proper structure
+        const structuredText = processAIText(insightText);
+        liveInsightContent.innerHTML = structuredText;
+        liveInsightContainer.classList.remove('hidden');
+      } else {
+        liveInsightContainer.classList.add('hidden');
+      }
+    }
+    
+    // Process AI text to ensure proper structure
+    function processAIText(text) {
+      // First, convert any markdown-like content to proper HTML if it's not already
+      if (!text.includes('<h1>') && !text.includes('<h2>') && !text.includes('<h3>')) {
+        // Process headings - Markdown style headings to HTML
+        text = text.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+        text = text.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+        text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+        
+        // Process paragraphs - ensure blank lines create paragraphs
+        const paragraphs = text.split(/\n\s*\n/);
+        text = paragraphs.map(p => {
+          // Skip if it's already an HTML tag
+          if (p.trim().startsWith('<') && !p.trim().startsWith('<li>')) {
+            return p;
+          }
+          return `<p>${p.trim()}</p>`;
+        }).join('\n\n');
+        
+        // Process lists
+        text = text.replace(/^\s*[-*]\s+(.+)$/gm, '<li>$1</li>');
+        text = text.replace(/(<li>.*<\/li>\n)+/gs, match => `<ul>\n${match}\n</ul>`);
+        
+        // Process numbered lists
+        text = text.replace(/^\s*(\d+)\.\s+(.+)$/gm, '<li>$2</li>');
+        text = text.replace(/(<li>.*<\/li>\n)+/gs, match => `<ul>\n${match}\n</ul>`);
+        
+        // Process bold text
+        text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/__(.+?)__/g, '<strong>$1</strong>');
+        
+        // Process italic text
+        text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+        text = text.replace(/_(.+?)_/g, '<em>$1</em>');
+      }
+      
+      // Ensure there's always a main heading
+      if (!text.includes('<h1>') && !text.includes('<h2>')) {
+        text = `<h2>Analysis Results</h2>\n${text}`;
+      }
+      
+      // Add a table of contents for longer texts
+      if ((text.match(/<h2>/g) || []).length >= 3) {
+        const headers = [];
+        let tocHtml = '<div class="toc-container p-3 mb-4 bg-dark-lighter rounded-lg border border-gray-700">\n';
+        tocHtml += '<h4 class="text-primary mb-2">Contents</h4>\n<ul class="toc-list">\n';
+        
+        // Extract headings
+        const headingRegex = /<h([23])>(.*?)<\/h\1>/g;
+        let match;
+        let counter = 0;
+        
+        // Create a clean version of the text for regex processing
+        const cleanText = text.replace(/\n/g, ' ');
+        
+        while ((match = headingRegex.exec(cleanText)) !== null) {
+          const level = match[1];
+          const title = match[2];
+          const id = `section-${counter}`;
+          headers.push({ level, title, id });
+          counter++;
+        }
+        
+        // Generate TOC HTML
+        headers.forEach(header => {
+          const indent = header.level === '3' ? 'ml-4' : '';
+          tocHtml += `<li class="${indent}"><a href="#${header.id}" class="text-primary hover:text-primary-light">${header.title}</a></li>\n`;
+        });
+        
+        tocHtml += '</ul>\n</div>';
+        
+        // Add IDs to headings in the original text
+        counter = 0;
+        text = text.replace(/<h([23])>(.*?)<\/h\1>/g, (match, level, title) => {
+          const id = `section-${counter}`;
+          counter++;
+          return `<h${level} id="${id}">${title}</h${level}>`;
+        });
+        
+        // Add TOC to the beginning
+        text = tocHtml + text;
+      }
+      
+      // Add a visual container around sections
+      if (text.includes('<h2>') || text.includes('<h3>')) {
+        text = text.replace(/<h2 id="([^"]+)">(.*?)<\/h2>/g, 
+          '<div class="analysis-section mb-4 pb-2 border-b border-gray-700">\n<h2 id="$1">$2</h2>');
+        
+        // Close the last section div
+        text += '\n</div>';
+      }
+      
+      return text;
+    }
+    
+    // Ensure base page AI content is also structured
+    document.addEventListener('DOMContentLoaded', function() {
+      // Apply to main AI analysis if present
+      const mainAnalysisContent = document.querySelector('.ai-analysis-content');
+      if (mainAnalysisContent && !document.querySelector('.toc-container')) {
+        const content = mainAnalysisContent.innerHTML;
+        if (content && content.trim() !== '') {
+          mainAnalysisContent.innerHTML = processAIText(content);
+        }
+      }
+    });
+    
+    // Fetch condition insights when not provided by the real-time API
+    async function fetchConditionInsights(condition) {
+      try {
+        const liveInsightContainer = document.getElementById('liveInsightContainer');
+        const liveInsightContent = document.getElementById('liveInsightContent');
+        
+        // Show loading state
+        liveInsightContent.innerHTML = '<div class="flex justify-center py-4"><div class="loader"></div></div>';
+        liveInsightContainer.classList.remove('hidden');
+        
+        // Simulate API call - replace with actual endpoint when available
+        setTimeout(() => {
+          const insights = generateBasicInsights(condition);
+          liveInsightContent.innerHTML = insights;
+        }, 800);
+      } catch (error) {
+        console.error('Error fetching condition insights:', error);
+      }
+    }
+    
+    // Generate basic insights for a condition when API data isn't available
+    function generateBasicInsights(condition) {
+      return `
+        <h2>About ${condition}</h2>
+        <p>This is a common skin condition that may require attention from a dermatologist for proper diagnosis and treatment.</p>
+        
+        <h3>General Information</h3>
+        <p>Skin conditions can vary in severity and treatment approach. The AI has identified visual patterns consistent with ${condition}, but a professional medical evaluation is recommended.</p>
+        
+        <h3>Recommended Next Steps</h3>
+        <ul>
+          <li>Consult with a dermatologist for proper diagnosis</li>
+          <li>Avoid self-medication without professional guidance</li>
+          <li>Keep the affected area clean and avoid irritation</li>
+          <li>Document any changes in the condition over time</li>
+        </ul>
+        
+        <p><strong>Note:</strong> This information is for general guidance only and not a substitute for professional medical advice.</p>
+      `;
+    }
+    
+    // Add prediction to history
+    function addToPredictionHistory(disease, confidence) {
+      // Only add if different from last prediction or confidence changed significantly
+      const lastPrediction = predictionHistory.length > 0 ? predictionHistory[0] : null;
+      if (!lastPrediction || 
+          lastPrediction.disease !== disease || 
+          Math.abs(lastPrediction.confidence - confidence) > 5) {
+        
+        // Add new prediction to history
+        const timestamp = new Date();
+        predictionHistory.unshift({
+          disease,
+          confidence,
+          timestamp
+        });
+        
+        // Limit history to 10 items
+        if (predictionHistory.length > 10) {
+          predictionHistory.pop();
+        }
+        
+        // Update UI
+        updatePredictionHistoryUI();
+      }
+    }
+    
+    // Update prediction history UI
+    function updatePredictionHistoryUI() {
+      historyItems.innerHTML = '';
+      
+      if (predictionHistory.length === 0) {
+        const emptyItem = document.createElement('div');
+        emptyItem.className = 'text-center py-4 text-gray-500';
+        emptyItem.textContent = 'No detection history yet';
+        historyItems.appendChild(emptyItem);
         return;
       }
       
-      // Show loading spinner
-      loadingSpinner.style.display = 'block';
-      
-      // Simulate progress bar animation for visual feedback
-      loadingProgressBar.style.width = '0%';
-      const interval = setInterval(function() {
-        const currentWidth = parseFloat(loadingProgressBar.style.width);
-        if (currentWidth < 90) {
-          loadingProgressBar.style.width = (currentWidth + Math.random() * 10) + '%';
-        } else {
-          clearInterval(interval);
-        }
-      }, 300);
+      predictionHistory.forEach((item, index) => {
+        const historyItem = document.createElement('div');
+        historyItem.className = 'p-3 border border-gray-700 rounded-lg flex justify-between items-center scale-in';
+        
+        const timeString = item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        historyItem.innerHTML = `
+          <div>
+            <span class="text-white text-sm font-medium">${item.disease}</span>
+            <div class="text-xs text-gray-400 flex items-center">
+              <i class="far fa-clock mr-1"></i> ${timeString}
+            </div>
+          </div>
+          <span class="text-primary text-sm font-medium bg-primary/10 px-2 py-1 rounded-full">${item.confidence}%</span>
+        `;
+        
+        historyItems.appendChild(historyItem);
+        
+        // Add staggered animation
+        setTimeout(() => {
+          historyItem.classList.remove('scale-in');
+        }, index * 100);
+      });
+    }
+    
+    // Clean up on page unload
+    window.addEventListener('beforeunload', function() {
+      stopCamera();
     });
-  }
-  
-  // Camera functionality
-  const startCameraBtn = document.getElementById('start-camera');
-  const captureCameraBtn = document.getElementById('capture-image');
-  const stopCameraBtn = document.getElementById('stop-camera');
-  const videoElement = document.getElementById('camera-feed');
-  const canvasElement = document.getElementById('camera-canvas');
-  const cameraStatus = document.getElementById('camera-status');
-  const livePrediction = document.getElementById('live-prediction');
-  const confidenceBar = document.getElementById('confidence-bar');
-  const confidenceText = document.getElementById('confidence-text');
-  const livePredictionText = document.getElementById('live-prediction-text');
-  
-  let stream = null;
-  let predictionInterval = null;
-  let isProcessing = false; // Flag to prevent multiple simultaneous API calls
-  
-  // Start the camera
-  if (startCameraBtn) {
-  startCameraBtn.addEventListener('click', async () => {
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          width: { ideal: 640 },
-          height: { ideal: 480 },
-          facingMode: 'environment' // Prefer rear camera on mobile
-        }, 
-        audio: false 
-      });
-      
-      videoElement.srcObject = stream;
-      cameraStatus.textContent = 'Camera is active';
-      startCameraBtn.disabled = true;
-      captureCameraBtn.disabled = false;
-      stopCameraBtn.disabled = false;
-      
-      // Start continuous prediction
-      livePrediction.style.display = 'block';
-      predictionInterval = setInterval(performLivePrediction, 1000); // Predict every 1 second
-      
-    } catch (error) {
-      cameraStatus.textContent = `Camera error: ${error.message}`;
-      console.error('Error accessing camera:', error);
-    }
   });
-  }
-  
-  // Stop the camera
-  if (stopCameraBtn) {
-  stopCameraBtn.addEventListener('click', () => {
-    stopCamera();
-  });
-  }
-  
-  function stopCamera() {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      videoElement.srcObject = null;
-      stream = null;
-    }
-    
-    cameraStatus.textContent = 'Camera stopped';
-    startCameraBtn.disabled = false;
-    captureCameraBtn.disabled = true;
-    stopCameraBtn.disabled = true;
-    livePrediction.style.display = 'none';
-    
-    if (predictionInterval) {
-      clearInterval(predictionInterval);
-      predictionInterval = null;
-    }
-  }
-  
-  // Capture a still image from the camera
-  if (captureCameraBtn) {
-  captureCameraBtn.addEventListener('click', () => {
-    if (!stream) return;
-    
-    const ctx = canvasElement.getContext('2d');
-    canvasElement.width = videoElement.videoWidth;
-    canvasElement.height = videoElement.videoHeight;
-    ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-    
-    // Convert canvas to blob and submit to server
-    canvasElement.toBlob((blob) => {
-      const formData = new FormData();
-      formData.append('image', blob, 'camera-capture.jpg');
-      
-      // Show loading spinner
-      document.getElementById('loading-spinner').style.display = 'block';
-      
-      // Send to server for analysis
-      fetch('/skin_disease_prediction', {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Prediction data:', data);
-        // Hide loading spinner
-        document.getElementById('loading-spinner').style.display = 'none';
-        
-        // Update the results tab with the prediction data
-        updateResultsTab(data);
-        
-        // Show the results tab
-        document.querySelector('.tab-btn[data-tab="results"]').style.display = 'inline-flex';
-        switchTab('results');
-        
-        // Stop the camera when we switch to results
-        stopCamera();
-      })
-      .catch(error => {
-        console.error('Error submitting image:', error);
-        document.getElementById('loading-spinner').style.display = 'none';
-        cameraStatus.textContent = `Error analyzing image: ${error.message}`;
-      });
-    }, 'image/jpeg', 0.95);
-  });
-  }
-  
-  // Perform live prediction without capturing (using canvas in background)
-  async function performLivePrediction() {
-    if (!stream || !videoElement.videoWidth || isProcessing) return;
-    
-    isProcessing = true;
-    
-    try {
-      const ctx = canvasElement.getContext('2d');
-      canvasElement.width = videoElement.videoWidth;
-      canvasElement.height = videoElement.videoHeight;
-      ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-      
-      // Convert canvas to base64 image data
-      const imageData = canvasElement.toDataURL('image/jpeg', 0.7);
-      
-      livePredictionText.textContent = 'Analyzing...';
-      
-      // Send to optimized server endpoint for real-time processing
-      const response = await fetch('/camera_predict', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          image_data: imageData
-        })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Server error');
-      }
-      
-      const data = await response.json();
-      
-      // Update live prediction display
-      livePredictionText.textContent = `Detected: ${data.prediction}`;
-      
-      // Update confidence bar
-      const confidence = data.confidence || 0;
-      confidenceBar.style.width = `${confidence}%`;
-      confidenceText.textContent = `${confidence.toFixed(1)}%`;
-      
-      // Color the confidence bar based on confidence level
-      if (confidence >= 80) {
-        confidenceBar.style.background = 'linear-gradient(90deg, #10b981, #34d399)';  // Green
-      } else if (confidence >= 50) {
-        confidenceBar.style.background = 'linear-gradient(90deg, #f59e0b, #fbbf24)';  // Yellow/Orange
-      } else {
-        confidenceBar.style.background = 'linear-gradient(90deg, #ef4444, #f87171)';  // Red
-      }
-      
-    } catch (error) {
-      console.error('Live prediction error:', error);
-      livePredictionText.textContent = 'Analysis failed';
-    } finally {
-      isProcessing = false;
-    }
-  }
-  
-  // Update the results tab with prediction data
-  function updateResultsTab(data) {
-    // Update prediction text
-    const predictionText = document.querySelector('.prediction-text');
-    if (predictionText) {
-      predictionText.textContent = data.prediction;
-    }
-    
-    // Update image
-    const resultImage = document.querySelector('.result-image');
-    if (resultImage && data.image_url) {
-      resultImage.src = data.image_url;
-    }
-    
-    // Update probabilities table
-    const probabilityResults = document.querySelector('.probability-results');
-    if (probabilityResults && data.probabilities) {
-      if (typeof data.probabilities === 'string') {
-        probabilityResults.innerHTML = `<pre>${data.probabilities}</pre>`;
-      } else if (typeof data.probabilities === 'object') {
-        let tableHTML = `
-          <div class="probability-table">
-            <table class="w-full">
-              <thead>
-                <tr>
-                  <th class="text-left p-2">Condition</th>
-                  <th class="text-right p-2">Probability</th>
-                </tr>
-              </thead>
-              <tbody>
-        `;
-        
-        for (const [condition, prob] of Object.entries(data.probabilities)) {
-          tableHTML += `
-            <tr class="border-t border-opacity-10">
-              <td class="text-left p-2">${condition}</td>
-              <td class="text-right p-2">
-                <div class="probability-bar-container">
-                  <div class="probability-bar" data-width="${prob}"></div>
-                  <span class="probability-text">${prob}</span>
-                </div>
-              </td>
-            </tr>
-          `;
-        }
-        
-        tableHTML += `
-              </tbody>
-            </table>
-          </div>
-        `;
-        
-        probabilityResults.innerHTML = tableHTML;
-        
-        // Set width for probability bars
-        document.querySelectorAll('.probability-bar').forEach(bar => {
-          const width = bar.getAttribute('data-width');
-          if (width) {
-            const match = width.match(/(\d+(\.\d+)?)/);
-            if (match && match[1]) {
-              bar.style.width = `${parseFloat(match[1])}%`;
-            }
-          }
-        });
-      }
-    }
-    
-    // Update AI analysis
-    const aiAnalysisText = document.querySelector('.ai-analysis-text');
-    if (aiAnalysisText && data.ai_analysis) {
-      if (typeof data.ai_analysis === 'string') {
-        aiAnalysisText.innerHTML = `
-          <div class="formatted-analysis">
-            ${data.ai_analysis}
-          </div>
-        `;
-      }
-    }
-    
-    // Scroll to results section for better visibility
-    const resultsTab = document.getElementById('results');
-    if (resultsTab) {
-      setTimeout(() => {
-        resultsTab.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-    }
-  }
-  
-  // Handle window unload to clean up camera resources
-  window.addEventListener('beforeunload', () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-    }
-  });
-});
 </script>
-{% endblock %}
+{% endblock %} 
