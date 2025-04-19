@@ -18,7 +18,7 @@ matplotlib==3.8.2
 imutils==0.5.4
 
 # API and HTTP libraries
-requests==2.31.0
+requests==2.32.0  # Updated to satisfy inference-sdk dependency
 gdown==5.2.0
 roboflow==1.1.1
 inference-sdk==0.36.1
