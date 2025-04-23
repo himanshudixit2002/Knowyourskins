@@ -1,0 +1,9 @@
+app.db
+output.log
+.venv
+model/skin_disease_model.h5
+static/skin_uploads/
+static/uploads/
+google_cloud_credentials.json
+credentials/
+.env

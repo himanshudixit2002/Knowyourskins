@@ -1,0 +1,393 @@
+{% extends "layout.html" %}
+{% block title %}Appointment Details | KNOWYOURSKINS{% endblock %}
+
+{% block content %}
+<style>
+  /* Background and Layout */
+  .appointment-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1f2c, #2d3748);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+  
+  /* Animated Particles */
+  .particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+  }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    animation: float 15s infinite ease-in-out;
+  }
+  .particle:nth-child(1) { width: 80px; height: 80px; top: 10%; left: 10%; animation-delay: 0s; }
+  .particle:nth-child(2) { width: 60px; height: 60px; top: 20%; left: 80%; animation-delay: 2s; }
+  .particle:nth-child(3) { width: 100px; height: 100px; top: 60%; left: 70%; animation-delay: 4s; }
+  .particle:nth-child(4) { width: 50px; height: 50px; top: 80%; left: 20%; animation-delay: 6s; }
+  .particle:nth-child(5) { width: 70px; height: 70px; top: 40%; left: 30%; animation-delay: 8s; }
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0) translateX(0); }
+    25% { transform: translateY(-20px) translateX(10px); }
+    50% { transform: translateY(0) translateX(20px); }
+    75% { transform: translateY(20px) translateX(10px); }
+  }
+
+  /* Background Logo Animation */
+  .background-logo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60%;
+    max-width: 700px;
+    opacity: 0.05;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    animation: rotateLogo 30s linear infinite;
+  }
+  @keyframes rotateLogo {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+
+  /* Decorative Elements */
+  .decorative-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255, 159, 90, 0.2), rgba(255, 122, 0, 0.1));
+    z-index: 0;
+  }
+  .circle-1 {
+    width: 300px;
+    height: 300px;
+    top: -150px;
+    left: -150px;
+  }
+  .circle-2 {
+    width: 400px;
+    height: 400px;
+    bottom: -200px;
+    right: -200px;
+  }
+
+  /* Appointment Card */
+  .appointment-card {
+    background: rgba(30, 35, 45, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 10;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 100%;
+    max-width: 600px;
+    padding: 2.5rem;
+  }
+  .appointment-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Header */
+  .appointment-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 2rem;
+    position: relative;
+  }
+  
+  .appointment-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    position: relative;
+  }
+  
+  .appointment-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #FF9F5A, #FF7A00);
+    border-radius: 3px;
+  }
+  
+  /* Detail Items */
+  .detail-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  
+  .detail-item {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 1.25rem;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .detail-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    background: rgba(255, 159, 90, 0.1);
+    border-color: rgba(255, 159, 90, 0.3);
+  }
+  
+  .detail-label {
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+  }
+  
+  .detail-label-icon {
+    margin-right: 0.5rem;
+    color: #FF9F5A;
+  }
+  
+  .detail-value {
+    color: white;
+    font-size: 1.125rem;
+    word-break: break-word;
+  }
+  
+  /* Status Badges */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+  
+  .status-pending {
+    background: rgba(251, 191, 36, 0.2);
+    color: #fcd34d;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+  }
+  
+  .status-confirmed {
+    background: rgba(16, 185, 129, 0.2);
+    color: #6ee7b7;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+  
+  .status-rejected {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+  }
+  
+  /* Button */
+  .btn-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.85rem 2rem;
+    background: linear-gradient(135deg, #FF9F5A, #FF7A00);
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: bold;
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 159, 90, 0.4);
+    text-decoration: none;
+  }
+  
+  .btn-back:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(255, 159, 90, 0.5);
+  }
+  
+  .btn-back i {
+    margin-right: 0.5rem;
+  }
+  
+  /* Responsive */
+  @media (min-width: 640px) {
+    .detail-list {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .detail-item.full-width {
+      grid-column: span 2;
+    }
+  }
+</style>
+
+<div class="appointment-container">
+  <!-- Decorative Elements -->
+  <div class="decorative-circle circle-1"></div>
+  <div class="decorative-circle circle-2"></div>
+  
+  <!-- Animated Particles -->
+  <div class="particles">
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+  
+  <!-- Animated Background Logo -->
+  <img src="/static/assets/logo.png" alt="Background Logo" class="background-logo">
+  
+  <!-- Appointment Card -->
+  <div class="appointment-card">
+    <div class="appointment-header">
+      <h1 class="appointment-title">Appointment Details</h1>
+    </div>
+    
+    <div class="detail-list">
+      <!-- Name -->
+      <div class="detail-item">
+        <div class="detail-label">
+          <span class="detail-label-icon">👤</span>
+          <span>Name</span>
+        </div>
+        <div class="detail-value">{{ appointment.name }}</div>
+      </div>
+      
+      <!-- Email -->
+      <div class="detail-item">
+        <div class="detail-label">
+          <span class="detail-label-icon">✉️</span>
+          <span>Email</span>
+        </div>
+        <div class="detail-value">{{ appointment.email }}</div>
+      </div>
+      
+      <!-- Date & Time -->
+      <div class="detail-item">
+        <div class="detail-label">
+          <span class="detail-label-icon">📅</span>
+          <span>Date &amp; Time</span>
+        </div>
+        <div class="detail-value">{{ appointment.date }}</div>
+      </div>
+      
+      <!-- Skin Type -->
+      <div class="detail-item">
+        <div class="detail-label">
+          <span class="detail-label-icon">🧴</span>
+          <span>Skin Type</span>
+        </div>
+        <div class="detail-value">{{ appointment.skin }}</div>
+      </div>
+      
+      <!-- Age -->
+      <div class="detail-item">
+        <div class="detail-label">
+          <span class="detail-label-icon">🔢</span>
+          <span>Age</span>
+        </div>
+        <div class="detail-value">{{ appointment.age }}</div>
+      </div>
+      
+      <!-- Username -->
+      <div class="detail-item">
+        <div class="detail-label">
+          <span class="detail-label-icon">🆔</span>
+          <span>Username</span>
+        </div>
+        <div class="detail-value">{{ appointment.username }}</div>
+      </div>
+      
+      <!-- Address / Reason -->
+      <div class="detail-item full-width">
+        <div class="detail-label">
+          <span class="detail-label-icon">📝</span>
+          <span>Address / Reason</span>
+        </div>
+        <div class="detail-value">{{ appointment.address }}</div>
+      </div>
+      
+      <!-- Status Indicator -->
+      <div class="detail-item">
+        <div class="detail-label">
+          <i class="fas fa-clipboard-check detail-label-icon"></i>
+          Status
+        </div>
+        <div class="detail-value">
+          {% if appointment.status == 'approved' %}
+          <span class="status-badge status-confirmed">
+            <i class="fas fa-check-circle mr-2"></i>
+            Confirmed
+          </span>
+          {% elif appointment.status == 'declined' %}
+          <span class="status-badge status-rejected">
+            <i class="fas fa-times-circle mr-2"></i>
+            Declined
+          </span>
+          {% else %}
+          <span class="status-badge status-pending">
+            <i class="fas fa-clock mr-2"></i>
+            Pending
+          </span>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Detail for skin concerns/notes -->
+      <div class="detail-item">
+        <span class="detail-label">
+          <i class="fas fa-comment-medical detail-label-icon"></i>
+          Skin Concerns
+        </span>
+        <span class="detail-value">{{ appointment.concerns }}</span>
+      </div>
+    </div>
+    
+    <div class="mt-8 text-center">
+      <a href="javascript:history.back()" class="btn-back">
+        <i class="fas fa-arrow-left"></i>
+        Go Back
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+// Add subtle animations to detail items on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const detailItems = document.querySelectorAll('.detail-item');
+    detailItems.forEach((item, index) => {
+        setTimeout(() => {
+            item.style.opacity = '0';
+            item.style.transform = 'translateY(20px)';
+            item.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            
+            setTimeout(() => {
+                item.style.opacity = '1';
+                item.style.transform = 'translateY(0)';
+            }, 50);
+        }, index * 50);
+    });
+});
+</script>
+{% endblock %}

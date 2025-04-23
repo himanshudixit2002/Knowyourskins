@@ -1,0 +1,1301 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<style>
+  /* Modern Design System - Face Analysis 2.0 */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+
+  :root {
+    --primary: #FF8C00;
+    --primary-light: #FFA333;
+    --primary-dark: #E67D00;
+    --accent: #FF6B00;
+    --accent-light: #FF8533;
+    --accent-dark: #E65C00;
+    --bg-dark: #121212;
+    --bg-card: #1E1E1E;
+    --text: #FFFFFF;
+    --text-secondary: #CCCCCC;
+    --surface: #1E1E1E;
+    --stroke: #333333;
+    --success: #4CAF50;
+    --warning: #FF9800;
+    --error: #F44336;
+    --gradient-primary: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    --gradient-accent: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 12px 30px rgba(0, 0, 0, 0.4);
+    --shadow-focus: 0 0 0 3px rgba(255, 140, 0, 0.4);
+    --border-radius-sm: 8px;
+    --border-radius-md: 12px;
+    --border-radius-lg: 20px;
+    --border-radius-xl: 30px;
+  }
+
+  /* Main Container */
+  .fa-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+    font-family: 'Inter', sans-serif;
+    color: var(--text);
+  }
+
+  /* Header Section */
+  .fa-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    position: relative;
+  }
+
+  .fa-header h1 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+    display: inline-block;
+    position: relative;
+    text-align: center;
+  }
+
+  .fa-header h1 i {
+    color: var(--primary);
+    margin-right: 0.5rem;
+  }
+
+  .fa-header h1::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    width: 80px;
+    height: 3px;
+    transform: translateX(-50%);
+    background: var(--gradient-primary);
+    border-radius: 2px;
+  }
+
+  .fa-header p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 1.25rem auto 0;
+  }
+
+  /* Main Content Wrapper */
+  .fa-content-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+    margin-top: 2rem;
+    align-items: start;
+  }
+
+  @media (max-width: 992px) {
+    .fa-content-wrapper {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Upload Section */
+  .fa-upload-section {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-lg);
+    padding: 2.5rem;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid var(--stroke);
+  }
+
+  .fa-upload-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at top right, rgba(255, 140, 0, 0.1), transparent 70%);
+    pointer-events: none;
+  }
+
+  .fa-upload-section:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .fa-drop-zone {
+    border: 2px dashed var(--stroke);
+    border-radius: var(--border-radius-md);
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    margin-bottom: 2rem;
+    position: relative;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .fa-drop-zone.dragover {
+    border-color: var(--primary);
+    background: rgba(255, 140, 0, 0.08);
+    transform: scale(1.02);
+  }
+
+  .fa-drop-zone.has-file {
+    border-color: var(--primary);
+    background: rgba(255, 140, 0, 0.08);
+  }
+
+  .fa-upload-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 140, 0, 0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  .fa-drop-zone:hover .fa-upload-icon {
+    transform: scale(1.1);
+    background: rgba(255, 140, 0, 0.25);
+  }
+
+  .fa-upload-icon i {
+    font-size: 2.5rem;
+    color: var(--primary);
+    transition: all 0.3s ease;
+  }
+
+  .fa-drop-zone:hover .fa-upload-icon i {
+    transform: translateY(-5px);
+  }
+
+  .fa-drop-zone input[type="file"] {
+    display: none;
+  }
+
+  .fa-drop-zone h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text);
+  }
+
+  .fa-drop-zone p {
+    color: var(--text-secondary);
+    margin: 0.5rem 0;
+    font-size: 0.95rem;
+  }
+
+  .fa-file-info {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 140, 0, 0.1);
+    border-radius: var(--border-radius-sm);
+    color: var(--primary-light);
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    font-weight: 500;
+  }
+
+  .fa-file-feedback {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--border-radius-sm);
+    background: rgba(76, 175, 80, 0.1);
+    color: var(--success);
+    font-weight: 500;
+    display: none;
+    animation: fadeInUp 0.3s ease forwards;
+    text-align: center;
+    width: 100%;
+  }
+
+  /* Analysis Button */
+  .fa-analyze-btn {
+    width: 100%;
+    background: var(--gradient-primary);
+    border: none;
+    border-radius: var(--border-radius-md);
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+    line-height: 1.3;
+  }
+
+  .fa-analyze-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: all 0.6s ease;
+  }
+
+  .fa-analyze-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .fa-analyze-btn:hover::before {
+    left: 100%;
+  }
+
+  .fa-analyze-btn i {
+    font-size: 1.25rem;
+    transition: all 0.3s ease;
+  }
+
+  .fa-analyze-btn:hover i {
+    transform: rotate(20deg);
+  }
+
+  .fa-analyze-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  /* Loader */
+  .fa-loader {
+    display: none;
+    width: 60px;
+    height: 60px;
+    margin: 1.5rem auto;
+    position: relative;
+  }
+
+  .fa-loader::before,
+  .fa-loader::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    animation: faLoaderPulse 1.5s ease-in-out infinite;
+  }
+
+  .fa-loader::before {
+    border: 3px solid var(--primary);
+    opacity: 0.6;
+    animation-delay: 0s;
+  }
+
+  .fa-loader::after {
+    border: 3px solid var(--accent);
+    opacity: 0.6;
+    animation-delay: 0.75s;
+  }
+
+  @keyframes faLoaderPulse {
+    0% {
+      transform: scale(0.8);
+      opacity: 0.6;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 0.2;
+    }
+    100% {
+      transform: scale(0.8);
+      opacity: 0.6;
+    }
+  }
+
+  /* Results Section */
+  .fa-results-section {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+    display: none; /* Initially hidden */
+    animation: fadeInUp 0.5s ease forwards;
+    border: 1px solid var(--stroke);
+  }
+
+  .fa-results-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at bottom left, rgba(255, 140, 0, 0.1), transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Results Tabs */
+  .fa-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 1.5rem 1.5rem 0;
+    position: relative;
+    justify-content: center;
+  }
+
+  .fa-tab-btn {
+    flex: 1;
+    min-width: 120px;
+    max-width: 200px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--stroke);
+    border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+    padding: 1rem 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    position: relative;
+    z-index: 1;
+    text-align: center;
+  }
+
+  .fa-tab-btn i {
+    font-size: 1.1rem;
+    color: var(--primary);
+    transition: all 0.3s ease;
+    display: inline-block;
+    margin-right: 0.25rem;
+  }
+
+  .fa-tab-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+  }
+
+  .fa-tab-btn.active {
+    background: var(--gradient-primary);
+    color: white;
+    border-color: transparent;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .fa-tab-btn.active i {
+    color: white;
+  }
+
+  .fa-tab-btn:hover i {
+    transform: translateY(-3px);
+  }
+
+  /* Tab Content */
+  .fa-tab-content {
+    display: none;
+    padding: 2rem;
+    animation: fadeIn 0.3s ease forwards;
+  }
+
+  .fa-tab-content.active {
+    display: block;
+  }
+
+  /* Results Cards */
+  .fa-card {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--stroke);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .fa-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(255, 140, 0, 0.3);
+  }
+
+  .fa-card-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--stroke);
+    position: relative;
+  }
+
+  .fa-card-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: var(--gradient-primary);
+    transition: width 0.3s ease;
+  }
+
+  .fa-card:hover .fa-card-header::after {
+    width: 100px;
+  }
+
+  .fa-card-icon {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 140, 0, 0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  .fa-card:hover .fa-card-icon {
+    transform: scale(1.1);
+    background: rgba(255, 140, 0, 0.25);
+  }
+
+  .fa-card-icon i {
+    font-size: 1.25rem;
+    color: var(--primary);
+  }
+
+  .fa-card-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0;
+  }
+
+  /* Condition Grid */
+  .fa-conditions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .fa-condition-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--stroke);
+    border-left: 3px solid var(--primary);
+    border-radius: var(--border-radius-sm);
+    padding: 1.25rem 1rem;
+    font-weight: 500;
+    color: var(--text);
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+  }
+
+  .fa-condition-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 140, 0, 0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .fa-condition-item:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-sm);
+    border-left-width: 6px;
+  }
+
+  .fa-condition-item:hover::before {
+    opacity: 1;
+  }
+
+  /* Product Recommendations */
+  .fa-product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+  }
+
+  .fa-product-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--stroke);
+    border-radius: var(--border-radius-md);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .fa-product-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 140, 0, 0.05), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .fa-product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(255, 140, 0, 0.3);
+  }
+
+  .fa-product-card:hover::before {
+    opacity: 1;
+  }
+
+  .fa-product-card h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 0;
+    margin-bottom: 1.25rem;
+    position: relative;
+    padding-bottom: 0.75rem;
+    text-align: left;
+  }
+
+  .fa-product-card h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 40px;
+    height: 2px;
+    background: var(--gradient-primary);
+    transition: width 0.3s ease;
+  }
+
+  .fa-product-card:hover h3::after {
+    width: 80px;
+  }
+
+  .fa-product-card p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    text-align: left;
+    line-height: 1.5;
+  }
+
+  .fa-product-card strong {
+    color: var(--text);
+  }
+
+  /* Analysis Images */
+  .fa-image-comparison {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    justify-content: center;
+  }
+
+  .fa-image-container {
+    flex: 1;
+    min-width: 250px;
+    position: relative;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    aspect-ratio: 4/3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .fa-image-container:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .fa-analysis-img {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--border-radius-md);
+    display: none;
+    transition: all 0.3s ease;
+    object-fit: contain;
+  }
+
+  .fa-image-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 500;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+  }
+
+  .fa-image-container:hover .fa-image-label {
+    background: rgba(255, 140, 0, 0.6);
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(255, 140, 0, 0.4);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba(255, 140, 0, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(255, 140, 0, 0);
+    }
+  }
+
+  .fa-pulse {
+    animation: pulse 2s infinite;
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .fa-header h1 {
+      font-size: 2rem;
+    }
+    
+    .fa-header p {
+      font-size: 1rem;
+    }
+    
+    .fa-upload-section, 
+    .fa-results-section {
+      padding: 1.5rem;
+    }
+    
+    .fa-drop-zone {
+      padding: 2rem 1rem;
+    }
+    
+    .fa-upload-icon {
+      width: 60px;
+      height: 60px;
+    }
+    
+    .fa-upload-icon i {
+      font-size: 2rem;
+    }
+    
+    .fa-drop-zone h3 {
+      font-size: 1.2rem;
+      line-height: 1.4;
+    }
+    
+    .fa-tabs {
+      flex-wrap: wrap;
+    }
+
+    .fa-tab-btn {
+      flex: 1 0 calc(50% - 0.75rem);
+      font-size: 0.9rem;
+      max-width: none;
+    }
+    
+    .fa-card-title {
+      font-size: 1.2rem;
+    }
+    
+    .fa-tab-content {
+      padding: 1.5rem;
+    }
+    
+    .fa-conditions-grid {
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+    
+    .fa-product-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .fa-header h1 {
+      font-size: 1.8rem;
+    }
+    
+    .fa-tab-btn {
+      flex: 1 0 100%;
+    }
+    
+    .fa-upload-section, 
+    .fa-results-section {
+      padding: 1.25rem;
+    }
+    
+    .fa-card {
+      padding: 1.25rem;
+    }
+    
+    .fa-tab-content {
+      padding: 1.25rem;
+    }
+    
+    .fa-conditions-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Recommendations styling */
+  .fa-recommendations-content {
+    color: var(--text);
+    line-height: 1.6;
+    padding: 0.5rem;
+  }
+
+  .fa-recommendations-content h3 {
+    color: var(--primary);
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border-bottom: 1px solid rgba(255, 140, 0, 0.2);
+    padding-bottom: 0.5rem;
+  }
+
+  .fa-recommendations-content ul {
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .fa-recommendations-content li {
+    margin-bottom: 0.75rem;
+    color: var(--text-secondary);
+    list-style-type: none;
+    position: relative;
+    padding-left: 1.5rem;
+    line-height: 1.5;
+  }
+
+  .fa-recommendations-content li::before {
+    content: '•';
+    color: var(--primary);
+    position: absolute;
+    left: 0.5rem;
+    font-weight: bold;
+  }
+
+  .fa-recommendations-content strong {
+    color: var(--text);
+  }
+
+  /* Improve button hover/active states */
+  .fa-analyze-btn:active {
+    transform: translateY(1px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Fix center alignment issues in buttons */
+  button {
+    text-align: center;
+  }
+</style>
+
+<div class="fa-container">
+  <header class="fa-header">
+    <h1><i class="fas fa-microscope"></i> Advanced Face Analysis</h1>
+    <p>Upload your photo for AI-powered skin analysis using cutting-edge computer vision technology</p>
+  </header>
+  
+  <div class="fa-content-wrapper">
+    <!-- Upload Section -->
+    <section class="fa-upload-section">
+      <form id="uploadForm" method="post" enctype="multipart/form-data">
+        <div class="fa-drop-zone" id="dropZone">
+          <input id="fileInput" type="file" name="image" accept="image/*" required>
+          <div class="fa-upload-icon">
+            <i class="fas fa-cloud-upload-alt"></i>
+          </div>
+          <h3>Drag & Drop or Click to Upload</h3>
+          <p>Upload a clear photo of your face for the most accurate analysis</p>
+          <p class="fa-file-info">Accepted formats: JPG, PNG (Max: 2MB)</p>
+          <div id="fileFeedback" class="fa-file-feedback"></div>
+        </div>
+        
+        <button type="submit" class="fa-analyze-btn" id="analyzeBtn">
+          <i class="fas fa-microscope"></i>
+          <span>Analyze Skin Condition</span>
+        </button>
+        
+        <div class="fa-loader" id="loader"></div>
+      </form>
+    </section>
+
+    <!-- Results Section -->
+    <section class="fa-results-section" id="resultsSection">
+      <div class="fa-tabs">
+        <button class="fa-tab-btn active" data-tab="conditions">
+          <i class="fas fa-check-circle"></i> Detected Conditions
+        </button>
+        <button class="fa-tab-btn" data-tab="analysis">
+          <i class="fas fa-chart-pie"></i> Analysis
+        </button>
+        <button class="fa-tab-btn" data-tab="recommendations">
+          <i class="fas fa-lightbulb"></i> Recommendations
+        </button>
+        <button class="fa-tab-btn" data-tab="products">
+          <i class="fas fa-shopping-bag"></i> Products
+        </button>
+      </div>
+      
+      <!-- Conditions Tab -->
+      <div class="fa-tab-content active" data-tab="conditions">
+        <div class="fa-card">
+          <div class="fa-card-header">
+            <div class="fa-card-icon">
+              <i class="fas fa-check-circle"></i>
+            </div>
+            <h2 class="fa-card-title">Detected Skin Conditions</h2>
+          </div>
+          <div class="fa-conditions-grid" id="conditionsList"></div>
+        </div>
+      </div>
+      
+      <!-- Analysis Tab -->
+      <div class="fa-tab-content" data-tab="analysis">
+        <div class="fa-card">
+          <div class="fa-card-header">
+            <div class="fa-card-icon">
+              <i class="fas fa-chart-pie"></i>
+            </div>
+            <h2 class="fa-card-title">Visual Analysis</h2>
+          </div>
+          <div class="fa-image-comparison">
+            <div class="fa-image-container">
+              <img id="originalImage" class="fa-analysis-img" src="#" alt="Original Image">
+              <div class="fa-image-label">Original Image</div>
+            </div>
+            <div class="fa-image-container">
+              <img id="annotatedImage" class="fa-analysis-img" src="#" alt="Analyzed Image">
+              <div class="fa-image-label">AI-Analyzed Image</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Recommendations Tab -->
+      <div class="fa-tab-content" data-tab="recommendations">
+        <div class="fa-card">
+          <div class="fa-card-header">
+            <div class="fa-card-icon">
+              <i class="fas fa-lightbulb"></i>
+            </div>
+            <h2 class="fa-card-title">Skincare Recommendations</h2>
+          </div>
+          <div id="aiAnalysis" class="fa-recommendations-content"></div>
+        </div>
+      </div>
+      
+      <!-- Products Tab -->
+      <div class="fa-tab-content" data-tab="products">
+        <div class="fa-card">
+          <div class="fa-card-header">
+            <div class="fa-card-icon">
+              <i class="fas fa-shopping-bag"></i>
+            </div>
+            <h2 class="fa-card-title">Recommended Products</h2>
+          </div>
+          <div class="fa-product-grid" id="productsList"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // DOM Elements
+  const dropZone = document.getElementById("dropZone");
+    const fileInput = document.getElementById("fileInput");
+    const fileFeedback = document.getElementById("fileFeedback");
+    const uploadForm = document.getElementById("uploadForm");
+  const analyzeBtn = document.getElementById("analyzeBtn");
+  const loader = document.getElementById("loader");
+    const resultsSection = document.getElementById("resultsSection");
+    const conditionsList = document.getElementById("conditionsList");
+  const productsList = document.getElementById("productsList");
+    const aiAnalysis = document.getElementById("aiAnalysis");
+    const originalImage = document.getElementById("originalImage");
+  const annotatedImage = document.getElementById("annotatedImage");
+  const tabButtons = document.querySelectorAll(".fa-tab-btn");
+  const tabContents = document.querySelectorAll(".fa-tab-content");
+
+  // File Upload Handling
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+    dropZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight() {
+    dropZone.classList.add('dragover');
+    }
+
+    function unhighlight() {
+    dropZone.classList.remove('dragover');
+    }
+
+  // Handle dropping files
+  dropZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+    
+    if (files.length) {
+        fileInput.files = files;
+      validateAndPreviewFile(files[0]);
+    }
+  }
+
+  // Handle file selection via input
+  fileInput.addEventListener('change', function() {
+    if (fileInput.files.length) {
+      validateAndPreviewFile(fileInput.files[0]);
+    }
+  });
+
+  // Trigger file input when clicking the drop zone
+  dropZone.addEventListener('click', function() {
+    fileInput.click();
+  });
+
+  // Validate and preview the selected file
+  function validateAndPreviewFile(file) {
+            // Check file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!validTypes.includes(file.type.toLowerCase())) {
+      showError("Invalid file type. Please upload a JPG or PNG image.");
+                fileInput.value = "";
+      return false;
+    }
+    
+    // Check file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      showError("File too large! Please select a file under 2MB.");
+      fileInput.value = "";
+      return false;
+    }
+    
+    // Valid file - show preview
+    dropZone.classList.add('has-file');
+            fileFeedback.style.display = "block";
+    fileFeedback.textContent = `Selected: ${file.name}`;
+    fileFeedback.classList.add('fa-pulse');
+            
+    // Preview original image
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                originalImage.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+    
+    return true;
+  }
+
+  // Show error message
+  function showError(message) {
+    fileFeedback.style.display = "block";
+    fileFeedback.textContent = message;
+    fileFeedback.style.background = "rgba(244, 67, 54, 0.1)";
+    fileFeedback.style.color = "var(--error)";
+    dropZone.style.borderColor = "var(--error)";
+    
+    // Reset after 3 seconds
+    setTimeout(() => {
+      fileFeedback.style.display = "none";
+      fileFeedback.style.background = "rgba(76, 175, 80, 0.1)";
+      fileFeedback.style.color = "var(--success)";
+      dropZone.style.borderColor = "var(--stroke)";
+      dropZone.classList.remove('has-file');
+    }, 3000);
+  }
+
+  // Tab switching functionality
+  tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      // Remove active class from all buttons and content
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      tabContents.forEach(content => {
+        content.classList.remove('active');
+        content.style.display = 'none';
+      });
+      
+      // Add active class to clicked button
+      button.classList.add('active');
+      
+      // Show corresponding content
+      const tabName = button.getAttribute('data-tab');
+      const activeContent = document.querySelector(`.fa-tab-content[data-tab="${tabName}"]`);
+      activeContent.classList.add('active');
+      activeContent.style.display = 'block';
+    });
+  });
+
+  // Form submission
+  uploadForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    if (!fileInput.files.length) {
+      showError("Please select a file first.");
+            return;
+        }
+        
+    // Show loading state
+        analyzeBtn.disabled = true;
+    loader.style.display = "block";
+    
+    // Create FormData object
+    const formData = new FormData();
+    formData.append('image', fileInput.files[0]);
+    
+    // Send the request
+    fetch('/predict', {
+      method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+        return response.json().then(data => {
+          throw new Error(data.error || 'An error occurred during analysis');
+        });
+            }
+            return response.json();
+        })
+        .then(data => {
+      // Hide loader and enable button
+      loader.style.display = "none";
+            analyzeBtn.disabled = false;
+            
+      // Display results
+      displayResults(data);
+        })
+        .catch(error => {
+      loader.style.display = "none";
+            analyzeBtn.disabled = false;
+      showError(error.message || "Error analyzing the image. Please try again.");
+      console.error('Error:', error);
+        });
+    });
+
+  // Display results
+  function displayResults(data) {
+    // Show results section
+        resultsSection.style.display = "block";
+    
+    // Clear previous results
+        conditionsList.innerHTML = "";
+    productsList.innerHTML = "";
+    
+    // Show original image and annotated image
+        originalImage.style.display = "block";
+        
+    if (data.annotated_image) {
+      annotatedImage.src = data.annotated_image;
+      annotatedImage.style.display = "block";
+        } else {
+      annotatedImage.style.display = "none";
+        }
+
+    // Display conditions with animation
+    if (data.classes && data.classes.length) {
+            data.classes.forEach((condition, index) => {
+        const conditionItem = document.createElement("div");
+        conditionItem.className = "fa-condition-item";
+        conditionItem.textContent = condition;
+        conditionItem.style.opacity = "0";
+        conditionItem.style.transform = "translateY(20px)";
+        
+        conditionsList.appendChild(conditionItem);
+        
+        // Staggered animation
+                setTimeout(() => {
+          conditionItem.style.opacity = "1";
+          conditionItem.style.transform = "translateY(0)";
+          conditionItem.style.transition = "all 0.3s ease";
+        }, 100 * index);
+            });
+        } else {
+      const noConditionsItem = document.createElement("div");
+      noConditionsItem.className = "fa-condition-item";
+      noConditionsItem.textContent = "No conditions detected";
+      conditionsList.appendChild(noConditionsItem);
+    }
+    
+    // Format and display AI analysis
+    if (data.ai_analysis) {
+      const formattedAnalysis = data.ai_analysis
+        .replace(/\n/g, '<br>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/#(.*?)(?:\n|$)/g, '<h3>$1</h3>')
+        .replace(/- (.*?)(?:\n|$)/g, '<li>$1</li>');
+      
+      aiAnalysis.innerHTML = formattedAnalysis;
+    } else {
+      aiAnalysis.innerHTML = "<p>No analysis available for this image.</p>";
+    }
+    
+    // Display product recommendations
+    if (data.recommendations && data.recommendations.length) {
+            data.recommendations.forEach((rec, index) => {
+        const productCard = document.createElement("div");
+        productCard.className = "fa-product-card";
+        productCard.style.opacity = "0";
+        productCard.style.transform = "translateY(20px)";
+                
+                let productsHtml = '';
+        
+        if (rec.products && rec.products.length) {
+          rec.products.forEach(product => {
+                        productsHtml += `
+              <p><strong>${product.Brand} - ${product.Name}</strong></p>
+              <p>Price: ₹${product.Price}</p>
+              <p>Ingredients: ${product.Ingredients}</p>
+                        `;
+                    });
+                } else {
+          productsHtml = '<p>No specific products recommended for this condition</p>';
+                }
+                
+        productCard.innerHTML = `
+                    <h3>${rec.condition}</h3>
+                    ${productsHtml}
+                `;
+                
+        productsList.appendChild(productCard);
+                
+        // Staggered animation
+                setTimeout(() => {
+          productCard.style.opacity = "1";
+          productCard.style.transform = "translateY(0)";
+          productCard.style.transition = "all 0.3s ease";
+        }, 150 * index);
+            });
+        } else {
+      const noProductsMessage = document.createElement("p");
+      noProductsMessage.textContent = "No product recommendations available";
+      noProductsMessage.style.textAlign = "center";
+      noProductsMessage.style.color = "var(--text-secondary)";
+      productsList.appendChild(noProductsMessage);
+    }
+    
+    // Scroll to results section
+            setTimeout(() => {
+      resultsSection.scrollIntoView({ behavior: 'smooth' });
+            }, 300);
+  }
+
+  // Add hover animations for buttons
+  analyzeBtn.addEventListener('mouseenter', () => {
+    const icon = analyzeBtn.querySelector('i');
+    if (icon) icon.style.transform = 'rotate(20deg)';
+  });
+  
+  analyzeBtn.addEventListener('mouseleave', () => {
+    const icon = analyzeBtn.querySelector('i');
+    if (icon) icon.style.transform = 'rotate(0)';
+  });
+
+  // Initialize tooltips or popovers if needed
+  function initTooltips() {
+    const tooltipElements = document.querySelectorAll('[data-tooltip]');
+    tooltipElements.forEach(element => {
+      element.addEventListener('mouseenter', () => {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'fa-tooltip';
+        tooltip.textContent = element.getAttribute('data-tooltip');
+        document.body.appendChild(tooltip);
+        
+        const rect = element.getBoundingClientRect();
+        tooltip.style.top = `${rect.top - tooltip.offsetHeight - 10}px`;
+        tooltip.style.left = `${rect.left + rect.width / 2 - tooltip.offsetWidth / 2}px`;
+        tooltip.style.opacity = '1';
+      });
+      
+      element.addEventListener('mouseleave', () => {
+        const tooltip = document.querySelector('.fa-tooltip');
+        if (tooltip) tooltip.remove();
+      });
+    });
+  }
+
+  // Initialize any additional components
+  initTooltips();
+});
+</script>
+{% endblock %}

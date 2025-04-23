@@ -1,0 +1,675 @@
+{% extends "layout.html" %}
+{% block title %}Skin Health Survey | Knowyourskins{% endblock %}
+{% block content %}
+
+<style>
+  :root {
+    --primary: #ff8a00;
+    --primary-light: #ffb347;
+    --primary-dark: #e67300;
+    --accent: #000000; /* Changed to black */
+    --accent-light: #333333; /* Darker gray */
+    --accent-medium: #1a1a1a; /* Medium dark */
+    --text-light: #ffffff;
+    --bg-dark: #0d0d0d;
+    --bg-card: rgba(25, 25, 25, 0.8);
+    --border-light: rgba(255, 255, 255, 0.12);
+    --primary-rgb: 255, 138, 0;
+    --accent-rgb: 0, 0, 0;
+  }
+
+  /* Main Container */
+  .survey-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #000000, #111111, #1a1a1a);
+    padding: 3rem 1rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Glass Morphism Elements */
+  .glass-morph {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-light);
+    box-shadow: 
+      0 10px 25px rgba(0, 0, 0, 0.2),
+      0 5px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Animated Background */
+  .bg-glow {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(130px);
+    z-index: 0;
+    opacity: 0.7;
+  }
+  
+  .glow-1 {
+    background: radial-gradient(circle at center, var(--primary-light), transparent 70%);
+    width: 600px;
+    height: 600px;
+    top: -200px;
+    left: -150px;
+    animation: pulse 10s infinite alternate;
+  }
+  
+  .glow-2 {
+    background: radial-gradient(circle at center, var(--primary-dark), transparent 70%);
+    width: 700px;
+    height: 700px;
+    bottom: -250px;
+    right: -150px;
+    animation: pulse 12s infinite alternate-reverse;
+  }
+
+  .glow-3 {
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1), transparent 70%);
+    width: 400px;
+    height: 400px;
+    top: 40%;
+    left: 60%;
+    animation: pulse 8s infinite alternate;
+  }
+  
+  @keyframes pulse {
+    0% { opacity: 0.2; transform: scale(1); }
+    100% { opacity: 0.7; transform: scale(1.3); }
+  }
+
+  /* Survey Card */
+  .survey-card {
+    max-width: 900px;
+    margin: 0 auto;
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+    z-index: 10;
+    border: 1px solid rgba(255, 138, 0, 0.15);
+  }
+
+  /* Survey Header */
+  .survey-header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .survey-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.08' fill-rule='evenodd'/%3E%3C/svg%3E");
+    opacity: 0.5;
+  }
+
+  .survey-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .survey-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .survey-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 300;
+    margin-top: 0.5rem;
+    font-size: 1.1rem;
+  }
+
+  .survey-progress {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 138, 0, 0.15);
+  }
+
+  .survey-progress-icon {
+    color: var(--primary);
+    font-size: 1.25rem;
+  }
+
+  .survey-progress-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  /* Progress Bar */
+  .progress-container {
+    width: 100%;
+    height: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 1.5rem;
+    position: relative;
+  }
+
+  .progress-bar {
+    height: 100%;
+    background: white;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.4) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    animation: shimmer 2s infinite;
+    transform: translateX(-100%);
+  }
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  /* Survey Form */
+  .survey-form {
+    padding: 2.5rem;
+  }
+
+  .form-groups-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+    animation: fadeIn 0.5s ease-out forwards;
+    position: relative;
+  }
+
+  .form-group.completed .form-control {
+    border-color: rgba(255, 138, 0, 0.3);
+    background: rgba(255, 138, 0, 0.05);
+  }
+
+  .form-group.full-width {
+    grid-column: 1 / -1;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .form-label {
+    display: block;
+    margin-bottom: 0.75rem;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .label-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border-radius: 50%;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: white;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    color: white;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: all 0.3s ease;
+  }
+
+  .form-control:focus {
+    outline: none;
+    background: rgba(0, 0, 0, 0.25);
+    border-color: rgba(255, 138, 0, 0.4);
+    box-shadow: 0 0 0 3px rgba(255, 138, 0, 0.15);
+  }
+
+  .form-control option {
+    background-color: var(--bg-dark);
+    color: white;
+    padding: 0.5rem;
+  }
+
+  .form-control::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  /* Textarea Styling */
+  textarea.form-control {
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.6;
+  }
+
+  /* Multiple Select Styling */
+  select[multiple] {
+    height: auto;
+    min-height: 150px;
+    padding: 0.75rem;
+  }
+
+  select[multiple] option {
+    padding: 0.75rem;
+    border-radius: 8px;
+    margin-bottom: 0.25rem;
+    transition: all 0.15s ease;
+  }
+
+  select[multiple] option:checked {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark)) !important;
+    color: white;
+  }
+
+  /* Submit Button */
+  .submit-button {
+    width: 100%;
+    padding: 1.25rem;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border: none;
+    border-radius: 15px;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(255, 138, 0, 0.3);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.75rem;
+    position: relative;
+    overflow: hidden;
+    margin-top: 2rem;
+  }
+
+  .submit-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 25px rgba(255, 138, 0, 0.4);
+  }
+
+  .submit-button::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+    transform: translateX(-100%);
+    animation: shimmer-button 3s infinite;
+  }
+
+  @keyframes shimmer-button {
+    100% { transform: translateX(100%); }
+  }
+
+  .submit-button-icon {
+    font-size: 1.25rem;
+    color: white;
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .survey-container {
+      padding: 1.5rem 1rem;
+    }
+
+    .survey-header {
+      padding: 1.5rem;
+    }
+
+    .survey-title {
+      font-size: 1.5rem;
+    }
+
+    .survey-progress {
+      padding: 0.5rem 0.75rem;
+    }
+
+    .survey-form {
+      padding: 1.5rem;
+    }
+
+    .form-groups-container {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .survey-header-content {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .survey-title {
+      font-size: 1.25rem;
+    }
+
+    .survey-form {
+      padding: 1.25rem;
+    }
+
+    .form-label {
+      font-size: 0.95rem;
+    }
+
+    .form-control {
+      padding: 0.875rem 1rem;
+      font-size: 0.95rem;
+    }
+
+    .submit-button {
+      padding: 1rem;
+    }
+  }
+</style>
+
+<div class="survey-container">
+  <!-- Background Glows -->
+  <div class="bg-glow glow-1"></div>
+  <div class="bg-glow glow-2"></div>
+  <div class="bg-glow glow-3"></div>
+
+  <div class="survey-card glass-morph">
+    <!-- Survey Header -->
+    <div class="survey-header">
+      <div class="survey-header-content">
+        <div>
+          <h1 class="survey-title">Skin Health Assessment</h1>
+          <p class="survey-subtitle">Help us understand your skin better</p>
+        </div>
+        <div class="survey-progress">
+          <i class="bi bi-clipboard-check survey-progress-icon"></i>
+          <span class="survey-progress-text">0/12 Completed</span>
+        </div>
+      </div>
+      <div class="progress-container">
+        <div class="progress-bar" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- Survey Form -->
+    <form action="/survey" method="POST" class="survey-form">
+      <!-- Hidden input field for name -->
+      <input type="hidden" id="name" name="name" value="{{ name }}">
+
+      <div class="form-groups-container">
+        <!-- Age -->
+        <div class="form-group">
+          <label for="age" class="form-label">
+            <span class="label-number">1</span>
+            What Is Your Age?
+          </label>
+          <select id="age" name="age" required class="form-control">
+            <option value="" disabled selected>Select your age range</option>
+            <option value="<12">&lt;12</option>
+            <option value="12-18">12-18</option>
+            <option value="18-25">18-25</option>
+            <option value="26-45">26-45</option>
+            <option value="46-55">46-55</option>
+            <option value="55+">55+</option>
+          </select>
+        </div>
+
+        <!-- Gender -->
+        <div class="form-group">
+          <label for="gender" class="form-label">
+            <span class="label-number">2</span>
+            What is your Gender?
+          </label>
+          <select id="gender" name="gender" required class="form-control">
+            <option value="" disabled selected>Select your gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+
+        <!-- Concerns -->
+        <div class="form-group full-width">
+          <label for="concerns" class="form-label">
+            <span class="label-number">3</span>
+            Please Select Your Concerns:
+          </label>
+          <select id="concerns" name="concerns" multiple required class="form-control">
+            <option value="Acne">Acne</option>
+            <option value="Dry skin">Dry skin</option>
+            <option value="Oily skin">Oily skin</option>
+            <option value="Blackheads or whiteheads">Blackheads or whiteheads</option>
+            <option value="Papules">Papules</option>
+            <option value="Skin allergies or irritations">Skin allergies or irritations</option>
+          </select>
+        </div>
+
+        <!-- Acne Frequency -->
+        <div class="form-group">
+          <label for="acne_frequency" class="form-label">
+            <span class="label-number">4</span>
+            How Often Does Your Acne Appear?
+          </label>
+          <select id="acne_frequency" name="acne_frequency" required class="form-control">
+            <option value="" disabled selected>Select frequency</option>
+            <option value="Never">Never</option>
+            <option value="Once in a month">Once in a month</option>
+            <option value="Once in 3 months">Once in 3 months</option>
+            <option value="Always Present">Always Present</option>
+          </select>
+        </div>
+
+        <!-- Comedones Count -->
+        <div class="form-group">
+          <label for="comedones_count" class="form-label">
+            <span class="label-number">5</span>
+            How Many Comedones Do You Have?
+          </label>
+          <select id="comedones_count" name="comedones_count" required class="form-control">
+            <option value="" disabled selected>Select amount</option>
+            <option value="None">None</option>
+            <option value="Less than 5">Less than 5</option>
+            <option value="About 5-10">About 5-10</option>
+            <option value="More than 10">More than 10</option>
+          </select>
+        </div>
+
+        <!-- First Concern -->
+        <div class="form-group">
+          <label for="first_concern" class="form-label">
+            <span class="label-number">6</span>
+            Your Primary Concern:
+          </label>
+          <select id="first_concern" name="first_concern" required class="form-control">
+            <option value="" disabled selected>Select primary concern</option>
+            <option value="Acne">Acne</option>
+            <option value="Dry skin">Dry skin</option>
+            <option value="Oily skin">Oily skin</option>
+            <option value="Blackheads or whiteheads">Blackheads or whiteheads</option>
+            <option value="Papules">Papules</option>
+          </select>
+        </div>
+
+        <!-- Cosmetic Usage -->
+        <div class="form-group">
+          <label for="cosmetics_usage" class="form-label">
+            <span class="label-number">7</span>
+            How Often Do You Use Cosmetics?
+          </label>
+          <select id="cosmetics_usage" name="cosmetics_usage" required class="form-control">
+            <option value="" disabled selected>Select frequency</option>
+            <option value="Everyday">Everyday</option>
+            <option value="Occasionally">Occasionally</option>
+            <option value="Rarely Or Never">Rarely Or Never</option>
+          </select>
+        </div>
+
+        <!-- Skin Reaction -->
+        <div class="form-group">
+          <label for="skin_reaction" class="form-label">
+            <span class="label-number">8</span>
+            Does Your Skin React to Products?
+          </label>
+          <select id="skin_reaction" name="skin_reaction" required class="form-control">
+            <option value="" disabled selected>Select reaction frequency</option>
+            <option value="Rarely/Never">Rarely/Never</option>
+            <option value="Often">Often</option>
+          </select>
+        </div>
+
+        <!-- Skin Type -->
+        <div class="form-group">
+          <label for="skin_type" class="form-label">
+            <span class="label-number">9</span>
+            Which Best Describes Your Skin Type?
+          </label>
+          <select id="skin_type" name="skin_type_details" required class="form-control">
+            <option value="" disabled selected>Select skin type</option>
+            <option value="Combination Skin">Part Oily And Part Normal (Combination Skin)</option>
+            <option value="Normal">Neither Very Oily Nor Very Dry</option>
+            <option value="Oily T-Zone">Oily Forehead And Nose Bridge (T-Zone)</option>
+            <option value="None Of The Above">None Of The Above</option>
+          </select>
+        </div>
+
+        <!-- Medications -->
+        <div class="form-group">
+          <label for="medications" class="form-label">
+            <span class="label-number">10</span>
+            Are You Taking Any Medications?
+          </label>
+          <select id="medications" name="medications" required class="form-control">
+            <option value="" disabled selected>Select option</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+
+        <!-- Skincare Routine -->
+        <div class="form-group full-width">
+          <label for="skincare_routine" class="form-label">
+            <span class="label-number">11</span>
+            Describe Your Current Skincare Routine:
+          </label>
+          <textarea id="skincare_routine" name="skincare_routine" rows="4" required class="form-control" placeholder="Please share your daily skincare routine (morning and evening)..."></textarea>
+        </div>
+
+        <!-- Stress Level -->
+        <div class="form-group full-width">
+          <label for="stress_level" class="form-label">
+            <span class="label-number">12</span>
+            How Would You Describe Your Stress Level? (0-5)
+          </label>
+          <input type="number" id="stress_level" name="stress_level" min="0" max="5" required class="form-control" placeholder="Enter a number from 0 (low) to 5 (high)">
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" class="submit-button">
+        <i class="bi bi-check2-circle submit-button-icon"></i>
+        Submit Assessment
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Track form progress
+  const formGroups = document.querySelectorAll('.form-group');
+  const progressBar = document.querySelector('.progress-bar');
+  const progressText = document.querySelector('.survey-progress-text');
+  const totalQuestions = formGroups.length;
+  let completedQuestions = 0;
+  
+  // Add animation delay to form groups
+  formGroups.forEach((group, index) => {
+    group.style.animationDelay = `${index * 0.05}s`;
+  });
+  
+  // Update progress when form fields change
+  document.querySelectorAll('.form-control').forEach(control => {
+    control.addEventListener('change', updateProgress);
+  });
+  
+  function updateProgress() {
+    completedQuestions = 0;
+    
+    // Check each form control
+    document.querySelectorAll('.form-control').forEach(control => {
+      if (control.value && control.value.trim() !== '') {
+        completedQuestions++;
+        
+        // Add a completed class to parent form group for visual indication
+        control.closest('.form-group').classList.add('completed');
+      } else {
+        control.closest('.form-group').classList.remove('completed');
+      }
+    });
+    
+    // Update progress bar with animation
+    const progressPercentage = (completedQuestions / totalQuestions) * 100;
+    progressBar.style.width = `${progressPercentage}%`;
+    
+    // Update progress text
+    progressText.textContent = `${completedQuestions}/${totalQuestions} Completed`;
+  }
+  
+  // Initial progress update
+  updateProgress();
+});
+</script>
+
+{% endblock %}
+

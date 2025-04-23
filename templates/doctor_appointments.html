@@ -1,0 +1,223 @@
+{% extends "layout.html" %}
+{% block title %}Doctor Appointments | KNOWYOURSKINS{% endblock %}
+{% block content %}
+<div class="container mx-auto px-4 py-8 bg-gray-900">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-white mb-2">Doctor Appointment Dashboard</h1>
+        <p class="text-gray-400">Manage and approve patient appointments</p>
+    </div>
+
+    <!-- Dashboard Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div class="bg-black rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6 border-l-4 border-orange-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-400">Total Appointments</p>
+                    <h3 class="text-2xl font-bold mt-1 text-white">{{ appointments|length }}</h3>
+                </div>
+                <div class="bg-orange-900 p-3 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-black rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6 border-l-4 border-orange-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-400">Approved</p>
+                    <h3 class="text-2xl font-bold mt-1 text-white">{{ appointments|selectattr('status', 'equalto', 'approved')|list|length }}</h3>
+                </div>
+                <div class="bg-orange-900 p-3 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-black rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6 border-l-4 border-orange-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-400">Pending</p>
+                    <h3 class="text-2xl font-bold mt-1 text-white">{{ appointments|selectattr('status', 'equalto', 'pending')|list|length }}</h3>
+                </div>
+                <div class="bg-orange-900 p-3 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-black rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6 border-l-4 border-orange-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-400">Total Patients</p>
+                    <h3 class="text-2xl font-bold mt-1 text-white">{{ appointments|map(attribute='name')|unique|list|length }}</h3>
+                </div>
+                <div class="bg-orange-900 p-3 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="bg-black rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden mb-8 border border-gray-800">
+        <div class="p-4 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-800">
+            <div class="relative w-full md:w-64">
+                <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input type="text" id="search-input" placeholder="Search appointments..." class="pl-8 w-full bg-gray-800 border border-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300">
+            </div>
+            
+            <div class="flex items-center gap-2 w-full md:w-auto">
+                <select id="status-filter" class="bg-gray-800 border border-gray-700 text-white rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-300">
+                    <option value="all">All Status</option>
+                    <option value="approved">Approved</option>
+                    <option value="pending">Pending</option>
+                    <option value="declined">Declined</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    {% if appointments %}
+    <div class="bg-black rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden border border-gray-800">
+        <div class="overflow-x-auto">
+            <table class="min-w-full">
+                <thead>
+                    <tr class="bg-gradient-to-r from-orange-800 to-orange-500 text-white">
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Patient</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Reason</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Skin Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800" id="appointments-table-body">
+                    {% for appointment in appointments %}
+                    <tr class="hover:bg-gray-900 transition-colors duration-150" data-status="{{ appointment.status }}">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
+                            {{ appointment.id }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                            {{ appointment.name }} ({{ appointment.age }})
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                            {{ appointment.email }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                            {{ appointment.date }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-300 max-w-xs truncate">
+                            {{ appointment.address }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-300">
+                            {{ appointment.skin }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if appointment.status == 'approved' %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-900 text-green-100 items-center shadow-sm">
+                                <span class="w-2 h-2 rounded-full bg-green-500 mr-1.5 animate-pulse"></span>
+                                Approved
+                            </span>
+                            {% elif appointment.status == 'declined' %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-900 text-red-100 items-center shadow-sm">
+                                <span class="w-2 h-2 rounded-full bg-red-500 mr-1.5"></span>
+                                Declined
+                            </span>
+                            {% else %}
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-900 text-yellow-100 items-center shadow-sm">
+                                <span class="w-2 h-2 rounded-full bg-yellow-500 mr-1.5 animate-pulse"></span>
+                                Pending
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <form class="flex space-x-2" action="{{ url_for('approve_appointment') }}" method="post">
+                                <input type="hidden" name="appointment_id" value="{{ appointment.id }}">
+                                {% if appointment.status != 'approved' %}
+                                <button type="submit" name="action" value="approve" class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 rounded-md text-xs font-medium shadow-sm transition-all duration-300 hover:scale-105">
+                                    <i class="fas fa-check mr-1"></i> Approve
+                                </button>
+                                {% endif %}
+                                {% if appointment.status != 'declined' %}
+                                <button type="submit" name="action" value="decline" class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 rounded-md text-xs font-medium shadow-sm transition-all duration-300 hover:scale-105">
+                                    <i class="fas fa-times mr-1"></i> Decline
+                                </button>
+                                {% endif %}
+                                {% if appointment.status != 'pending' %}
+                                <button type="submit" name="action" value="pending" class="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 rounded-md text-xs font-medium shadow-sm transition-all duration-300 hover:scale-105">
+                                    <i class="fas fa-redo-alt mr-1"></i> Reset
+                                </button>
+                                {% endif %}
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="bg-black rounded-lg shadow-lg p-8 text-center border border-gray-800">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p class="text-gray-300 text-lg">No appointments found</p>
+        <p class="text-gray-500 mt-2">When patients book appointments, they'll appear here.</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // Search and filter functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('search-input');
+        const statusFilter = document.getElementById('status-filter');
+        const tableRows = document.querySelectorAll('#appointments-table-body tr');
+        
+        function filterTable() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const statusValue = statusFilter.value;
+            
+            tableRows.forEach(row => {
+                const rowText = row.textContent.toLowerCase();
+                const rowStatus = row.getAttribute('data-status');
+                const matchesSearch = rowText.includes(searchTerm);
+                const matchesStatus = statusValue === 'all' || rowStatus === statusValue;
+                
+                if (matchesSearch && matchesStatus) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        searchInput.addEventListener('input', filterTable);
+        statusFilter.addEventListener('change', filterTable);
+        
+        // Add subtle row animations on page load
+        tableRows.forEach((row, index) => {
+            row.style.opacity = "0";
+            row.style.transform = "translateY(10px)";
+            row.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+            
+            setTimeout(() => {
+                row.style.opacity = "1";
+                row.style.transform = "translateY(0)";
+            }, 50 + (index * 30));
+        });
+    });
+</script>
+{% endblock %}

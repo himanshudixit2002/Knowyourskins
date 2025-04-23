@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" href="{{ url_for('static', filename='assets/logo.png') }}" type="image/png">
+<title>{% block title %}My Flask App - Skin Analysis Chat{% endblock %}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          primary: {
+            DEFAULT: '#ff8a00',
+            light: '#ffb347',
+            dark: '#e67300',
+          },
+          dark: {
+            DEFAULT: '#121212',
+            lighter: '#1a1a1a',
+            darker: '#0a0a0a',
+          }
+        },
+        fontFamily: {
+          'poppins': ['"Poppins"', 'sans-serif'],
+        },
+        screens: {
+          'xs': '375px',
+        }
+      }
+    }
+  }
+</script>
+<style>
+  /* Global Reset & Fonts */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  :root {
+    --primary: #ff8a00;
+    --primary-light: #ffb347;
+    --primary-dark: #e67300;
+    --accent: #ff4d00;
+    --text-light: #f8f8f8;
+    --text-dark: #333333;
+    --bg-dark: #121212;
+    --bg-darker: #0a0a0a;
+    --bg-light: #1e1e1e;
+    --border-color: rgba(255, 138, 0, 0.3);
+    --primary-rgb: 255, 138, 0;
+  }
+  
+  body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    overflow-x: hidden;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  /* Background Pattern */
+  .bg-pattern {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    opacity: 0.05;
+    background-image: 
+      linear-gradient(30deg, var(--primary) 12%, transparent 12.5%, transparent 87%, var(--primary) 87.5%, var(--primary)),
+      linear-gradient(150deg, var(--primary) 12%, transparent 12.5%, transparent 87%, var(--primary) 87.5%, var(--primary)),
+      linear-gradient(30deg, var(--primary) 12%, transparent 12.5%, transparent 87%, var(--primary) 87.5%, var(--primary)),
+      linear-gradient(150deg, var(--primary) 12%, transparent 12.5%, transparent 87%, var(--primary) 87.5%, var(--primary)),
+      linear-gradient(60deg, var(--primary-light) 25%, transparent 25.5%, transparent 75%, var(--primary-light) 75%, var(--primary-light)),
+      linear-gradient(60deg, var(--primary-light) 25%, transparent 25.5%, transparent 75%, var(--primary-light) 75%, var(--primary-light));
+    background-size: 80px 140px;
+    background-position: 0 0, 0 0, 40px 70px, 40px 70px, 0 0, 40px 70px;
+  }
+  
+  /* Animated Particles - Common across all pages */
+  .animated-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    overflow: hidden;
+  }
+
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    animation: float 15s infinite ease-in-out;
+  }
+  .particle:nth-child(1) { width: 70px; height: 70px; top: 10%; left: 10%; animation-delay: 0s; }
+  .particle:nth-child(2) { width: 50px; height: 50px; top: 20%; left: 80%; animation-delay: 2s; }
+  .particle:nth-child(3) { width: 80px; height: 80px; top: 60%; left: 70%; animation-delay: 4s; }
+  .particle:nth-child(4) { width: 40px; height: 40px; top: 80%; left: 20%; animation-delay: 6s; }
+  .particle:nth-child(5) { width: 60px; height: 60px; top: 40%; left: 30%; animation-delay: 8s; }
+  .particle:nth-child(6) { width: 50px; height: 50px; top: 30%; left: 60%; animation-delay: 10s; }
+  .particle:nth-child(7) { width: 70px; height: 70px; top: 70%; left: 40%; animation-delay: 12s; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) translateX(0) rotate(0deg); }
+    25% { transform: translateY(-20px) translateX(10px) rotate(5deg); }
+    50% { transform: translateY(0) translateX(20px) rotate(0deg); }
+    75% { transform: translateY(20px) translateX(10px) rotate(-5deg); }
+  }
+
+  /* Animated Gradient Background */
+  .gradient-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, 
+      rgba(255, 138, 0, 0.05) 0%, 
+      rgba(255, 122, 0, 0.05) 25%, 
+      rgba(255, 138, 0, 0.05) 50%, 
+      rgba(255, 122, 0, 0.05) 75%, 
+      rgba(255, 138, 0, 0.05) 100%);
+    background-size: 400% 400%;
+    animation: gradientAnimation 15s ease infinite;
+    z-index: -1;
+  }
+
+  @keyframes gradientAnimation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Card hover effects */
+  .card-hover {
+    transition: all 0.3s ease;
+  }
+  
+  .card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  }
+  
+  /* Responsive typography */
+  @media (max-width: 640px) {
+    h1 {
+      font-size: 1.75rem !important;
+    }
+    
+    h2 {
+      font-size: 1.5rem !important;
+    }
+    
+    h3 {
+      font-size: 1.25rem !important;
+    }
+    
+    p {
+      font-size: 0.95rem !important;
+    }
+  }
+  
+  /* Improved button styles */
+  .btn-primary {
+    background: linear-gradient(to right, var(--primary), var(--primary-light));
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(to right, var(--primary-light), var(--primary));
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255,138,0,0.3);
+  }
+  
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, rgba(255,255,255,0.1), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
+  }
+  
+  .btn-primary:hover::after {
+    transform: translateX(100%);
+  }
+  
+  .btn-secondary {
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,138,0,0.3);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .btn-secondary:hover {
+    background: rgba(0,0,0,0.5);
+    border-color: rgba(255,138,0,0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  }
+</style>
+</head>
+<body>
+  <!-- Background Elements -->
+<div class="bg-pattern"></div>
+<div class="animated-background">
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+  <div class="particle"></div>
+</div>
+  <div class="gradient-bg"></div>
+
+  <!-- Navbar -->
+  <nav class="relative z-50 bg-dark-darker/80 backdrop-blur-md shadow-md shadow-black/10">
+    <div class="container mx-auto px-4 py-3">
+      <div class="flex justify-between items-center">
+      <!-- Logo -->
+        <a href="{{ url_for('index') }}" class="flex items-center gap-2 hover:opacity-90 transition-opacity">
+          <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="KNOWYOURSKINS Logo" class="w-10 h-10">
+          <span class="font-bold text-lg sm:text-xl text-white">KNOW<span class="text-primary">YOUR</span>SKINS</span>
+        </a>
+        
+        <!-- Mobile Menu Button -->
+        <button id="menuBtn" class="md:hidden text-white p-2">
+          <i class="fas fa-bars text-xl"></i>
+        </button>
+        
+        <!-- Desktop Navigation -->
+        <div class="hidden md:flex items-center gap-6">
+          <a href="{{ url_for('index') }}" class="text-white hover:text-primary transition-colors text-sm">Home</a>
+          <a href="{{ url_for('predict') }}" class="text-white hover:text-primary transition-colors text-sm">Face Analysis</a>
+          <a href="{{ url_for('skin_disease_prediction') }}" class="text-white hover:text-primary transition-colors text-sm">Skin Disease</a>
+          <a href="{{ url_for('chatbot_page') }}" class="text-white hover:text-primary transition-colors text-sm flex items-center gap-1"><i class="fas fa-comment-dots"></i> Chatbot</a>
+          
+          {% if session.user_id %}
+            <a href="{{ url_for('profile') }}" class="text-white hover:text-primary transition-colors text-sm">Profile</a>
+            <a href="{{ url_for('logout') }}" class="btn-secondary text-sm px-4 py-2">Logout</a>
+        {% else %}
+            <a href="{{ url_for('login') }}" class="text-white hover:text-primary transition-colors text-sm">Login</a>
+            <a href="{{ url_for('register') }}" class="btn-primary text-sm px-4 py-2">Register</a>
+        {% endif %}
+    </div>
+  </div>
+  
+      <!-- Mobile Menu -->
+      <div id="mobileMenu" class="md:hidden hidden bg-dark-lighter rounded-lg mt-3 p-4 shadow-lg absolute left-4 right-4 z-50">
+        <div class="flex flex-col gap-4">
+          <a href="{{ url_for('index') }}" class="text-white hover:text-primary transition-colors">Home</a>
+          <a href="{{ url_for('predict') }}" class="text-white hover:text-primary transition-colors">Face Analysis</a>
+          <a href="{{ url_for('skin_disease_prediction') }}" class="text-white hover:text-primary transition-colors">Skin Disease</a>
+          <a href="{{ url_for('chatbot_page') }}" class="text-white hover:text-primary transition-colors flex items-center gap-1"><i class="fas fa-comment-dots"></i> Chatbot</a>
+          
+          {% if session.user_id %}
+            <a href="{{ url_for('profile') }}" class="text-white hover:text-primary transition-colors">Profile</a>
+            <a href="{{ url_for('logout') }}" class="w-full btn-secondary py-2 mt-2 text-center">Logout</a>
+    {% else %}
+            <a href="{{ url_for('login') }}" class="text-white hover:text-primary transition-colors">Login</a>
+            <a href="{{ url_for('register') }}" class="w-full btn-primary py-2 mt-2 text-center">Register</a>
+    {% endif %}
+  </div>
+      </div>
+    </div>
+  </nav>
+
+<!-- Main Content -->
+  <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="container mx-auto px-4 mt-4">
+          {% for category, message in messages %}
+            <div class="p-4 mb-4 rounded-lg {{ 'bg-green-500/20 border border-green-500/30' if category == 'success' else 'bg-red-500/20 border border-red-500/30' }}">
+              <p class="{{ 'text-green-400' if category == 'success' else 'text-red-400' }}">{{ message }}</p>
+  </div>
+          {% endfor %}
+      </div>
+{% endif %}
+    {% endwith %}
+    
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-dark-darker mt-12 border-t border-gray-800">
+    <div class="container mx-auto px-4 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Brand -->
+        <div>
+          <a href="{{ url_for('index') }}" class="flex items-center gap-2 mb-4">
+            <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="KNOWYOURSKINS Logo" class="w-10 h-10">
+            <span class="font-bold text-xl text-white">KNOW<span class="text-primary">YOUR</span>SKINS</span>
+          </a>
+          <p class="text-gray-400 text-sm mb-4">Advanced AI-powered skin analysis platform providing personalized recommendations.</p>
+          <div class="flex gap-4">
+            <a href="https://www.instagram.com/himanshu.dixitt?igsh=MXExMWI4ZzIxNDA4cw==" class="text-gray-400 hover:text-primary transition-colors"><i class="fab fa-instagram"></i></a>
+            <a href="https://www.linkedin.com/in/himanshudixit2406/" class="text-gray-400 hover:text-primary transition-colors"><i class="fab fa-linkedin"></i></a>
+            <a href="https://github.com/himanshudixit2002" class="text-gray-400 hover:text-primary transition-colors"><i class="fab fa-github"></i></a>
+        </div>
+      </div>
+      
+      <!-- Quick Links -->
+        <div>
+          <h3 class="text-white font-semibold mb-4">Quick Links</h3>
+          <ul class="space-y-2">
+            <li><a href="{{ url_for('index') }}" class="text-gray-400 hover:text-primary transition-colors text-sm">Home</a></li>
+            <li><a href="{{ url_for('predict') }}" class="text-gray-400 hover:text-primary transition-colors text-sm">Face Analysis</a></li>
+            <li><a href="{{ url_for('skin_disease_prediction') }}" class="text-gray-400 hover:text-primary transition-colors text-sm">Skin Disease Analysis</a></li>
+            <li><a href="{{ url_for('chatbot_page') }}" class="text-gray-400 hover:text-primary transition-colors text-sm">AI Chatbot</a></li>
+            <li><a href="{{ url_for('terms_of_service') }}" class="text-gray-400 hover:text-primary transition-colors text-sm">Terms of Service</a></li>
+            <li><a href="{{ url_for('privacy_policy') }}" class="text-gray-400 hover:text-primary transition-colors text-sm">Privacy Policy</a></li>
+          </ul>
+      </div>
+      
+        <!-- Contact -->
+        <div>
+          <h3 class="text-white font-semibold mb-4">Contact Us</h3>
+          <ul class="space-y-2">
+            <li class="flex items-start gap-3 text-sm">
+              <i class="fas fa-envelope mt-1 text-primary"></i>
+              <span class="text-gray-400">himanshudixit2406@gmail.com</span>
+            </li>
+            <li class="flex items-start gap-3 text-sm">
+              <i class="fas fa-phone mt-1 text-primary"></i>
+              <span class="text-gray-400">+91 7390922922</span>
+            </li>
+            <li class="flex items-start gap-3 text-sm">
+              <i class="fas fa-map-marker-alt mt-1 text-primary"></i>
+              <span class="text-gray-400">Rath, Hamirpur, Uttar Pradesh, 210431</span>
+            </li>
+          </ul>
+      </div>
+    </div>
+    
+      <div class="border-t border-gray-800 mt-8 pt-6 text-center text-gray-500 text-sm">
+        <p>&copy; {{ now.year if now else '2024' }} KNOWYOURSKINS. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+  <!-- JavaScript -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      // Mobile Menu Toggle
+      const menuBtn = document.getElementById('menuBtn');
+      const mobileMenu = document.getElementById('mobileMenu');
+      
+      if (menuBtn && mobileMenu) {
+        menuBtn.addEventListener('click', function() {
+          mobileMenu.classList.toggle('hidden');
+          menuBtn.innerHTML = mobileMenu.classList.contains('hidden') 
+            ? '<i class="fas fa-bars text-xl"></i>' 
+            : '<i class="fas fa-times text-xl"></i>';
+        });
+      }
+      
+      // Smooth scroll for anchor links
+      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+          e.preventDefault();
+          
+          const targetId = this.getAttribute('href');
+          if (targetId === '#') return;
+          
+          const targetElement = document.querySelector(targetId);
+          if (targetElement) {
+            targetElement.scrollIntoView({
+              behavior: 'smooth'
+            });
+          }
+        });
+    });
+  });
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

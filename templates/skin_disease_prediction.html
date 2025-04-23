@@ -1,0 +1,1162 @@
+{% extends "layout.html" %}
+
+{% block title %}Skin Disease Analysis - KNOWYOURSKINS{% endblock %}
+
+{% block content %}
+<!-- Add CSS for loader and enhanced UI -->
+<style>
+  /* Loading indicator styles */
+  .loader-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 2rem;
+  }
+
+  .loader {
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(255, 138, 0, 0.2);
+    border-radius: 50%;
+    border-top-color: var(--primary);
+    animation: spin 1s ease-in-out infinite;
+  }
+
+  .pulse-border {
+    position: relative;
+    animation: pulse-border 2s ease-in-out infinite;
+  }
+
+  .scanning-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, transparent, rgba(255, 138, 0, 0.2), transparent);
+    transform: translateY(-100%);
+    animation: scanning 2s linear infinite;
+    pointer-events: none;
+    opacity: 0;
+    border-radius: 0.5rem;
+  }
+
+  .live-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: #ff4d4d;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    animation: live-pulse 1.5s ease-in-out infinite;
+  }
+
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .scale-in {
+    animation: scaleIn 0.3s ease-in-out;
+  }
+
+  .upload-area-active {
+    animation: border-pulse 2s infinite;
+  }
+
+  /* Animations */
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes pulse-border {
+    0% { box-shadow: 0 0 0 0 rgba(255, 138, 0, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 138, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 138, 0, 0); }
+  }
+
+  @keyframes scanning {
+    0% { transform: translateY(-100%); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translateY(100%); opacity: 0; }
+  }
+
+  @keyframes live-pulse {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes scaleIn {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  @keyframes border-pulse {
+    0% { border-color: rgba(255, 138, 0, 0.4); }
+    50% { border-color: rgba(255, 138, 0, 0.8); }
+    100% { border-color: rgba(255, 138, 0, 0.4); }
+  }
+
+  /* Enhanced UI elements */
+  .analysis-card {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .analysis-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(to right, var(--primary-dark), var(--primary), var(--primary-light));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+
+  .analysis-card:hover::before {
+    transform: scaleX(1);
+  }
+
+  .btn-primary, .btn-secondary {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::after, .btn-secondary::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
+  }
+
+  .btn-primary:hover::after, .btn-secondary:hover::after {
+    transform: translateX(100%);
+  }
+
+  /* AI Analysis Content Styling */
+  .ai-analysis-content {
+    line-height: 1.6;
+  }
+
+  .ai-analysis-content h1, 
+  .ai-analysis-content h2, 
+  .ai-analysis-content h3, 
+  .ai-analysis-content h4 {
+    color: var(--primary);
+    margin-top: 1.2em;
+    margin-bottom: 0.6em;
+    font-weight: 600;
+  }
+
+  .ai-analysis-content h1 {
+    font-size: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.3em;
+  }
+
+  .ai-analysis-content h2 {
+    font-size: 1.3rem;
+  }
+
+  .ai-analysis-content h3 {
+    font-size: 1.1rem;
+  }
+
+  .ai-analysis-content p {
+    margin-bottom: 1em;
+  }
+
+  .ai-analysis-content ul, 
+  .ai-analysis-content ol {
+    margin-left: 1.5em;
+    margin-bottom: 1em;
+  }
+
+  .ai-analysis-content li {
+    margin-bottom: 0.5em;
+  }
+
+  .ai-analysis-content strong {
+    color: var(--primary-light);
+    font-weight: 600;
+  }
+
+  .ai-analysis-content a {
+    color: var(--primary);
+    text-decoration: underline;
+    transition: color 0.2s ease;
+  }
+
+  .ai-analysis-content a:hover {
+    color: var(--primary-light);
+  }
+
+  .ai-analysis-content blockquote {
+    border-left: 3px solid var(--primary);
+    padding-left: 1em;
+    margin-left: 0;
+    margin-right: 0;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .ai-analysis-content pre {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 1em;
+    border-radius: 0.5em;
+    overflow-x: auto;
+  }
+
+  .ai-analysis-content code {
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 0.2em 0.4em;
+    border-radius: 0.3em;
+    font-family: monospace;
+  }
+
+  /* Custom scrollbar for AI analysis */
+  .ai-analysis-container::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .ai-analysis-container::-webkit-scrollbar-track {
+    background: var(--bg-darker);
+    border-radius: 4px;
+  }
+
+  .ai-analysis-container::-webkit-scrollbar-thumb {
+    background-color: var(--primary);
+    border-radius: 4px;
+  }
+
+  .ai-analysis-container::-webkit-scrollbar-thumb:hover {
+    background-color: var(--primary-light);
+  }
+
+  /* Table of Contents Styles */
+  .toc-container {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-left: 3px solid var(--primary);
+  }
+
+  .toc-list {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .toc-list li {
+    margin-bottom: 0.5em;
+    transition: all 0.2s ease;
+  }
+
+  .toc-list li:hover {
+    transform: translateX(3px);
+  }
+
+  .toc-list a {
+    text-decoration: none;
+    display: inline-block;
+    padding: 0.2em 0;
+    font-size: 0.9em;
+    position: relative;
+  }
+
+  .toc-list a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background-color: var(--primary);
+    transition: width 0.3s ease;
+  }
+
+  .toc-list a:hover::after {
+    width: 100%;
+  }
+
+  /* Section Styling */
+  .analysis-section {
+    position: relative;
+    transition: all 0.3s ease;
+    padding-left: 0.5rem;
+  }
+
+  .analysis-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -10px;
+    width: 3px;
+    height: 100%;
+    background: linear-gradient(to bottom, var(--primary), transparent);
+    border-radius: 3px;
+    opacity: 0.3;
+    transition: opacity 0.3s ease;
+  }
+
+  .analysis-section:hover::before {
+    opacity: 0.8;
+  }
+
+  /* Better heading styles */
+  .ai-analysis-content h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .ai-analysis-content h2::before {
+    content: '●';
+    color: var(--primary);
+    font-size: 0.8em;
+  }
+
+  .ai-analysis-content h3::before {
+    content: '►';
+    color: var(--primary);
+    margin-right: 0.5rem;
+    font-size: 0.7em;
+  }
+</style>
+
+<div class="container mx-auto px-4 py-8">
+  <div class="text-center mb-10">
+    <h1 class="text-3xl md:text-4xl font-bold text-white mb-3">Skin Disease <span class="text-primary">Analysis</span></h1>
+    <p class="text-gray-300 max-w-3xl mx-auto">Upload an image of your skin condition or use your camera for real-time analysis. Our AI will identify potential skin diseases and provide helpful information.</p>
+  </div>
+
+  <!-- Analysis Mode Tabs -->
+  <div class="mb-8">
+    <div class="flex flex-wrap justify-center gap-4 mb-4">
+      <button id="uploadModeBtn" class="px-6 py-3 rounded-lg bg-dark-lighter border border-primary/30 text-white hover:border-primary transition-all duration-200 active">
+        <i class="fas fa-upload mr-2"></i> Upload Image
+      </button>
+      <button id="liveModeBtn" class="px-6 py-3 rounded-lg bg-dark-lighter border border-gray-700 text-white hover:border-primary transition-all duration-200">
+        <i class="fas fa-camera mr-2"></i> Live Camera
+      </button>
+    </div>
+    <p id="mode-description" class="text-center text-sm text-gray-400">Upload a clear image of your skin condition for analysis</p>
+  </div>
+
+  <!-- Upload Mode Section -->
+  <div id="uploadModeSection" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Upload Section -->
+    <div class="bg-dark-lighter p-6 rounded-xl shadow-lg border border-gray-800">
+      <h2 class="text-xl font-semibold text-white mb-4">Upload Your Image</h2>
+      
+      <form id="uploadForm" method="POST" enctype="multipart/form-data" action="{{ url_for('skin_disease_prediction') }}" class="mb-6">
+        <div class="mb-6">
+          <label class="block text-gray-300 mb-2">Select an image (JPG, PNG)</label>
+          <div class="relative">
+            <input type="file" id="image" name="image" accept="image/jpeg, image/png" class="hidden" onchange="previewImage(this)">
+            <label for="image" class="flex items-center justify-center w-full h-40 border-2 border-dashed border-primary/40 rounded-lg cursor-pointer hover:border-primary transition-colors" id="upload-label">
+              <div id="upload-placeholder" class="text-center">
+                <i class="fas fa-cloud-upload-alt text-3xl text-primary mb-2"></i>
+                <p class="text-gray-400">Click to select or drop image here</p>
+              </div>
+              <img id="preview" class="absolute inset-0 w-full h-full object-contain rounded-lg hidden">
+              <div id="upload-loading" class="absolute inset-0 w-full h-full bg-dark-lighter/80 rounded-lg hidden flex-col items-center justify-center">
+                <div class="loader mb-3"></div>
+                <p class="text-gray-300">Processing image...</p>
+              </div>
+            </label>
+          </div>
+        </div>
+        
+        <button type="submit" id="analyzeBtn" class="w-full btn-primary py-3 font-semibold flex items-center justify-center" disabled>
+          <i class="fas fa-search-plus mr-2"></i> Analyze Skin Condition
+          <i id="analyze-spinner" class="fas fa-circle-notch fa-spin ml-2 hidden"></i>
+        </button>
+      </form>
+      
+      <div class="text-xs text-gray-400">
+        <p class="mb-1"><i class="fas fa-check-circle text-primary mr-1"></i> High-quality, well-lit images give better results</p>
+        <p class="mb-1"><i class="fas fa-check-circle text-primary mr-1"></i> For best results, capture close-up of the affected area</p>
+        <p><i class="fas fa-shield-alt text-primary mr-1"></i> Your images are processed securely and not stored permanently</p>
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="resultsSection" class="bg-dark-lighter p-6 rounded-xl shadow-lg border border-gray-800 analysis-card {% if not prediction %}flex items-center justify-center{% endif %}">
+      {% if prediction %}
+        <div class="fade-in">
+          <h2 class="text-xl font-semibold text-white mb-4 flex items-center">
+            <i class="fas fa-chart-bar text-primary mr-2"></i> Analysis Results
+          </h2>
+          
+          <div class="mb-4">
+            <p class="text-gray-300 mb-2">Analyzed Image:</p>
+            <img src="{{ image_url }}" alt="Analyzed skin condition" class="w-full h-auto max-h-60 object-contain rounded-lg border border-gray-700 hover:border-primary transition-all duration-300">
+          </div>
+          
+          <div class="mb-6">
+            <h3 class="font-medium text-white flex items-center">
+              Detected Condition: 
+              <span class="text-primary ml-2 bg-primary/10 px-3 py-1 rounded-full text-sm">{{ prediction }}</span>
+            </h3>
+            <div class="mt-3 relative pt-1">
+              <div class="flex items-center justify-between mb-1">
+                <div class="text-sm text-gray-300">Confidence Level</div>
+                <div class="text-sm text-primary font-medium">{{ probabilities[prediction] }}</div>
+              </div>
+              <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-700">
+                <div style="width: {{ probabilities[prediction].replace('%', '') }}%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-primary-dark to-primary"></div>
+              </div>
+            </div>
+          </div>
+          
+          {% if ai_analysis %}
+          <div class="mt-4 bg-dark rounded-lg border border-gray-700 hover:border-primary/30 transition-all duration-300 overflow-hidden">
+            <div class="p-3 border-b border-gray-700 flex items-center justify-between">
+              <h3 class="font-medium text-white flex items-center">
+                <i class="fas fa-robot text-primary mr-2"></i> AI Analysis
+              </h3>
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-gray-400">Powered by KnowYourSkins</span>
+                <i class="fas fa-info-circle text-primary/70"></i>
+              </div>
+            </div>
+            <div class="ai-analysis-container max-h-80 overflow-y-auto p-4" style="scrollbar-width: thin; scrollbar-color: var(--primary) var(--bg-darker);">
+              <div class="ai-analysis-content prose prose-sm prose-invert max-w-none">
+                {{ ai_analysis | safe }}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      {% else %}
+        <div class="text-center py-12 text-gray-400">
+          <i class="fas fa-microscope text-5xl mb-4 text-primary/50"></i>
+          <p>Your analysis results will appear here</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  
+  <!-- Live Mode Section -->
+  <div id="liveModeSection" class="grid grid-cols-1 lg:grid-cols-2 gap-8 hidden">
+    <!-- Camera Capture Section -->
+    <div class="bg-dark-lighter p-6 rounded-xl shadow-lg border border-gray-800 analysis-card">
+      <h2 class="text-xl font-semibold text-white mb-4 flex items-center">
+        <i class="fas fa-video text-primary mr-2"></i> Live Camera Analysis
+      </h2>
+      
+      <div class="relative">
+        <video id="video" class="w-full h-64 object-cover rounded-lg bg-black" autoplay playsinline></video>
+        <div id="camera-overlay" class="absolute inset-0 flex items-center justify-center bg-dark/70 rounded-lg">
+          <div class="text-center">
+            <i class="fas fa-camera-retro text-4xl text-primary/60 mb-2"></i>
+            <p class="text-gray-400">Camera initializing...</p>
+          </div>
+        </div>
+        <div id="scanning-overlay" class="scanning-overlay hidden"></div>
+        <canvas id="canvas" class="hidden"></canvas>
+      </div>
+      
+      <div class="flex gap-2 mt-4">
+        <button id="startCameraBtn" class="flex-1 btn-primary py-2 flex items-center justify-center">
+          <i class="fas fa-play mr-2"></i> Start Camera
+        </button>
+        <button id="captureLiveBtn" class="flex-1 btn-secondary py-2 flex items-center justify-center" disabled>
+          <i class="fas fa-camera mr-2"></i> Capture
+          <i id="capture-spinner" class="fas fa-circle-notch fa-spin ml-2 hidden"></i>
+        </button>
+      </div>
+      
+      <div class="mt-6">
+        <label class="block text-gray-300 mb-2 flex items-center justify-between">
+          <span class="flex items-center">
+            <i class="fas fa-broadcast-tower text-primary mr-2"></i>
+            Live Detection
+            <span id="live-indicator" class="live-dot ml-2 hidden"></span>
+          </span>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input id="liveDetectionToggle" type="checkbox" class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-700 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+          </label>
+        </label>
+        <p id="liveDetectionStatus" class="text-xs text-gray-400 flex items-center">
+          <i class="fas fa-info-circle mr-1 text-primary/70"></i>
+          Live detection is off. Turn on to continuously analyze skin conditions.
+        </p>
+      </div>
+    </div>
+    
+    <!-- Live Results Section -->
+    <div id="liveResultsSection" class="bg-dark-lighter p-6 rounded-xl shadow-lg border border-gray-800 analysis-card">
+      <h2 class="text-xl font-semibold text-white mb-4 flex items-center">
+        <i class="fas fa-chart-line text-primary mr-2"></i> Live Detection Results
+      </h2>
+      
+      <div id="liveCaptureDisplay" class="hidden mb-4 fade-in">
+        <p class="text-gray-300 mb-2">Captured Image:</p>
+        <img id="capturedImage" src="#" alt="Captured skin condition" class="w-full h-auto max-h-60 object-contain rounded-lg border border-gray-700 hover:border-primary transition-all duration-300">
+      </div>
+      
+      <div id="liveResults" class="py-12 text-center text-gray-400">
+        <i class="fas fa-broadcast-tower text-5xl mb-4 text-primary/50"></i>
+        <p>Start the camera and enable live detection to see real-time results</p>
+      </div>
+      
+      <div id="liveAnalysisSection" class="hidden scale-in">
+        <div class="mb-4">
+          <h3 class="font-medium text-white flex items-center">
+            Current Detection: 
+            <span id="liveDiseaseName" class="text-primary ml-2 bg-primary/10 px-3 py-1 rounded-full text-sm">-</span>
+          </h3>
+          <div class="mt-3 relative pt-1">
+            <div class="flex items-center justify-between mb-1">
+              <div class="text-sm text-gray-300">Confidence</div>
+              <div id="liveConfidence" class="text-sm text-primary font-medium">0%</div>
+            </div>
+            <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-700">
+              <div id="liveConfidenceBar" style="width: 0%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-primary-dark to-primary"></div>
+            </div>
+          </div>
+          
+          <!-- Add AI Analysis Insight Section for Live Detection -->
+          <div id="liveInsightContainer" class="mt-4 bg-dark rounded-lg border border-gray-700 hover:border-primary/30 transition-all duration-300 overflow-hidden hidden">
+            <div class="p-3 border-b border-gray-700 flex items-center justify-between">
+              <h3 class="font-medium text-white flex items-center">
+                <i class="fas fa-lightbulb text-primary mr-2"></i> Condition Insights
+              </h3>
+              <div class="flex items-center">
+                <span class="live-dot"></span>
+                <span class="text-xs text-gray-400">Live Analysis</span>
+              </div>
+            </div>
+            <div class="ai-analysis-container max-h-60 overflow-y-auto p-4">
+              <div id="liveInsightContent" class="ai-analysis-content prose prose-sm prose-invert max-w-none">
+                <!-- Live AI insights will be populated here via JavaScript -->
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="livePredictionHistory" class="mt-6">
+          <h3 class="font-medium text-white mb-2 flex items-center">
+            <i class="fas fa-history text-primary mr-2"></i> Recent Detections
+          </h3>
+          <div id="historyItems" class="max-h-64 overflow-y-auto space-y-2">
+            <!-- History items will be populated here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Disclaimer -->
+  <div class="mt-10 p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
+    <h3 class="text-lg font-semibold text-white flex items-center">
+      <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i> Important Disclaimer
+    </h3>
+    <p class="text-gray-300 text-sm mt-2">
+      This tool is designed to provide information and is not a substitute for professional medical advice, diagnosis, or treatment. 
+      Always seek the advice of your physician or other qualified health provider with any questions about your medical condition.
+    </p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Mode switching
+    const uploadModeBtn = document.getElementById('uploadModeBtn');
+    const liveModeBtn = document.getElementById('liveModeBtn');
+    const uploadModeSection = document.getElementById('uploadModeSection');
+    const liveModeSection = document.getElementById('liveModeSection');
+    const modeDescription = document.getElementById('mode-description');
+    
+    uploadModeBtn.addEventListener('click', function() {
+      uploadModeBtn.classList.add('border-primary/30');
+      uploadModeBtn.classList.remove('border-gray-700');
+      liveModeBtn.classList.remove('border-primary/30');
+      liveModeBtn.classList.add('border-gray-700');
+      
+      uploadModeSection.classList.remove('hidden');
+      liveModeSection.classList.add('hidden');
+      modeDescription.textContent = 'Upload a clear image of your skin condition for analysis';
+      
+      // Stop camera if running
+      if (stream) {
+        stopCamera();
+      }
+    });
+    
+    liveModeBtn.addEventListener('click', function() {
+      liveModeBtn.classList.add('border-primary/30');
+      liveModeBtn.classList.remove('border-gray-700');
+      uploadModeBtn.classList.remove('border-primary/30');
+      uploadModeBtn.classList.add('border-gray-700');
+      
+      liveModeSection.classList.remove('hidden');
+      uploadModeSection.classList.add('hidden');
+      modeDescription.textContent = 'Use your camera for real-time skin disease detection';
+    });
+    
+    // Image upload preview and form handling
+    const imageInput = document.getElementById('image');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const preview = document.getElementById('preview');
+    const uploadPlaceholder = document.getElementById('upload-placeholder');
+    const uploadLabel = document.getElementById('upload-label');
+    const uploadLoading = document.getElementById('upload-loading');
+    const analyzeSpinner = document.getElementById('analyze-spinner');
+    const uploadForm = document.getElementById('uploadForm');
+    
+    function previewImage(input) {
+      if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+          preview.src = e.target.result;
+          preview.classList.remove('hidden');
+          uploadPlaceholder.classList.add('hidden');
+          analyzeBtn.disabled = false;
+          
+          // Add active class for visual feedback
+          uploadLabel.classList.add('pulse-border');
+          setTimeout(() => {
+            uploadLabel.classList.remove('pulse-border');
+          }, 1500);
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+      }
+    }
+    
+    // Handle form submission and show loading
+    uploadForm.addEventListener('submit', function() {
+      analyzeBtn.disabled = true;
+      analyzeSpinner.classList.remove('hidden');
+      uploadLoading.classList.remove('hidden');
+      uploadLoading.classList.add('flex');
+    });
+    
+    // Expose previewImage to global scope
+    window.previewImage = previewImage;
+    
+    // Enable drag and drop for image upload
+    const dropArea = uploadLabel;
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropArea.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight() {
+      dropArea.classList.add('upload-area-active');
+    }
+    
+    function unhighlight() {
+      dropArea.classList.remove('upload-area-active');
+    }
+    
+    dropArea.addEventListener('drop', handleDrop, false);
+    
+    function handleDrop(e) {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      
+      if (files && files[0]) {
+        imageInput.files = files;
+        previewImage(imageInput);
+      }
+    }
+    
+    // Live camera functionality
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const startCameraBtn = document.getElementById('startCameraBtn');
+    const captureLiveBtn = document.getElementById('captureLiveBtn');
+    const cameraOverlay = document.getElementById('camera-overlay');
+    const scanningOverlay = document.getElementById('scanning-overlay');
+    const liveDetectionToggle = document.getElementById('liveDetectionToggle');
+    const liveDetectionStatus = document.getElementById('liveDetectionStatus');
+    const liveCaptureDisplay = document.getElementById('liveCaptureDisplay');
+    const capturedImage = document.getElementById('capturedImage');
+    const liveResults = document.getElementById('liveResults');
+    const liveAnalysisSection = document.getElementById('liveAnalysisSection');
+    const liveDiseaseName = document.getElementById('liveDiseaseName');
+    const liveConfidence = document.getElementById('liveConfidence');
+    const liveConfidenceBar = document.getElementById('liveConfidenceBar');
+    const historyItems = document.getElementById('historyItems');
+    const liveIndicator = document.getElementById('live-indicator');
+    const captureSpinner = document.getElementById('capture-spinner');
+    
+    let stream = null;
+    let isLiveDetectionActive = false;
+    let liveDetectionInterval = null;
+    let predictionHistory = [];
+    
+    // Start camera stream
+    startCameraBtn.addEventListener('click', async function() {
+      try {
+        if (stream) {
+          stopCamera();
+          startCameraBtn.innerHTML = '<i class="fas fa-play mr-2"></i> Start Camera';
+          captureLiveBtn.disabled = true;
+          cameraOverlay.classList.remove('hidden');
+          return;
+        }
+        
+        cameraOverlay.classList.remove('hidden');
+        startCameraBtn.disabled = true;
+        startCameraBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Starting...';
+        
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          video: { 
+            facingMode: 'environment',
+            width: { ideal: 1280 },
+            height: { ideal: 720 } 
+          } 
+        });
+        
+        video.srcObject = stream;
+        
+        // Wait for video to be ready
+        video.onloadedmetadata = function() {
+          cameraOverlay.classList.add('hidden');
+          startCameraBtn.disabled = false;
+          startCameraBtn.innerHTML = '<i class="fas fa-stop mr-2"></i> Stop Camera';
+          captureLiveBtn.disabled = false;
+        };
+      } catch (err) {
+        console.error('Error accessing camera:', err);
+        startCameraBtn.disabled = false;
+        startCameraBtn.innerHTML = '<i class="fas fa-play mr-2"></i> Start Camera';
+        alert('Could not access camera. Make sure camera permissions are granted.');
+      }
+    });
+    
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+        stream = null;
+        
+        // Also stop live detection if active
+        if (isLiveDetectionActive) {
+          stopLiveDetection();
+          liveDetectionToggle.checked = false;
+        }
+      }
+    }
+    
+    // Capture image from camera
+    captureLiveBtn.addEventListener('click', function() {
+      if (!stream) return;
+      
+      // Show loading
+      captureLiveBtn.disabled = true;
+      captureSpinner.classList.remove('hidden');
+      
+      const context = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Convert to base64
+      const imageData = canvas.toDataURL('image/jpeg');
+      
+      // Display captured image
+      capturedImage.src = imageData;
+      liveCaptureDisplay.classList.remove('hidden');
+      liveResults.classList.add('hidden');
+      liveAnalysisSection.classList.remove('hidden');
+      
+      // Send to backend for analysis
+      analyzeImageFromCamera(imageData).finally(() => {
+        // Hide loading regardless of result
+        captureLiveBtn.disabled = false;
+        captureSpinner.classList.add('hidden');
+      });
+    });
+    
+    // Live detection toggle
+    liveDetectionToggle.addEventListener('change', function() {
+      if (this.checked) {
+        if (!stream) {
+          // If camera is not started, start it first
+          startCameraBtn.click();
+          // Set a flag to start live detection once camera is ready
+          startCameraBtn.dataset.startLiveAfter = 'true';
+          return;
+        }
+        
+        startLiveDetection();
+      } else {
+        stopLiveDetection();
+      }
+    });
+    
+    function startLiveDetection() {
+      if (!stream) return;
+      
+      isLiveDetectionActive = true;
+      liveDetectionStatus.innerHTML = '<i class="fas fa-info-circle mr-1 text-primary"></i> Live detection is on. Analyzing your skin in real-time...';
+      liveResults.classList.add('hidden');
+      liveAnalysisSection.classList.remove('hidden');
+      liveIndicator.classList.remove('hidden');
+      scanningOverlay.classList.remove('hidden');
+      
+      // Start periodic capture and analysis
+      liveDetectionInterval = setInterval(function() {
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Convert to base64
+        const imageData = canvas.toDataURL('image/jpeg');
+        
+        // Send to backend for real-time analysis
+        analyzeImageFromCamera(imageData, true);
+      }, 2000); // Analyze every 2 seconds
+    }
+    
+    function stopLiveDetection() {
+      if (liveDetectionInterval) {
+        clearInterval(liveDetectionInterval);
+        liveDetectionInterval = null;
+      }
+      
+      isLiveDetectionActive = false;
+      liveDetectionStatus.innerHTML = '<i class="fas fa-info-circle mr-1 text-primary/70"></i> Live detection is off. Turn on to continuously analyze skin conditions.';
+      liveIndicator.classList.add('hidden');
+      scanningOverlay.classList.add('hidden');
+    }
+    
+    // Handle video onloaded event
+    video.addEventListener('loadedmetadata', function() {
+      if (startCameraBtn.dataset.startLiveAfter === 'true') {
+        // Start live detection after camera starts if the flag was set
+        liveDetectionToggle.checked = true;
+        startLiveDetection();
+        delete startCameraBtn.dataset.startLiveAfter;
+      }
+    });
+    
+    // Send image to backend for analysis
+    async function analyzeImageFromCamera(imageData, isRealtime = false) {
+      try {
+        // Show loading state
+        liveDiseaseName.textContent = 'Analyzing...';
+        liveConfidence.textContent = '-';
+        liveConfidenceBar.style.width = '0%';
+        
+        const response = await fetch(`{{ url_for('camera_predict') }}${isRealtime ? '?realtime=true' : ''}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ image_data: imageData })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        
+        const result = await response.json();
+        
+        // Update live results with animation
+        liveAnalysisSection.classList.add('scale-in');
+        setTimeout(() => {
+          liveAnalysisSection.classList.remove('scale-in');
+        }, 300);
+        
+        liveDiseaseName.textContent = result.prediction || 'Unknown';
+        const confidenceValue = result.confidence ? Math.round(result.confidence) : 0;
+        liveConfidence.textContent = `${confidenceValue}%`;
+        
+        // Animate the confidence bar
+        liveConfidenceBar.style.transition = 'width 0.5s ease-in-out';
+        liveConfidenceBar.style.width = `${confidenceValue}%`;
+        
+        // Add to history for live detection mode
+        if (isRealtime) {
+          addToPredictionHistory(result.prediction, confidenceValue);
+        }
+        
+        // Display condition insights if available
+        if (result.ai_analysis) {
+          displayLiveInsights(result.ai_analysis);
+        } else if (result.prediction && !isRealtime) {
+          // Fetch insights for the detected condition on demand
+          fetchConditionInsights(result.prediction);
+        }
+        
+        return result;
+      } catch (error) {
+        console.error('Error analyzing image:', error);
+        liveDiseaseName.textContent = 'Error';
+        liveConfidence.textContent = '-';
+        liveConfidenceBar.style.width = '0%';
+        throw error;
+      }
+    }
+    
+    // Display live condition insights
+    function displayLiveInsights(insightText) {
+      const liveInsightContainer = document.getElementById('liveInsightContainer');
+      const liveInsightContent = document.getElementById('liveInsightContent');
+      
+      if (insightText && insightText.trim() !== '') {
+        // Process the text to ensure proper structure
+        const structuredText = processAIText(insightText);
+        liveInsightContent.innerHTML = structuredText;
+        liveInsightContainer.classList.remove('hidden');
+      } else {
+        liveInsightContainer.classList.add('hidden');
+      }
+    }
+    
+    // Process AI text to ensure proper structure
+    function processAIText(text) {
+      // First, convert any markdown-like content to proper HTML if it's not already
+      if (!text.includes('<h1>') && !text.includes('<h2>') && !text.includes('<h3>')) {
+        // Process headings - Markdown style headings to HTML
+        text = text.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+        text = text.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+        text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+        
+        // Process paragraphs - ensure blank lines create paragraphs
+        const paragraphs = text.split(/\n\s*\n/);
+        text = paragraphs.map(p => {
+          // Skip if it's already an HTML tag
+          if (p.trim().startsWith('<') && !p.trim().startsWith('<li>')) {
+            return p;
+          }
+          return `<p>${p.trim()}</p>`;
+        }).join('\n\n');
+        
+        // Process lists
+        text = text.replace(/^\s*[-*]\s+(.+)$/gm, '<li>$1</li>');
+        text = text.replace(/(<li>.*<\/li>\n)+/gs, match => `<ul>\n${match}\n</ul>`);
+        
+        // Process numbered lists
+        text = text.replace(/^\s*(\d+)\.\s+(.+)$/gm, '<li>$2</li>');
+        text = text.replace(/(<li>.*<\/li>\n)+/gs, match => `<ul>\n${match}\n</ul>`);
+        
+        // Process bold text
+        text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/__(.+?)__/g, '<strong>$1</strong>');
+        
+        // Process italic text
+        text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+        text = text.replace(/_(.+?)_/g, '<em>$1</em>');
+      }
+      
+      // Ensure there's always a main heading
+      if (!text.includes('<h1>') && !text.includes('<h2>')) {
+        text = `<h2>Analysis Results</h2>\n${text}`;
+      }
+      
+      // Add a table of contents for longer texts
+      if ((text.match(/<h2>/g) || []).length >= 3) {
+        const headers = [];
+        let tocHtml = '<div class="toc-container p-3 mb-4 bg-dark-lighter rounded-lg border border-gray-700">\n';
+        tocHtml += '<h4 class="text-primary mb-2">Contents</h4>\n<ul class="toc-list">\n';
+        
+        // Extract headings
+        const headingRegex = /<h([23])>(.*?)<\/h\1>/g;
+        let match;
+        let counter = 0;
+        
+        // Create a clean version of the text for regex processing
+        const cleanText = text.replace(/\n/g, ' ');
+        
+        while ((match = headingRegex.exec(cleanText)) !== null) {
+          const level = match[1];
+          const title = match[2];
+          const id = `section-${counter}`;
+          headers.push({ level, title, id });
+          counter++;
+        }
+        
+        // Generate TOC HTML
+        headers.forEach(header => {
+          const indent = header.level === '3' ? 'ml-4' : '';
+          tocHtml += `<li class="${indent}"><a href="#${header.id}" class="text-primary hover:text-primary-light">${header.title}</a></li>\n`;
+        });
+        
+        tocHtml += '</ul>\n</div>';
+        
+        // Add IDs to headings in the original text
+        counter = 0;
+        text = text.replace(/<h([23])>(.*?)<\/h\1>/g, (match, level, title) => {
+          const id = `section-${counter}`;
+          counter++;
+          return `<h${level} id="${id}">${title}</h${level}>`;
+        });
+        
+        // Add TOC to the beginning
+        text = tocHtml + text;
+      }
+      
+      // Add a visual container around sections
+      if (text.includes('<h2>') || text.includes('<h3>')) {
+        text = text.replace(/<h2 id="([^"]+)">(.*?)<\/h2>/g, 
+          '<div class="analysis-section mb-4 pb-2 border-b border-gray-700">\n<h2 id="$1">$2</h2>');
+        
+        // Close the last section div
+        text += '\n</div>';
+      }
+      
+      return text;
+    }
+    
+    // Ensure base page AI content is also structured
+    document.addEventListener('DOMContentLoaded', function() {
+      // Apply to main AI analysis if present
+      const mainAnalysisContent = document.querySelector('.ai-analysis-content');
+      if (mainAnalysisContent && !document.querySelector('.toc-container')) {
+        const content = mainAnalysisContent.innerHTML;
+        if (content && content.trim() !== '') {
+          mainAnalysisContent.innerHTML = processAIText(content);
+        }
+      }
+    });
+    
+    // Fetch condition insights when not provided by the real-time API
+    async function fetchConditionInsights(condition) {
+      try {
+        const liveInsightContainer = document.getElementById('liveInsightContainer');
+        const liveInsightContent = document.getElementById('liveInsightContent');
+        
+        // Show loading state
+        liveInsightContent.innerHTML = '<div class="flex justify-center py-4"><div class="loader"></div></div>';
+        liveInsightContainer.classList.remove('hidden');
+        
+        // Simulate API call - replace with actual endpoint when available
+        setTimeout(() => {
+          const insights = generateBasicInsights(condition);
+          liveInsightContent.innerHTML = insights;
+        }, 800);
+      } catch (error) {
+        console.error('Error fetching condition insights:', error);
+      }
+    }
+    
+    // Generate basic insights for a condition when API data isn't available
+    function generateBasicInsights(condition) {
+      return `
+        <h2>About ${condition}</h2>
+        <p>This is a common skin condition that may require attention from a dermatologist for proper diagnosis and treatment.</p>
+        
+        <h3>General Information</h3>
+        <p>Skin conditions can vary in severity and treatment approach. The AI has identified visual patterns consistent with ${condition}, but a professional medical evaluation is recommended.</p>
+        
+        <h3>Recommended Next Steps</h3>
+        <ul>
+          <li>Consult with a dermatologist for proper diagnosis</li>
+          <li>Avoid self-medication without professional guidance</li>
+          <li>Keep the affected area clean and avoid irritation</li>
+          <li>Document any changes in the condition over time</li>
+        </ul>
+        
+        <p><strong>Note:</strong> This information is for general guidance only and not a substitute for professional medical advice.</p>
+      `;
+    }
+    
+    // Add prediction to history
+    function addToPredictionHistory(disease, confidence) {
+      // Only add if different from last prediction or confidence changed significantly
+      const lastPrediction = predictionHistory.length > 0 ? predictionHistory[0] : null;
+      if (!lastPrediction || 
+          lastPrediction.disease !== disease || 
+          Math.abs(lastPrediction.confidence - confidence) > 5) {
+        
+        // Add new prediction to history
+        const timestamp = new Date();
+        predictionHistory.unshift({
+          disease,
+          confidence,
+          timestamp
+        });
+        
+        // Limit history to 10 items
+        if (predictionHistory.length > 10) {
+          predictionHistory.pop();
+        }
+        
+        // Update UI
+        updatePredictionHistoryUI();
+      }
+    }
+    
+    // Update prediction history UI
+    function updatePredictionHistoryUI() {
+      historyItems.innerHTML = '';
+      
+      if (predictionHistory.length === 0) {
+        const emptyItem = document.createElement('div');
+        emptyItem.className = 'text-center py-4 text-gray-500';
+        emptyItem.textContent = 'No detection history yet';
+        historyItems.appendChild(emptyItem);
+        return;
+      }
+      
+      predictionHistory.forEach((item, index) => {
+        const historyItem = document.createElement('div');
+        historyItem.className = 'p-3 border border-gray-700 rounded-lg flex justify-between items-center scale-in';
+        
+        const timeString = item.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        historyItem.innerHTML = `
+          <div>
+            <span class="text-white text-sm font-medium">${item.disease}</span>
+            <div class="text-xs text-gray-400 flex items-center">
+              <i class="far fa-clock mr-1"></i> ${timeString}
+            </div>
+          </div>
+          <span class="text-primary text-sm font-medium bg-primary/10 px-2 py-1 rounded-full">${item.confidence}%</span>
+        `;
+        
+        historyItems.appendChild(historyItem);
+        
+        // Add staggered animation
+        setTimeout(() => {
+          historyItem.classList.remove('scale-in');
+        }, index * 100);
+      });
+    }
+    
+    // Clean up on page unload
+    window.addEventListener('beforeunload', function() {
+      stopCamera();
+    });
+  });
+</script>
+{% endblock %} 

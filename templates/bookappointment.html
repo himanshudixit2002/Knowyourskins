@@ -1,0 +1,733 @@
+{% extends "layout.html" %}
+{% block title %}Book an Appointment | SKINTELLECT{% endblock %}
+
+{% block content %}
+<style>
+    /* Background and Layout */
+    .appointments-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #1a1f2c, #2d3748);
+        position: relative;
+        overflow: hidden;
+        padding: 3rem 1rem;
+    }
+    
+    /* Animated Particles */
+    .particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+    }
+    .particle {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        animation: float 15s infinite ease-in-out;
+    }
+    .particle:nth-child(1) { width: 80px; height: 80px; top: 10%; left: 10%; animation-delay: 0s; }
+    .particle:nth-child(2) { width: 60px; height: 60px; top: 20%; left: 80%; animation-delay: 2s; }
+    .particle:nth-child(3) { width: 100px; height: 100px; top: 60%; left: 70%; animation-delay: 4s; }
+    .particle:nth-child(4) { width: 50px; height: 50px; top: 80%; left: 20%; animation-delay: 6s; }
+    .particle:nth-child(5) { width: 70px; height: 70px; top: 40%; left: 30%; animation-delay: 8s; }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0) translateX(0); }
+        25% { transform: translateY(-20px) translateX(10px); }
+        50% { transform: translateY(0) translateX(20px); }
+        75% { transform: translateY(20px) translateX(10px); }
+    }
+
+    /* Background Logo Animation */
+    .background-logo {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 60%;
+        max-width: 700px;
+        opacity: 0.05;
+        transform: translate(-50%, -50%);
+        z-index: 0;
+        animation: rotateLogo 30s linear infinite;
+    }
+    @keyframes rotateLogo {
+        from { transform: translate(-50%, -50%) rotate(0deg); }
+        to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    /* Decorative Elements */
+    .decorative-circle {
+        position: absolute;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(255, 159, 90, 0.2), rgba(255, 122, 0, 0.1));
+        z-index: 0;
+    }
+    .circle-1 {
+        width: 300px;
+        height: 300px;
+        top: -150px;
+        left: -150px;
+    }
+    .circle-2 {
+        width: 400px;
+        height: 400px;
+        bottom: -200px;
+        right: -200px;
+    }
+
+    /* Content Container */
+    .content-container {
+        position: relative;
+        z-index: 10;
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    /* Page Title */
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: white;
+        text-align: center;
+        margin-bottom: 2rem;
+        position: relative;
+        display: inline-block;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .page-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, #FF9F5A, #FF7A00);
+        border-radius: 3px;
+    }
+
+    /* Form Card */
+    .form-card {
+        background: rgba(30, 35, 45, 0.8);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Form Elements */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+        color: white;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        color: white;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 159, 90, 0.5);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(255, 159, 90, 0.25);
+    }
+    
+    .form-control::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+    
+    textarea.form-control {
+        min-height: 100px;
+        resize: vertical;
+    }
+    
+    .submit-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, #FF9F5A, #FF7A00);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(255, 159, 90, 0.4);
+        width: 100%;
+        margin-top: 1rem;
+    }
+    
+    .submit-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(255, 159, 90, 0.5);
+    }
+    
+    .error-feedback {
+        color: #f87171;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+        display: none;
+    }
+    
+    .form-control.is-invalid {
+        border-color: #f87171;
+    }
+    
+    .form-control.is-invalid + .error-feedback {
+        display: block;
+    }
+    
+    /* Form Grid */
+    .form-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-col-6 {
+        flex: 1 0 calc(50% - 0.5rem);
+        min-width: 250px;
+    }
+    
+    .form-col-12 {
+        flex: 1 0 100%;
+    }
+
+    /* Form Section Headers */
+    .form-section-title {
+        color: white;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .form-subtitle {
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    /* Features Section */
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .feature-card {
+        background: rgba(30, 35, 45, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(255, 159, 90, 0.3);
+    }
+    
+    .feature-icon {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #FF9F5A, #FF7A00);
+        border-radius: 50%;
+        margin-right: 1rem;
+        color: white;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+    
+    .feature-content {
+        flex: 1;
+    }
+    
+    .feature-title {
+        color: white;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .feature-description {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+    }
+
+    /* Success Modal */
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+    
+    .modal-backdrop.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .modal-content {
+        background: rgba(30, 35, 45, 0.95);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        padding: 2rem;
+        width: 90%;
+        max-width: 400px;
+        transform: translateY(20px);
+        transition: transform 0.3s ease;
+        text-align: center;
+    }
+    
+    .modal-backdrop.active .modal-content {
+        transform: translateY(0);
+    }
+    
+    .modal-icon {
+        font-size: 3rem;
+        color: #10B981;
+        margin-bottom: 1rem;
+    }
+    
+    .modal-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: white;
+        margin-bottom: 1rem;
+    }
+    
+    .modal-message {
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 1.5rem;
+    }
+    
+    .btn-view-appointments {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem;
+        background: linear-gradient(135deg, #FF9F5A, #FF7A00);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(255, 159, 90, 0.4);
+        text-decoration: none;
+    }
+    
+    .btn-view-appointments:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(255, 159, 90, 0.5);
+    }
+
+    /* Time Slot Selection */
+    .time-slots {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+    }
+    
+    .time-slot {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 0.5rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .time-slot:hover {
+        background: rgba(255, 159, 90, 0.2);
+        border-color: rgba(255, 159, 90, 0.4);
+    }
+    
+    .time-slot.selected {
+        background: rgba(255, 159, 90, 0.3);
+        border-color: rgba(255, 159, 90, 0.6);
+        font-weight: 600;
+    }
+
+    /* Success Message */
+    .success-message {
+        background: rgba(16, 185, 129, 0.2);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        animation: fadeIn 0.5s ease;
+        transition: opacity 0.5s ease;
+    }
+    
+    .success-message i {
+        margin-right: 0.5rem;
+        font-size: 1.25rem;
+    }
+</style>
+
+<div class="appointments-container">
+    <!-- Decorative Elements -->
+    <div class="decorative-circle circle-1"></div>
+    <div class="decorative-circle circle-2"></div>
+    
+    <!-- Animated Particles -->
+    <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+    
+    <!-- Animated Background Logo -->
+    <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Background Logo" class="background-logo">
+    
+    <!-- Content Container -->
+    <div class="content-container">
+        <h1 class="page-title">Book an Appointment</h1>
+        
+        {% if success %}
+        <div class="success-message">
+            <i class="fas fa-check-circle"></i> {{ success_message }}
+        </div>
+        {% endif %}
+        
+        <div class="form-card">
+            <p class="form-subtitle">Fill out the form below to schedule a consultation with one of our skin specialists</p>
+            
+            <form id="appointmentForm" action="{{ url_for('appointment') }}" method="POST">
+                {{ csrf_token() }}
+                <div class="form-section-title">Personal Information</div>
+                
+                <div class="form-row">
+                    <div class="form-col-6">
+                        <div class="form-group">
+                            <label for="name" class="form-label">Full Name</label>
+                            <input type="text" id="name" name="name" class="form-control {% if errors and errors.name %}is-invalid{% endif %}" placeholder="Enter your full name" value="{{ form_data.name if form_data else '' }}" required>
+                            <div class="error-feedback">{% if errors and errors.name %}{{ errors.name }}{% else %}Please provide your full name{% endif %}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-col-6">
+                        <div class="form-group">
+                            <label for="email" class="form-label">Email Address</label>
+                            <input type="email" id="email" name="email" class="form-control {% if errors and errors.email %}is-invalid{% endif %}" placeholder="Enter your email address" value="{{ form_data.email if form_data else '' }}" required>
+                            <div class="error-feedback">{% if errors and errors.email %}{{ errors.email }}{% else %}Please provide a valid email address{% endif %}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-col-6">
+                        <div class="form-group">
+                            <label for="phone" class="form-label">Phone Number</label>
+                            <input type="tel" id="phone" name="phone" class="form-control {% if errors and errors.phone %}is-invalid{% endif %}" placeholder="Enter your phone number" value="{{ form_data.phone if form_data else '' }}" required>
+                            <div class="error-feedback">{% if errors and errors.phone %}{{ errors.phone }}{% else %}Please provide your phone number{% endif %}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-col-6">
+                        <div class="form-group">
+                            <label for="age" class="form-label">Age</label>
+                            <input type="number" id="age" name="age" class="form-control {% if errors and errors.age %}is-invalid{% endif %}" min="1" max="120" placeholder="Your age" value="{{ form_data.age if form_data else '' }}" required>
+                            <div class="error-feedback">{% if errors and errors.age %}{{ errors.age }}{% else %}Please provide a valid age (1-120){% endif %}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section-title">Appointment Details</div>
+                
+                <div class="form-row">
+                    <div class="form-col-6">
+                        <div class="form-group">
+                            <label for="date" class="form-label">Preferred Date</label>
+                            <input type="date" id="date" name="date" class="form-control {% if errors and errors.date %}is-invalid{% endif %}" value="{{ form_data.date if form_data else '' }}" required>
+                            <div class="error-feedback">{% if errors and errors.date %}{{ errors.date }}{% else %}Please select a preferred date{% endif %}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-col-6">
+                        <div class="form-group">
+                            <label for="specialist" class="form-label">Specialist</label>
+                            <select id="specialist" name="specialist" class="form-control {% if errors and errors.specialist %}is-invalid{% endif %}" required>
+                                <option value="" disabled {% if not form_data or not form_data.specialist %}selected{% endif %}>Select a specialist</option>
+                                {% for specialist in specialists %}
+                                <option value="{{ specialist.id }}" {% if form_data and form_data.specialist == specialist.id %}selected{% endif %}>{{ specialist.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="error-feedback">{% if errors and errors.specialist %}{{ errors.specialist }}{% else %}Please select a specialist{% endif %}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Preferred Time</label>
+                    <div class="time-slots">
+                        {% for slot in time_slots %}
+                        <div class="time-slot {% if form_data and form_data.time == slot.value %}selected{% endif %}" data-time="{{ slot.value }}">{{ slot.label }}</div>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" id="time" name="time" value="{{ form_data.time if form_data else '' }}" required>
+                    <div class="error-feedback">{% if errors and errors.time %}{{ errors.time }}{% else %}Please select a preferred time{% endif %}</div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-col-12">
+                        <div class="form-group">
+                            <label for="skin" class="form-label">Skin Type</label>
+                            <select id="skin" name="skin" class="form-control {% if errors and errors.skin %}is-invalid{% endif %}" required>
+                                <option value="" disabled {% if not form_data or not form_data.skin %}selected{% endif %}>Select your skin type</option>
+                                {% for skin_type in skin_types %}
+                                <option value="{{ skin_type }}" {% if form_data and form_data.skin == skin_type %}selected{% endif %}>{{ skin_type }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="error-feedback">{% if errors and errors.skin %}{{ errors.skin }}{% else %}Please select your skin type{% endif %}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-col-12">
+                        <div class="form-group">
+                            <label for="concerns" class="form-label">Skin Concerns</label>
+                            <textarea id="concerns" name="concerns" class="form-control {% if errors and errors.concerns %}is-invalid{% endif %}" placeholder="Please describe your skin concerns or reason for consultation" required>{{ form_data.concerns if form_data else '' }}</textarea>
+                            <div class="error-feedback">{% if errors and errors.concerns %}{{ errors.concerns }}{% else %}Please describe your skin concerns{% endif %}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <i class="fas fa-calendar-check" style="margin-right: 8px;"></i> Schedule Appointment
+                </button>
+            </form>
+        </div>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <div class="feature-content">
+                    <h3 class="feature-title">Expert Dermatologists</h3>
+                    <p class="feature-description">Our team of specialized dermatologists will provide personalized care for your skin concerns.</p>
+                </div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="feature-content">
+                    <h3 class="feature-title">Flexible Scheduling</h3>
+                    <p class="feature-description">Choose appointment times that work with your schedule for maximum convenience.</p>
+                </div>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <div class="feature-content">
+                    <h3 class="feature-title">Comprehensive Care</h3>
+                    <p class="feature-description">Get complete skin assessments and personalized treatment plans for your needs.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal-backdrop" id="successModal">
+    <div class="modal-content">
+        <div class="modal-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h3 class="modal-title">Appointment Booked!</h3>
+        <p class="modal-message">Your appointment has been successfully scheduled. We've sent a confirmation email with all the details.</p>
+        <a href="{{ url_for('userappoint') }}" class="btn-view-appointments" id="viewAppointmentsBtn">
+            <i class="fas fa-calendar" style="margin-right: 8px;"></i> View My Appointments
+        </a>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set minimum date to today
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+    document.getElementById('date').setAttribute('min', formattedDate);
+    
+    // Time slot selection
+    const timeSlots = document.querySelectorAll('.time-slot');
+    const timeInput = document.getElementById('time');
+    
+    timeSlots.forEach(slot => {
+        slot.addEventListener('click', function() {
+            // Remove selected class from all slots
+            timeSlots.forEach(s => s.classList.remove('selected'));
+            
+            // Add selected class to clicked slot
+            this.classList.add('selected');
+            
+            // Set the hidden input value
+            timeInput.value = this.getAttribute('data-time');
+            
+            // Remove any validation error
+            timeInput.classList.remove('is-invalid');
+        });
+    });
+    
+    // Form validation
+    const form = document.getElementById('appointmentForm');
+    const submitBtn = document.getElementById('submitBtn');
+    
+    form.addEventListener('submit', function(event) {
+        let isValid = true;
+        
+        // Reset validation state
+        const formControls = form.querySelectorAll('.form-control');
+        formControls.forEach(control => {
+            control.classList.remove('is-invalid');
+        });
+        
+        // Validate required fields
+        formControls.forEach(control => {
+            if (control.hasAttribute('required') && !control.value.trim()) {
+                control.classList.add('is-invalid');
+                isValid = false;
+            }
+        });
+        
+        // Validate time slot selection
+        if (!timeInput.value) {
+            timeInput.classList.add('is-invalid');
+            isValid = false;
+        }
+        
+        // Validate email format
+        const emailInput = document.getElementById('email');
+        if (emailInput.value.trim()) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(emailInput.value)) {
+                emailInput.classList.add('is-invalid');
+                isValid = false;
+            }
+        }
+        
+        // Validate age range
+        const ageInput = document.getElementById('age');
+        if (ageInput.value.trim()) {
+            const age = parseInt(ageInput.value);
+            if (isNaN(age) || age < 1 || age > 120) {
+                ageInput.classList.add('is-invalid');
+                isValid = false;
+            }
+        }
+        
+        if (!isValid) {
+            event.preventDefault();
+            
+            // Scroll to the first invalid field
+            const firstInvalid = form.querySelector('.is-invalid');
+            if (firstInvalid) {
+                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                firstInvalid.focus();
+            }
+        } else {
+            // Show loading state on submit button
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i> Processing...';
+            submitBtn.disabled = true;
+        }
+    });
+    
+    // Check if there's a success parameter in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('success') && urlParams.get('success') === 'true') {
+        // Show success modal
+        document.getElementById('successModal').classList.add('active');
+    }
+    
+    // Close modal if clicked outside
+    const successModal = document.getElementById('successModal');
+    successModal.addEventListener('click', function(e) {
+        if (e.target === successModal) {
+            successModal.classList.remove('active');
+        }
+    });
+    
+    // Form field animations
+    const formFields = document.querySelectorAll('.form-control, .time-slots');
+    formFields.forEach((field, index) => {
+        field.style.opacity = '0';
+        field.style.transform = 'translateY(10px)';
+        field.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+        
+        setTimeout(() => {
+            field.style.opacity = '1';
+            field.style.transform = 'translateY(0)';
+        }, 100 + (index * 50));
+    });
+});
+</script>
+{% endblock %}

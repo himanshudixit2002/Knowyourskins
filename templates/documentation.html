@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Knowyourskins Documentation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary-color: #2C3E50;  
+      --accent-color: #2980B9;
+      --accent-light: #3498db;
+      --accent-dark: #1a5276;
+      --bg-color: #F4F7F6;
+      --text-color: #333;
+      --light-gray: #BDC3C7;
+      --code-bg: #ECF0F1;
+      --section-bg: #fff;
+      --border-radius: 12px;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      --transition: all 0.3s ease;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--accent-color);
+      border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-dark);
+    }
+    
+    /* Header styling */
+    header {
+      background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+      color: #fff;
+      padding: 60px 20px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      clip-path: polygon(0 0, 100% 0, 100% 85%, 50% 100%, 0 85%);
+      min-height: 300px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    header::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><circle cx="20" cy="20" r="20" fill="rgba(255,255,255,0.05)"/><circle cx="80" cy="80" r="30" fill="rgba(255,255,255,0.05)"/><circle cx="50" cy="50" r="15" fill="rgba(255,255,255,0.05)"/></svg>');
+      background-size: 100px 100px;
+      opacity: 0.5;
+      z-index: 0;
+    }
+    
+    header .content {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    header h1 {
+      font-size: 3.2em;
+      margin-bottom: 15px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    header p {
+      font-size: 1.4em;
+      margin-bottom: 20px;
+      font-weight: 300;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    header .contact-info {
+      font-style: normal;
+      font-size: 1em;
+      color: rgba(255, 255, 255, 0.9);
+      background: rgba(0, 0, 0, 0.1);
+      padding: 10px 20px;
+      border-radius: 30px;
+      backdrop-filter: blur(5px);
+      display: inline-block;
+      margin-top: 10px;
+    }
+    
+    header .contact-info a {
+      color: #fff;
+      text-decoration: none;
+      border-bottom: 1px dotted rgba(255, 255, 255, 0.5);
+      transition: var(--transition);
+    }
+    
+    header .contact-info a:hover {
+      border-bottom-color: #fff;
+    }
+    
+    /* Main container */
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 40px auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 30px;
+      position: relative;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+      position: relative;
+      top: 0;
+      height: auto;
+      margin-bottom: 30px;
+      padding-right: 10px;
+      scrollbar-width: thin;
+    }
+    
+    .toc {
+      background: var(--section-bg);
+      padding: 25px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+    }
+    
+    .toc:hover {
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+    
+    .toc h4 {
+      margin-bottom: 15px;
+      color: var(--primary-color);
+      font-size: 1.3em;
+      font-weight: 600;
+      position: relative;
+      padding-bottom: 10px;
+    }
+    
+    .toc h4::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 50px;
+      height: 3px;
+      background: var(--accent-color);
+      border-radius: 3px;
+    }
+    
+    .toc ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+    
+    .toc ul li {
+      margin-bottom: 12px;
+      position: relative;
+    }
+    
+    .toc ul li a {
+      text-decoration: none;
+      color: var(--text-color);
+      transition: var(--transition);
+      display: block;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+    
+    .toc ul li a:hover {
+      color: var(--accent-color);
+      background: rgba(41, 128, 185, 0.05);
+      transform: translateX(5px);
+    }
+    
+    .toc ul li a::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      background: var(--accent-color);
+      border-radius: 50%;
+      transition: var(--transition);
+    }
+    
+    .toc ul li a:hover::before {
+      width: 6px;
+      height: 6px;
+    }
+    
+    /* Main content */
+    .main-content {
+      background: var(--section-bg);
+      padding: 20px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+    }
+    
+    section {
+      margin-bottom: 40px;
+      animation: fadeIn 0.5s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    h2 {
+      font-size: 2.2em;
+      color: var(--primary-color);
+      margin-bottom: 20px;
+      font-weight: 700;
+      position: relative;
+      padding-bottom: 10px;
+    }
+    
+    h2::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100px;
+      height: 4px;
+      background: linear-gradient(to right, var(--accent-color), var(--accent-light));
+      border-radius: 4px;
+    }
+    
+    h3 {
+      font-size: 1.6em;
+      color: var(--primary-color);
+      margin: 25px 0 15px;
+      font-weight: 600;
+    }
+    
+    p {
+      margin-bottom: 20px;
+      font-size: 1.05em;
+      line-height: 1.7;
+    }
+    
+    ul, ol {
+      margin-bottom: 20px;
+      padding-left: 25px;
+    }
+    
+    li {
+      margin-bottom: 10px;
+      position: relative;
+    }
+    
+    ul li::marker {
+      color: var(--accent-color);
+    }
+    
+    strong {
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+    
+    code {
+      background-color: var(--code-bg);
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9em;
+      color: var(--primary-color);
+    }
+    
+    pre {
+      background-color: var(--code-bg);
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 0.95em;
+      line-height: 1.5;
+      margin: 20px 0;
+      border-left: 4px solid var(--accent-color);
+    }
+    
+    pre code {
+      background: transparent;
+      padding: 0;
+      border-radius: 0;
+    }
+    
+    .section-divider {
+      margin: 50px 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--light-gray), transparent);
+      position: relative;
+    }
+    
+    .section-divider::before {
+      content: "§";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--section-bg);
+      color: var(--light-gray);
+      padding: 0 20px;
+      font-size: 1.2em;
+    }
+    
+    /* Feature cards */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin: 30px 0;
+    }
+    
+    .feature-card {
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      transition: var(--transition);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .feature-card h4 {
+      color: var(--primary-color);
+      font-size: 1.2em;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .feature-card h4 i {
+      margin-right: 10px;
+      color: var(--accent-color);
+    }
+    
+    /* Tech stack cards */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin: 20px 0;
+    }
+    
+    .tech-card {
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      transition: var(--transition);
+    }
+    
+    .tech-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+    
+    .tech-card h4 {
+      color: var(--primary-color);
+      font-size: 1.2em;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+      padding-bottom: 10px;
+    }
+    
+    .tech-card h4 i {
+      margin-right: 10px;
+      color: var(--accent-color);
+    }
+    
+    /* Installation steps */
+    .installation-steps {
+      counter-reset: step;
+      margin: 30px 0;
+    }
+    
+    .step {
+      position: relative;
+      padding: 20px 25px 20px 60px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      transition: var(--transition);
+    }
+    
+    .step:hover {
+      transform: translateX(5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      width: 30px;
+      height: 30px;
+      background: var(--accent-color);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    
+    .step h4 {
+      margin-bottom: 10px;
+      color: var(--primary-color);
+      font-size: 1.2em;
+    }
+    
+    /* API endpoints */
+    .api-endpoint {
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 12px;
+      margin-bottom: 15px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      transition: var(--transition);
+    }
+    
+    .api-endpoint:hover {
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .api-header {
+      padding: 15px 20px;
+      background: var(--primary-color);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .api-method {
+      font-weight: bold;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 5px 10px;
+      border-radius: 4px;
+      margin-right: 10px;
+    }
+    
+    .api-path {
+      font-family: 'Fira Code', Consolas, monospace;
+      font-size: 0.9em;
+    }
+    
+    .api-body {
+      padding: 20px;
+    }
+    
+    /* FAQ styling */
+    .faq-item {
+      margin-bottom: 20px;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      transition: var(--transition);
+    }
+    
+    .faq-item:hover {
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .faq-question {
+      padding: 15px 20px;
+      background: var(--primary-color);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      position: relative;
+    }
+    
+    .faq-question::after {
+      content: "+";
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.5em;
+    }
+    
+    .faq-answer {
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.5);
+    }
+    
+    /* Back to top button */
+    .back-to-top {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 50px;
+      height: 50px;
+      background: var(--accent-color);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      transition: var(--transition);
+      opacity: 0;
+      visibility: hidden;
+      z-index: 100;
+    }
+    
+    .back-to-top.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .back-to-top:hover {
+      background: var(--accent-dark);
+      transform: translateY(-5px);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 1024px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+      
+      .sidebar {
+        position: relative;
+        top: 0;
+        height: auto;
+        margin-bottom: 30px;
+      }
+      
+      .main-content {
+        padding: 20px;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      header {
+        padding: 40px 20px;
+        min-height: 250px;
+      }
+      
+      header h1 {
+        font-size: 2.5em;
+      }
+      
+      header p {
+        font-size: 1.2em;
+      }
+      
+      .main-content {
+        padding: 20px;
+      }
+      
+      h2 {
+        font-size: 1.6em;
+      }
+      
+      h3 {
+        font-size: 1.3em;
+      }
+      
+      .feature-grid, .tech-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      header {
+        padding: 30px 15px;
+        min-height: 200px;
+      }
+      
+      header h1 {
+        font-size: 2em;
+      }
+      
+      header p {
+        font-size: 1em;
+      }
+      
+      .container {
+        width: 95%;
+      }
+      
+      .main-content {
+        padding: 20px;
+      }
+      
+      h2 {
+        font-size: 1.6em;
+      }
+      
+      h3 {
+        font-size: 1.3em;
+      }
+      
+      .step {
+        padding: 15px 15px 15px 50px;
+      }
+      
+      .step::before {
+        left: 15px;
+        top: 15px;
+        width: 25px;
+        height: 25px;
+        font-size: 0.9em;
+      }
+    }
+  </style>
+</head>
+<body>
+<header>
+    <div class="content">
+      <h1 class="text-5xl md:text-7xl font-extrabold text-white mb-4 tracking-tight">
+        Knowyourskins Documentation
+      </h1>
+      <p class="mt-4 text-xl text-gray-200 max-w-2xl mx-auto">
+        Empowering Skincare Through Intelligent Analysis
+      </p>
+      <div class="mt-8 inline-flex items-center px-6 py-3 bg-white/10 backdrop-blur-md rounded-full text-white text-sm">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        Last Updated: February 25, 2025
+      </div>
+    </div>
+  </header>
+
+  
+<div class="container">
+    <div class="sidebar">
+      <nav class="toc">
+        <h4>Table of Contents</h4>
+        <ul>
+          <li><a href="#project-overview"><i class="fas fa-info-circle"></i> Project Overview</a></li>
+          <li><a href="#key-features"><i class="fas fa-star"></i> Key Features</a></li>
+          <li><a href="#tech-stack"><i class="fas fa-layer-group"></i> Technology Stack</a></li>
+          <li><a href="#installation-usage"><i class="fas fa-download"></i> Installation & Usage</a></li>
+          <li><a href="#api-documentation"><i class="fas fa-code"></i> API Documentation</a></li>
+          <li><a href="#system-architecture"><i class="fas fa-sitemap"></i> System Architecture</a></li>
+          <li><a href="#database-schema"><i class="fas fa-database"></i> Database Schema</a></li>
+          <li><a href="#ai-ml-details"><i class="fas fa-brain"></i> AI/ML Model Details</a></li>
+          <li><a href="#deployment-guide"><i class="fas fa-rocket"></i> Deployment Guide</a></li>
+          <li><a href="#security-monitoring"><i class="fas fa-shield-alt"></i> Security & Monitoring</a></li>
+          <li><a href="#faqs"><i class="fas fa-question-circle"></i> FAQs</a></li>
+          <li><a href="#competitive-analysis"><i class="fas fa-chart-line"></i> Competitive Analysis</a></li>
+          <li><a href="#branding-styling"><i class="fas fa-palette"></i> Branding & Styling</a></li>
+          <li><a href="#conclusion"><i class="fas fa-flag-checkered"></i> Conclusion</a></li>
+        </ul>
+      </nav>
+    </div>
+    
+    <div class="main-content">
+      <section id="project-overview">
+        <h2>1. Project Overview</h2>
+        <p>Knowyourskins is an AI-driven skincare analysis platform that leverages advanced image processing and machine learning techniques to provide personalized skincare recommendations. It seamlessly integrates a user-friendly interface with robust backend services, making advanced dermatological analysis accessible to everyone.</p>
+      </section>
+
+
+      <div class="section-divider"></div>
+
+      <section id="key-features">
+        <h2>2. Key Features</h2>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h4><i class="fas fa-brain"></i> AI-Powered Skin Analysis</h4>
+            <ul>
+              <li>Utilizes a custom Convolutional Neural Network (CNN) combined with YOLOv8 for precise detection of skin conditions.</li>
+              <li>Delivers real-time, detailed metrics with confidence scores.</li>
+            </ul>
+          </div>
+          
+          <div class="feature-card">
+            <h4><i class="fas fa-thumbs-up"></i> Personalized Recommendations</h4>
+            <ul>
+              <li>Matches skin concerns with a curated database of skincare products.</li>
+              <li>Delivers tailored suggestions using a hybrid recommendation engine.</li>
+            </ul>
+          </div>
+          
+          <div class="feature-card">
+            <h4><i class="fas fa-camera"></i> Image-Based Assessments</h4>
+            <ul>
+              <li>Intuitive interface for uploading or capturing images.</li>
+              <li>Visual annotations highlight areas of concern with descriptive analysis.</li>
+            </ul>
+          </div>
+          
+          <div class="feature-card">
+            <h4><i class="fas fa-calendar-check"></i> Appointment Booking</h4>
+            <ul>
+              <li>Integrated scheduling system for booking consultations with dermatologists.</li>
+              <li>Automated notifications and reminders for appointments.</li>
+            </ul>
+          </div>
+          
+          <div class="feature-card">
+            <h4><i class="fas fa-user-circle"></i> User Profile Management</h4>
+            <ul>
+              <li>Secure account management and profile editing.</li>
+              <li>Tracks analysis history, recommendations, and appointment records.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="tech-stack">
+        <h2>3. Technology Stack</h2>
+        <div class="tech-grid">
+          <div class="tech-card">
+            <h4><i class="fas fa-server"></i> Backend & API</h4>
+            <ul>
+              <li><strong>Framework:</strong> FastAPI with Uvicorn for asynchronous, high-performance API handling.</li>
+              <li><strong>Language:</strong> Python (3.9+)</li>
+              <li><strong>Authentication:</strong> JWT-based secure authentication with bcrypt hashing.</li>
+            </ul>
+          </div>
+          
+          <div class="tech-card">
+            <h4><i class="fas fa-brain"></i> Machine Learning</h4>
+            <ul>
+              <li><strong>Models:</strong>
+                <ul>
+                  <li>Custom CNN built with TensorFlow/Keras using EfficientNet for feature extraction.</li>
+                  <li>YOLOv8 for object and lesion detection.</li>
+                </ul>
+              </li>
+              <li><strong>Training:</strong> Trained on over 10,000 labeled skin images with extensive data augmentation.</li>
+            </ul>
+          </div>
+          
+          <div class="tech-card">
+            <h4><i class="fas fa-database"></i> Database</h4>
+            <ul>
+              <li><strong>Primary Storage:</strong> PostgreSQL managed via SQLAlchemy.</li>
+              <li><strong>Caching:</strong> Redis for session management and fast query caching.</li>
+            </ul>
+          </div>
+          
+          <div class="tech-card">
+            <h4><i class="fas fa-mobile-alt"></i> Frontend</h4>
+            <ul>
+              <li><strong>Mobile Application:</strong> Developed in Flutter for cross-platform compatibility.</li>
+              <li><strong>Web Interface:</strong> React integrated with Jinja2 templating when needed.</li>
+            </ul>
+          </div>
+          
+          <div class="tech-card">
+            <h4><i class="fas fa-cloud"></i> Infrastructure</h4>
+            <ul>
+              <li><strong>Containerization:</strong> Docker for reliable and reproducible builds.</li>
+              <li><strong>Orchestration:</strong> Kubernetes for scalable production deployments.</li>
+              <li><strong>Cloud Services:</strong> AWS (EC2, RDS, S3) or equivalent providers.</li>
+              <li><strong>CI/CD:</strong> Automated pipelines using GitHub Actions for testing and deployments.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="installation-usage">
+        <h2>4. Installation & Usage</h2>
+        <h3>4.1. Installation</h3>
+        <div class="installation-steps">
+          <div class="step">
+            <h4>Clone the Repository & Set Up Environment</h4>
+            <pre><code>git clone https://github.com/yourusername/KnowYourSkins.git
+cd KnowYourSkins
+python -m venv venv
+source venv/bin/activate   # (On Windows: venv\Scripts\activate)
+pip install -r requirements.txt</code></pre>
+          </div>
+          
+          <div class="step">
+            <h4>Configure Environment Variables</h4>
+            <p>Create a <code>.env</code> file with the following:</p>
+            <ul>
+              <li><code>DATABASE_URL</code> (e.g., <code>postgresql://user:pass@localhost:5432/knowyourskins</code>)</li>
+              <li><code>SECRET_KEY</code> (secure, random string)</li>
+              <li><code>MODEL_PATH</code> (custom path for ML model if needed)</li>
+              <li><code>ENV</code> (set to <code>development</code> for testing)</li>
+            </ul>
+          </div>
+          
+          <div class="step">
+            <h4>Database Setup</h4>
+            <p>Run migrations (using Alembic or provided scripts):</p>
+            <pre><code>alembic upgrade head</code></pre>
+            <p>Optionally, seed the database:</p>
+            <pre><code>python scripts/seed_data.py</code></pre>
+          </div>
+        </div>
+        
+        <h3>4.2. Usage</h3>
+        <div class="installation-steps">
+          <div class="step">
+            <h4>Start the Backend</h4>
+            <pre><code>uvicorn app.main:app --reload --host 0.0.0.0 --port 8000</code></pre>
+            <p>Access the interactive API docs at <code>http://localhost:8000/docs</code>.</p>
+          </div>
+          
+          <div class="step">
+            <h4>Mobile App Setup</h4>
+            <ol>
+              <li>Navigate to the mobile app directory: <code>cd mobile_app</code></li>
+              <li>Install dependencies: <code>flutter pub get</code></li>
+              <li>Configure the API endpoint (e.g., in <code>api_config.dart</code>).</li>
+              <li>Run the app: <code>flutter run</code></li>
+            </ol>
+          </div>
+          
+          <div class="step">
+            <h4>Basic Workflow</h4>
+            <ul>
+              <li><strong>Registration & Login:</strong> Create an account via the app or API endpoints (<code>/auth/register</code> and <code>/auth/login</code>).</li>
+              <li><strong>Image Analysis:</strong> Upload a skin image via <code>POST /analysis</code> to receive analysis results.</li>
+              <li><strong>Recommendations:</strong> Access personalized skincare suggestions through <code>/recommendations</code>.</li>
+              <li><strong>Appointments:</strong> Book consultations using the <code>/appointments</code> endpoint.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="api-documentation">
+        <h2>5. API Documentation</h2>
+        <p>The RESTful API is defined using OpenAPI 3.0 specifications. Key endpoints include:</p>
+        
+        <h3>Authentication</h3>
+        <div class="api-endpoint">
+          <div class="api-header">
+            <span><span class="api-method">POST</span> <span class="api-path">/auth/register</span></span>
+          </div>
+          <div class="api-body">
+            <p>Creates a new user account with JSON data (<code>name</code>, <code>email</code>, <code>password</code>).</p>
+          </div>
+        </div>
+        
+        <div class="api-endpoint">
+          <div class="api-header">
+            <span><span class="api-method">POST</span> <span class="api-path">/auth/login</span></span>
+          </div>
+          <div class="api-body">
+            <p>Authenticates users and returns a JWT token.</p>
+          </div>
+        </div>
+        
+        <h3>Skin Analysis</h3>
+        <div class="api-endpoint">
+          <div class="api-header">
+            <span><span class="api-method">POST</span> <span class="api-path">/analysis</span></span>
+          </div>
+          <div class="api-body">
+            <p>Uploads a skin image (<code>multipart/form-data</code>) and returns analysis results with detected conditions and metrics.</p>
+          </div>
+        </div>
+        
+        <h3>Recommendations</h3>
+        <div class="api-endpoint">
+          <div class="api-header">
+            <span><span class="api-method">GET</span> <span class="api-path">/recommendations</span></span>
+          </div>
+          <div class="api-body">
+            <p>Returns personalized skincare product suggestions, optionally filtered by <code>analysis_id</code>.</p>
+          </div>
+        </div>
+        
+        <h3>Appointments</h3>
+        <div class="api-endpoint">
+          <div class="api-header">
+            <span><span class="api-method">POST</span> <span class="api-path">/appointments</span></span>
+          </div>
+          <div class="api-body">
+            <p>Books an appointment using JSON data (e.g., <code>date</code>, <code>specialist ID</code>).</p>
+          </div>
+        </div>
+        
+        <div class="api-endpoint">
+          <div class="api-header">
+            <span><span class="api-method">GET</span> <span class="api-path">/appointments</span></span>
+          </div>
+          <div class="api-body">
+            <p>Retrieves a list of user appointments.</p>
+          </div>
+        </div>
+        
+        <h3>User Profile</h3>
+        <div class="api-endpoint">
+          <div class="api-header">
+            <span><span class="api-method">GET</span> <span class="api-path">/users/me</span></span>
+          </div>
+          <div class="api-body">
+            <p>Fetches the current user's profile details.</p>
+          </div>
+        </div>
+        
+        <div class="api-endpoint">
+          <div class="api-header">
+            <span><span class="api-method">PUT</span> <span class="api-path">/users/me</span></span>
+          </div>
+          <div class="api-body">
+            <p>Updates user profile information.</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="system-architecture">
+        <h2>6. System Architecture</h2>
+        <p>A high-level overview of the system architecture:</p>
+        <div class="feature-card">
+          <ul>
+            <li><strong>Client Layer:</strong> User interfaces for image upload, analysis results, and appointment scheduling.</li>
+            <li><strong>Backend Layer:</strong> Orchestrates API calls, ML model invocations, and database interactions.</li>
+            <li><strong>ML Layer:</strong> Custom CNN and YOLOv8 for skin analysis and condition detection.</li>
+            <li><strong>Data Layer:</strong> PostgreSQL and Redis for persistent storage and caching.</li>
+            <li><strong>Cloud Integration:</strong> Secure storage and scalable deployment using cloud services.</li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="database-schema">
+        <h2>7. Database Schema</h2>
+        <h3>Main Entities</h3>
+        
+        <div class="api-endpoint">
+          <div class="api-header">
+            <span>Users</span>
+          </div>
+          <div class="api-body">
+            <p>Stores account details and profile information.</p>
+            <pre><code>CREATE TABLE users (
+  user_id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(100) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  skin_type VARCHAR(20),
+  allergies TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);</code></pre>
+          </div>
+        </div>
+        
+        <div class="api-endpoint">
+          <div class="api-header">
+            <span>Analyses</span>
+          </div>
+          <div class="api-body">
+            <p>Records skin analysis details linked to users.</p>
+            <pre><code>CREATE TABLE analyses (
+  analysis_id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+  image_url TEXT NOT NULL,
+  result JSONB NOT NULL,
+  analyzed_at TIMESTAMP NOT NULL DEFAULT NOW()
+);</code></pre>
+          </div>
+        </div>
+        
+        <div class="api-endpoint">
+          <div class="api-header">
+            <span>Products</span>
+          </div>
+          <div class="api-body">
+            <p>Contains information about skincare products.</p>
+            <pre><code>CREATE TABLE products (
+  product_id SERIAL PRIMARY KEY,
+  name VARCHAR(200) NOT NULL,
+  brand VARCHAR(100),
+  category VARCHAR(50),
+  description TEXT,
+  ingredients TEXT,
+  image_url TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);</code></pre>
+          </div>
+        </div>
+        
+        <div class="api-endpoint">
+          <div class="api-header">
+            <span>Recommendations</span>
+          </div>
+          <div class="api-body">
+            <p>Maps analyses to recommended products.</p>
+            <pre><code>CREATE TABLE recommendations (
+  analysis_id INT NOT NULL REFERENCES analyses(analysis_id) ON DELETE CASCADE,
+  product_id INT NOT NULL REFERENCES products(product_id),
+  PRIMARY KEY (analysis_id, product_id)
+);</code></pre>
+          </div>
+        </div>
+        
+        <div class="api-endpoint">
+          <div class="api-header">
+            <span>Appointments</span>
+          </div>
+          <div class="api-body">
+            <p>Manages bookings between users and specialists.</p>
+            <pre><code>CREATE TABLE appointments (
+  appointment_id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+  specialist_id INT NOT NULL,
+  scheduled_at TIMESTAMP NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'Scheduled'
+);</code></pre>
+          </div>
+        </div>
+        
+        <p>Refer to the full ERD diagram for a complete view of relationships.</p>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="ai-ml-details">
+        <h2>8. AI/ML Model Details</h2>
+        <h3>Model Architecture</h3>
+        <div class="feature-card">
+          <ul>
+            <li><strong>Core Model:</strong> A custom CNN based on EfficientNet for feature extraction and multi-task analysis.</li>
+            <li><strong>Detection Component:</strong> YOLOv8 for localized detection of skin lesions.</li>
+            <li><strong>Outputs:</strong> Provides both condition classifications and quantitative metrics.</li>
+          </ul>
+        </div>
+        
+        <h3>Training & Performance</h3>
+        <div class="feature-card">
+          <ul>
+            <li><strong>Dataset:</strong> Trained on 10,000+ augmented skin images.</li>
+            <li><strong>Accuracy:</strong> Approximately 90% with real-time inference (~1 second per image).</li>
+            <li><strong>Enhancements:</strong> Ongoing model improvements and retraining with additional data.</li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="deployment-guide">
+        <h2>9. Deployment Guide</h2>
+        <h3>Infrastructure Setup</h3>
+        <div class="feature-card">
+          <ul>
+            <li>
+              <strong>Cloud Hosting:</strong>
+              <ul>
+                <li>Utilize AWS, GCP, or Azure for production environments.</li>
+                <li>Deploy backend services on EC2 or Kubernetes clusters.</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Database:</strong>
+              <ul>
+                <li>Use PostgreSQL managed by AWS RDS or equivalent.</li>
+                <li>Implement Redis for caching and session management.</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Storage:</strong>
+              <ul>
+                <li>Securely store assets in AWS S3 with encryption enabled.</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        
+        <h3>Deployment Steps</h3>
+        <div class="installation-steps">
+          <div class="step">
+            <h4>Build & Push Docker Image</h4>
+            <pre><code>docker build -t Knowyourskins-backend:latest .
+docker tag Knowyourskins-backend:latest myregistry.com/Knowyourskins:1.0.0
+docker push myregistry.com/Knowyourskins:1.0.0</code></pre>
+          </div>
+          
+          <div class="step">
+            <h4>Provision Infrastructure</h4>
+            <p>Utilize Terraform or CloudFormation for server and network provisioning.</p>
+          </div>
+          
+          <div class="step">
+            <h4>Deploy Containers</h4>
+            <ul>
+              <li>For Kubernetes, configure Deployment and Service manifests.</li>
+              <li>For direct deployments, run containers with Nginx as a reverse proxy.</li>
+            </ul>
+          </div>
+          
+          <div class="step">
+            <h4>Database Migration</h4>
+            <p>Execute migration scripts (e.g., Alembic) to initialize the schema.</p>
+          </div>
+          
+          <div class="step">
+            <h4>CI/CD Integration</h4>
+            <p>Set up automated pipelines with GitHub Actions to build, test, and deploy updates seamlessly.</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="security-monitoring">
+        <h2>10. Security & Monitoring</h2>
+        <h3>Security Best Practices</h3>
+        <div class="feature-card">
+          <ul>
+            <li>
+              <strong>Authentication & Authorization:</strong>
+              <ul>
+                <li>Enforce HTTPS/TLS for all data transmissions.</li>
+                <li>Implement JWT tokens and role-based access controls.</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Data Protection:</strong>
+              <ul>
+                <li>Encrypt sensitive data; hash passwords with bcrypt.</li>
+                <li>Sanitize and validate all user inputs.</li>
+              </ul>
+            </li>
+            <li>
+              <strong>File Handling:</strong>
+              <ul>
+                <li>Validate image file types and sizes prior to processing.</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Access Control:</strong>
+              <ul>
+                <li>Restrict users to their own data and resources.</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Auditing:</strong>
+              <ul>
+                <li>Conduct regular security audits and penetration tests.</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        
+        <h3>Monitoring & Logging</h3>
+        <div class="feature-card">
+          <ul>
+            <li>
+              <strong>Logging:</strong>
+              <ul>
+                <li>Use structured logging for all system events and errors.</li>
+                <li>Aggregate logs with CloudWatch, ELK, or similar solutions.</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Performance Monitoring:</strong>
+              <ul>
+                <li>Leverage APM tools such as Datadog to monitor latency and error rates.</li>
+                <li>Custom metrics for image analysis throughput and appointment bookings.</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Alerts:</strong>
+              <ul>
+                <li>Configure alerts for abnormal system behaviors and security events.</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="faqs">
+        <h2>11. FAQs</h2>
+        <div class="faq-item">
+          <div class="faq-question">What skin conditions does Knowyourskins detect?</div>
+          <div class="faq-answer">
+            <p>It analyzes common issues like acne, hyperpigmentation, wrinkles, and general skin health metrics such as oiliness or dryness.</p>
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <div class="faq-question">How accurate is the analysis?</div>
+          <div class="faq-answer">
+            <p>The models achieve approximately 90% accuracy on high-quality images.</p>
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <div class="faq-question">Is my data secure?</div>
+          <div class="faq-answer">
+            <p>Yes, all communications are secured via HTTPS and sensitive data is encrypted.</p>
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <div class="faq-question">How can I book an appointment?</div>
+          <div class="faq-answer">
+            <p>Use the integrated appointment booking feature or the <code>/appointments</code> API endpoint.</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="competitive-analysis">
+        <h2>12. Competitive Analysis</h2>
+        <p>Knowyourskins distinguishes itself with a holistic and integrated approach:</p>
+        <div class="feature-card">
+          <ul>
+            <li><strong>Comprehensive Solution:</strong> Combines AI-powered analysis, personalized recommendations, and appointment booking.</li>
+            <li><strong>User-Centric Design:</strong> Provides an intuitive experience from self-assessment to professional consultation.</li>
+            <li><strong>Continuous Innovation:</strong> Regular updates and model improvements driven by user feedback and emerging trends.</li>
+            <li><strong>Seamless Integration:</strong> Designed for both consumer use and third-party integrations.</li>
+          </ul>
+        </div>
+        <p>Unlike platforms that focus solely on image analysis or cosmetic suggestions, Knowyourskins delivers a complete end-to-end skincare solution.</p>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="branding-styling">
+        <h2>13. Branding & Styling</h2>
+        <h3>Visual Identity</h3>
+        <div class="feature-card">
+          <ul>
+            <li><strong>Logo & Colors:</strong> A modern, clean logo paired with a soothing palette exuding professionalism and innovation.</li>
+            <li><strong>Typography:</strong> Crisp, legible fonts with a clear hierarchy to enhance readability.</li>
+            <li><strong>Imagery:</strong> Custom diagrams and visuals to illustrate complex systems and enhance clarity.</li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="section-divider"></div>
+
+      <section id="conclusion">
+        <h2>Conclusion</h2>
+        <p>Knowyourskins represents a transformative approach to personalized skincare. Leveraging advanced AI and a robust technology stack, it provides actionable insights and seamless integration with professional dermatology services. This documentation offers a detailed roadmap—from installation and API usage to deployment and security—ensuring a clear understanding for developers, investors, and users alike.</p>
+        <p>For additional details, refer to the full repository documentation or contact our team directly.</p>
+      </section>
+    </div>
+  </div>
+  
+  <div class="back-to-top" id="backToTop">
+    <i class="fas fa-arrow-up"></i>
+  </div>
+  
+  <script>
+    // Back to top button functionality
+    const backToTopButton = document.getElementById('backToTop');
+    
+    window.addEventListener('scroll', () => {
+      if (window.pageYOffset > 300) {
+        backToTopButton.classList.add('visible');
+      } else {
+        backToTopButton.classList.remove('visible');
+      }
+    });
+    
+    backToTopButton.addEventListener('click', () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    });
+    
+    // FAQ accordion functionality
+    const faqQuestions = document.querySelectorAll('.faq-question');
+    
+    faqQuestions.forEach(question => {
+      question.addEventListener('click', () => {
+        const answer = question.nextElementSibling;
+        const isOpen = answer.style.display === 'block';
+        
+        // Close all answers
+        document.querySelectorAll('.faq-answer').forEach(ans => {
+          ans.style.display = 'none';
+        });
+        
+        document.querySelectorAll('.faq-question').forEach(q => {
+          q.style.borderRadius = '12px';
+        });
+        
+        // Open clicked answer if it was closed
+        if (!isOpen) {
+          answer.style.display = 'block';
+          question.style.borderRadius = '12px 12px 0 0';
+        }
+      });
+    });
+    
+    // Initialize: Open first FAQ by default
+    if (faqQuestions.length > 0) {
+      faqQuestions[0].nextElementSibling.style.display = 'block';
+      faqQuestions[0].style.borderRadius = '12px 12px 0 0';
+    }
+    
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const targetId = this.getAttribute('href');
+        const targetElement = document.querySelector(targetId);
+        
+        if (targetElement) {
+          window.scrollTo({
+            top: targetElement.offsetTop - 20,
+            behavior: 'smooth'
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
